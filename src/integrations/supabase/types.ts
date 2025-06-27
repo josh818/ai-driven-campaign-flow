@@ -39,34 +39,46 @@ export type Database = {
       brand_mentions: {
         Row: {
           brand_name: string
+          confidence_score: number | null
           created_at: string
           id: string
           mention_text: string
           mentioned_at: string
           platform: string
           sentiment: string | null
+          sentiment_score: number | null
+          site_priority: number | null
+          source_domain: string | null
           url: string | null
           user_id: string
         }
         Insert: {
           brand_name: string
+          confidence_score?: number | null
           created_at?: string
           id?: string
           mention_text: string
           mentioned_at: string
           platform: string
           sentiment?: string | null
+          sentiment_score?: number | null
+          site_priority?: number | null
+          source_domain?: string | null
           url?: string | null
           user_id: string
         }
         Update: {
           brand_name?: string
+          confidence_score?: number | null
           created_at?: string
           id?: string
           mention_text?: string
           mentioned_at?: string
           platform?: string
           sentiment?: string | null
+          sentiment_score?: number | null
+          site_priority?: number | null
+          source_domain?: string | null
           url?: string | null
           user_id?: string
         }
@@ -363,6 +375,39 @@ export type Database = {
         }
         Relationships: []
       }
+      google_trends_data: {
+        Row: {
+          created_at: string
+          geo_location: string | null
+          id: string
+          interest_score: number
+          keyword: string
+          time_period: string | null
+          trend_date: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          geo_location?: string | null
+          id?: string
+          interest_score: number
+          keyword: string
+          time_period?: string | null
+          trend_date?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          geo_location?: string | null
+          id?: string
+          interest_score?: number
+          keyword?: string
+          time_period?: string | null
+          trend_date?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       monitored_terms: {
         Row: {
           created_at: string
@@ -411,6 +456,36 @@ export type Database = {
           full_name?: string | null
           id?: string
           updated_at?: string
+        }
+        Relationships: []
+      }
+      site_priorities: {
+        Row: {
+          created_at: string
+          id: string
+          is_active: boolean
+          priority_score: number
+          site_name: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          priority_score?: number
+          site_name: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          priority_score?: number
+          site_name?: string
+          updated_at?: string
+          user_id?: string
         }
         Relationships: []
       }
