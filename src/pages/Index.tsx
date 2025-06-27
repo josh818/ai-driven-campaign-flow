@@ -13,6 +13,7 @@ import {
   Users,
   Target
 } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 const Index = () => {
   const { user } = useAuth();
@@ -25,10 +26,10 @@ const Index = () => {
   ];
 
   const quickActions = [
-    { name: 'Create Campaign', icon: PlusCircle, color: 'from-purple-500 to-pink-500' },
-    { name: 'View Calendar', icon: Calendar, color: 'from-blue-500 to-cyan-500' },
-    { name: 'Analytics', icon: BarChart3, color: 'from-green-500 to-emerald-500' },
-    { name: 'Reputation', icon: MessageSquare, color: 'from-orange-500 to-red-500' },
+    { name: 'Create Campaign', icon: PlusCircle, color: 'from-purple-500 to-pink-500', href: '/create-campaign' },
+    { name: 'View Calendar', icon: Calendar, color: 'from-blue-500 to-cyan-500', href: '/calendar' },
+    { name: 'Analytics', icon: BarChart3, color: 'from-green-500 to-emerald-500', href: '/analytics' },
+    { name: 'All Campaigns', icon: MessageSquare, color: 'from-orange-500 to-red-500', href: '/campaigns' },
   ];
 
   return (
@@ -79,16 +80,17 @@ const Index = () => {
               <CardContent>
                 <div className="grid grid-cols-2 gap-4">
                   {quickActions.map((action) => (
-                    <Button
-                      key={action.name}
-                      variant="outline"
-                      className="h-20 flex-col space-y-2 border-2 hover:border-purple-300 transition-all duration-200"
-                    >
-                      <div className={`p-2 bg-gradient-to-br ${action.color} rounded-lg`}>
-                        <action.icon className="h-6 w-6 text-white" />
-                      </div>
-                      <span className="text-sm font-medium">{action.name}</span>
-                    </Button>
+                    <Link key={action.name} to={action.href}>
+                      <Button
+                        variant="outline"
+                        className="h-20 w-full flex-col space-y-2 border-2 hover:border-purple-300 transition-all duration-200"
+                      >
+                        <div className={`p-2 bg-gradient-to-br ${action.color} rounded-lg`}>
+                          <action.icon className="h-6 w-6 text-white" />
+                        </div>
+                        <span className="text-sm font-medium">{action.name}</span>
+                      </Button>
+                    </Link>
                   ))}
                 </div>
               </CardContent>
