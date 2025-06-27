@@ -130,6 +130,56 @@ export type Database = {
           },
         ]
       }
+      campaign_generated_content: {
+        Row: {
+          campaign_id: string
+          content_text: string | null
+          content_type: string
+          created_at: string
+          generated_prompt: string | null
+          id: string
+          media_type: string
+          media_url: string | null
+          platform: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          campaign_id: string
+          content_text?: string | null
+          content_type: string
+          created_at?: string
+          generated_prompt?: string | null
+          id?: string
+          media_type: string
+          media_url?: string | null
+          platform: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          campaign_id?: string
+          content_text?: string | null
+          content_type?: string
+          created_at?: string
+          generated_prompt?: string | null
+          id?: string
+          media_type?: string
+          media_url?: string | null
+          platform?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "campaign_generated_content_campaign_id_fkey"
+            columns: ["campaign_id"]
+            isOneToOne: false
+            referencedRelation: "campaigns"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       campaigns: {
         Row: {
           brand_name: string | null
@@ -202,6 +252,51 @@ export type Database = {
           full_name?: string | null
           id?: string
           updated_at?: string
+        }
+        Relationships: []
+      }
+      social_connections: {
+        Row: {
+          access_token: string | null
+          account_id: string | null
+          account_name: string | null
+          connected_at: string | null
+          created_at: string
+          expires_at: string | null
+          id: string
+          is_connected: boolean
+          platform: string
+          refresh_token: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          access_token?: string | null
+          account_id?: string | null
+          account_name?: string | null
+          connected_at?: string | null
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          is_connected?: boolean
+          platform: string
+          refresh_token?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          access_token?: string | null
+          account_id?: string | null
+          account_name?: string | null
+          connected_at?: string | null
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          is_connected?: boolean
+          platform?: string
+          refresh_token?: string | null
+          updated_at?: string
+          user_id?: string
         }
         Relationships: []
       }

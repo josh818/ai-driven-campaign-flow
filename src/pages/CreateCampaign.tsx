@@ -9,7 +9,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/hooks/use-toast';
-import { ArrowLeft, Save, Wand2 } from 'lucide-react';
+import { ArrowLeft, Save, Wand2, Sparkles } from 'lucide-react';
 import Header from '@/components/Header';
 import AIContentGenerator from '@/components/AIContentGenerator';
 
@@ -18,6 +18,7 @@ const CreateCampaign = () => {
   const { toast } = useToast();
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
+  const [isGeneratingContent, setIsGeneratingContent] = useState(false);
   const [formData, setFormData] = useState({
     title: '',
     description: '',
@@ -28,6 +29,34 @@ const CreateCampaign = () => {
     start_date: '',
     end_date: ''
   });
+
+  const generateCampaignContent = async (campaignId: string) => {
+    setIsGeneratingContent(true);
+    try {
+      const response = await supabase.functions.invoke('generate-campaign-content', {
+        body: {
+          campaignId,
+          campaignData: formData
+        }
+      });
+
+      if (response.error) throw response.error;
+
+      toast({
+        title: "Content Generated!",
+        description: `Generated ${response.data.generatedCount} pieces of content across all platforms.`,
+      });
+    } catch (error: any) {
+      console.error('Error generating content:', error);
+      toast({
+        title: "Content Generation Failed",
+        description: "Campaign created but content generation failed. You can generate content later.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsGeneratingContent(false);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -45,7 +74,7 @@ const CreateCampaign = () => {
         return;
       }
 
-      const { error } = await supabase
+      const { data, error } = await supabase
         .from('campaigns')
         .insert({
           user_id: user!.id,
@@ -58,14 +87,19 @@ const CreateCampaign = () => {
           start_date,
           end_date,
           status: 'draft'
-        });
+        })
+        .select()
+        .single();
 
       if (error) throw error;
 
       toast({
-        title: "Success",
-        description: "Campaign created successfully!",
+        title: "Campaign Created!",
+        description: "Now generating content for all platforms...",
       });
+
+      // Automatically generate content for all platforms
+      await generateCampaignContent(data.id);
 
       navigate('/campaigns');
     } catch (error: any) {
@@ -111,9 +145,23 @@ const CreateCampaign = () => {
           </Button>
           <div>
             <h2 className="text-3xl font-bold text-gray-900">Create New Campaign</h2>
-            <p className="text-gray-600">Set up your marketing campaign with AI assistance</p>
+            <p className="text-gray-600">Set up your marketing campaign with AI-powered content generation</p>
           </div>
         </div>
+
+        {isGeneratingContent && (
+          <Card className="border-0 shadow-lg bg-gradient-to-r from-purple-100 to-pink-100 mb-6">
+            <CardContent className="p-4">
+              <div className="flex items-center space-x-3">
+                <Sparkles className="h-5 w-5 text-purple-600 animate-pulse" />
+                <div>
+                  <p className="font-medium text-purple-900">Generating content across all platforms...</p>
+                  <p className="text-sm text-purple-700">Creating images, copy, and videos for organic posts, paid ads, and emails</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
 
         <Tabs defaultValue="details" className="space-y-6">
           <TabsList>
@@ -217,20 +265,36 @@ const CreateCampaign = () => {
                       />
                     </div>
                   </div>
+
+                  <div className="bg-gradient-to-r from-purple-50 to-pink-50 p-4 rounded-lg">
+                    <div className="flex items-center space-x-2 mb-2">
+                      <Sparkles className="h-5 w-5 text-purple-600" />
+                      <h4 className="font-medium text-purple-900">AI Content Generation</h4>
+                    </div>
+                    <p className="text-sm text-purple-700">
+                      When you create this campaign, AI will automatically generate content for:
+                    </p>
+                    <ul className="text-sm text-purple-700 mt-2 ml-4 space-y-1">
+                      <li>• Organic posts, paid ads, and email content</li>
+                      <li>• Facebook, Instagram, LinkedIn, X, Mailchimp, and Klaviyo</li>
+                      <li>• Copy, images, and video concepts</li>
+                    </ul>
+                  </div>
+
                   <Button
                     type="submit"
                     className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700"
-                    disabled={isLoading}
+                    disabled={isLoading || isGeneratingContent}
                   >
                     {isLoading ? (
                       <>
                         <Save className="mr-2 h-4 w-4 animate-spin" />
-                        Saving...
+                        Creating Campaign...
                       </>
                     ) : (
                       <>
-                        <Save className="mr-2 h-4 w-4" />
-                        Save Campaign
+                        <Sparkles className="mr-2 h-4 w-4" />
+                        Create Campaign & Generate Content
                       </>
                     )}
                   </Button>
