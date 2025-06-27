@@ -1,9 +1,9 @@
-
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import Header from '@/components/Header';
 import ContentPreviews from '@/components/ContentPreviews';
+import SuggestedCampaigns from '@/components/SuggestedCampaigns';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { 
@@ -287,7 +287,12 @@ const Index = () => {
           </div>
         </div>
 
-        {/* Schedule By Channel Section - Now positioned right after the main content grid */}
+        {/* Suggested Campaigns Section */}
+        <div className="mb-8">
+          <SuggestedCampaigns />
+        </div>
+
+        {/* Schedule By Channel Section - Now positioned right after suggested campaigns */}
         <div className="max-w-5xl">
           <ContentPreviews />
         </div>

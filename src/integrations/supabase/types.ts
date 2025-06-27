@@ -9,6 +9,33 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      admin_roles: {
+        Row: {
+          created_at: string
+          granted_at: string
+          granted_by: string | null
+          id: string
+          role: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          granted_at?: string
+          granted_by?: string | null
+          id?: string
+          role?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          granted_at?: string
+          granted_by?: string | null
+          id?: string
+          role?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       brand_mentions: {
         Row: {
           brand_name: string
@@ -130,6 +157,78 @@ export type Database = {
           },
         ]
       }
+      campaign_emails: {
+        Row: {
+          campaign_id: string
+          clicked_at: string | null
+          created_at: string
+          email_template_id: string | null
+          error_message: string | null
+          html_content: string
+          id: string
+          opened_at: string | null
+          recipient_email: string
+          recipient_name: string | null
+          scheduled_for: string | null
+          sent_at: string | null
+          status: string
+          subject: string
+          text_content: string | null
+          updated_at: string
+        }
+        Insert: {
+          campaign_id: string
+          clicked_at?: string | null
+          created_at?: string
+          email_template_id?: string | null
+          error_message?: string | null
+          html_content: string
+          id?: string
+          opened_at?: string | null
+          recipient_email: string
+          recipient_name?: string | null
+          scheduled_for?: string | null
+          sent_at?: string | null
+          status?: string
+          subject: string
+          text_content?: string | null
+          updated_at?: string
+        }
+        Update: {
+          campaign_id?: string
+          clicked_at?: string | null
+          created_at?: string
+          email_template_id?: string | null
+          error_message?: string | null
+          html_content?: string
+          id?: string
+          opened_at?: string | null
+          recipient_email?: string
+          recipient_name?: string | null
+          scheduled_for?: string | null
+          sent_at?: string | null
+          status?: string
+          subject?: string
+          text_content?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "campaign_emails_campaign_id_fkey"
+            columns: ["campaign_id"]
+            isOneToOne: false
+            referencedRelation: "campaigns"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "campaign_emails_email_template_id_fkey"
+            columns: ["email_template_id"]
+            isOneToOne: false
+            referencedRelation: "email_templates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       campaign_generated_content: {
         Row: {
           campaign_id: string
@@ -225,6 +324,42 @@ export type Database = {
           title?: string
           updated_at?: string
           user_id?: string
+        }
+        Relationships: []
+      }
+      email_templates: {
+        Row: {
+          category: string | null
+          created_at: string
+          created_by: string | null
+          html_content: string
+          id: string
+          name: string
+          subject: string
+          text_content: string | null
+          updated_at: string
+        }
+        Insert: {
+          category?: string | null
+          created_at?: string
+          created_by?: string | null
+          html_content: string
+          id?: string
+          name: string
+          subject: string
+          text_content?: string | null
+          updated_at?: string
+        }
+        Update: {
+          category?: string | null
+          created_at?: string
+          created_by?: string | null
+          html_content?: string
+          id?: string
+          name?: string
+          subject?: string
+          text_content?: string | null
+          updated_at?: string
         }
         Relationships: []
       }
@@ -360,12 +495,110 @@ export type Database = {
         }
         Relationships: []
       }
+      suggested_campaigns: {
+        Row: {
+          category: string | null
+          created_at: string
+          created_by: string | null
+          description: string
+          id: string
+          is_active: boolean
+          priority: number | null
+          suggested_goals: string[] | null
+          target_audience: string | null
+          template_content: string | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          category?: string | null
+          created_at?: string
+          created_by?: string | null
+          description: string
+          id?: string
+          is_active?: boolean
+          priority?: number | null
+          suggested_goals?: string[] | null
+          target_audience?: string | null
+          template_content?: string | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          category?: string | null
+          created_at?: string
+          created_by?: string | null
+          description?: string
+          id?: string
+          is_active?: boolean
+          priority?: number | null
+          suggested_goals?: string[] | null
+          target_audience?: string | null
+          template_content?: string | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      user_campaign_assignments: {
+        Row: {
+          assigned_at: string
+          assigned_by: string
+          assigned_to_user_id: string
+          assignment_notes: string | null
+          campaign_id: string
+          completed_at: string | null
+          created_at: string
+          due_date: string | null
+          id: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          assigned_at?: string
+          assigned_by: string
+          assigned_to_user_id: string
+          assignment_notes?: string | null
+          campaign_id: string
+          completed_at?: string | null
+          created_at?: string
+          due_date?: string | null
+          id?: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          assigned_at?: string
+          assigned_by?: string
+          assigned_to_user_id?: string
+          assignment_notes?: string | null
+          campaign_id?: string
+          completed_at?: string | null
+          created_at?: string
+          due_date?: string | null
+          id?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_campaign_assignments_campaign_id_fkey"
+            columns: ["campaign_id"]
+            isOneToOne: false
+            referencedRelation: "campaigns"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      is_admin: {
+        Args: { user_id?: string }
+        Returns: boolean
+      }
     }
     Enums: {
       [_ in never]: never
