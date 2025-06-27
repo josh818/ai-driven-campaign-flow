@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
@@ -183,33 +182,10 @@ const Index = () => {
           ))}
         </div>
 
-        {/* Brand Alert Banner */}
-        <Card className="border-0 shadow-lg bg-gradient-to-r from-orange-50 to-red-50 border-l-4 border-orange-400 mb-8">
-          <CardContent className="p-6">
-            <div className="flex items-center space-x-4">
-              <AlertTriangle className="h-8 w-8 text-orange-500" />
-              <div className="flex-1">
-                <h3 className="text-lg font-semibold text-gray-900">Brand Monitoring Active</h3>
-                <p className="text-gray-600">
-                  {dashboardStats.brandMentions !== 'N/A' && dashboardStats.brandMentions !== '0' 
-                    ? `${dashboardStats.brandMentions} mentions detected in the last week. Review needed.`
-                    : 'No recent brand mentions detected. Monitoring is active.'
-                  }
-                </p>
-              </div>
-              <Link to="/reputation">
-                <Button className="bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600">
-                  View Details
-                </Button>
-              </Link>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Brand Monitoring Section */}
+        {/* Brand Monitoring Section - Made 60% less tall */}
         <div className="mb-8">
           <Card className="border-0 shadow-lg bg-white/80 backdrop-blur-sm">
-            <CardHeader>
+            <CardHeader className="pb-2">
               <CardTitle className="text-xl flex items-center space-x-2">
                 <Shield className="h-6 w-6 text-teal-600" />
                 <span>Brand Monitoring</span>
@@ -218,8 +194,10 @@ const Index = () => {
                 Recent brand mentions and monitoring activity
               </CardDescription>
             </CardHeader>
-            <CardContent>
-              <BrandMonitoring />
+            <CardContent className="pt-2">
+              <div className="max-h-64 overflow-hidden">
+                <BrandMonitoring />
+              </div>
             </CardContent>
           </Card>
         </div>
