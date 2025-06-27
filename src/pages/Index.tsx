@@ -1,9 +1,11 @@
+
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import Header from '@/components/Header';
 import ContentPreviews from '@/components/ContentPreviews';
 import SuggestedCampaigns from '@/components/SuggestedCampaigns';
+import BrandMonitoring from '@/components/BrandMonitoring';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { 
@@ -204,6 +206,29 @@ const Index = () => {
           </CardContent>
         </Card>
 
+        {/* Brand Monitoring Section */}
+        <div className="mb-8">
+          <Card className="border-0 shadow-lg bg-white/80 backdrop-blur-sm">
+            <CardHeader>
+              <CardTitle className="text-xl flex items-center space-x-2">
+                <Shield className="h-6 w-6 text-teal-600" />
+                <span>Brand Monitoring</span>
+              </CardTitle>
+              <CardDescription>
+                Recent brand mentions and monitoring activity
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <BrandMonitoring />
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Suggested Campaigns Section - Now directly under Brand Monitoring */}
+        <div className="mb-8">
+          <SuggestedCampaigns />
+        </div>
+
         {/* Main Content Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 mb-8">
           {/* Quick Actions - Takes up 2.5 columns */}
@@ -287,12 +312,7 @@ const Index = () => {
           </div>
         </div>
 
-        {/* Suggested Campaigns Section */}
-        <div className="mb-8">
-          <SuggestedCampaigns />
-        </div>
-
-        {/* Schedule By Channel Section - Now positioned right after suggested campaigns */}
+        {/* Schedule By Channel Section - Now positioned at the bottom */}
         <div className="max-w-5xl">
           <ContentPreviews />
         </div>
