@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
@@ -183,7 +182,12 @@ const Index = () => {
           ))}
         </div>
 
-        {/* Brand Monitoring Section - Reduced height by 55% */}
+        {/* Suggested Campaigns Section - Now first */}
+        <div className="mb-8">
+          <SuggestedCampaigns />
+        </div>
+
+        {/* Brand Monitoring Section - Now second */}
         <div className="mb-8">
           <Card className="border-0 shadow-lg bg-white/80 backdrop-blur-sm">
             <CardHeader className="pb-1">
@@ -201,11 +205,6 @@ const Index = () => {
               </div>
             </CardContent>
           </Card>
-        </div>
-
-        {/* Suggested Campaigns Section - Now directly under Brand Monitoring */}
-        <div className="mb-8">
-          <SuggestedCampaigns />
         </div>
 
         {/* Main Content Grid */}
