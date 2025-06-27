@@ -10,7 +10,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
-import { ArrowLeft, Save, Wand2, Sparkles, Copy, Download, Image, Video, FileText } from 'lucide-react';
+import { ArrowLeft, Wand2, Sparkles, Copy, Download, Image, Video, FileText } from 'lucide-react';
 import Header from '@/components/Header';
 
 interface GeneratedContent {
@@ -229,129 +229,202 @@ const CreateCampaign = () => {
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-6">
-          {/* AI Content Generation - Primary Section */}
+          {/* Combined Campaign & AI Content Generation Section */}
           <Card className="border-0 shadow-lg bg-white/80 backdrop-blur-sm">
             <CardHeader className="pb-4">
               <CardTitle className="flex items-center space-x-2">
                 <Wand2 className="h-5 w-5 text-blue-600" />
-                <span>AI Content Generator</span>
+                <span>Campaign & AI Content Generator</span>
               </CardTitle>
-              <p className="text-sm text-gray-600">Generate copy, images, and video concepts for your marketing campaign</p>
+              <p className="text-sm text-gray-600">Create your campaign and generate AI-powered content</p>
             </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <CardContent className="space-y-6">
+              {/* Campaign Description and Goals - Top */}
+              <div className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="brand_name">Brand Name *</Label>
+                    <Input
+                      id="brand_name"
+                      name="brand_name"
+                      placeholder="Enter your brand name"
+                      value={formData.brand_name}
+                      onChange={handleInputChange}
+                      required
+                    />
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="title">Campaign Name *</Label>
+                    <Input
+                      id="title"
+                      name="title"
+                      placeholder="Enter campaign name"
+                      value={formData.title}
+                      onChange={handleInputChange}
+                      required
+                    />
+                  </div>
+                </div>
+
                 <div className="space-y-2">
-                  <Label htmlFor="brand_name">Brand Name *</Label>
-                  <Input
-                    id="brand_name"
-                    name="brand_name"
-                    placeholder="Enter your brand name"
-                    value={formData.brand_name}
+                  <Label htmlFor="description">Campaign Description *</Label>
+                  <Textarea
+                    id="description"
+                    name="description"
+                    placeholder="Describe your campaign objectives and key messaging"
+                    value={formData.description}
                     onChange={handleInputChange}
                     required
                   />
                 </div>
-                
+
                 <div className="space-y-2">
-                  <Label htmlFor="title">Campaign Name *</Label>
+                  <Label htmlFor="campaign_goals">Campaign Goals (comma-separated)</Label>
                   <Input
-                    id="title"
-                    name="title"
-                    placeholder="Enter campaign name"
-                    value={formData.title}
-                    onChange={handleInputChange}
-                    required
+                    id="campaign_goals"
+                    name="campaign_goals"
+                    placeholder="increase brand awareness, drive sales, engagement"
+                    value={formData.campaign_goals.join(', ')}
+                    onChange={handleGoalsChange}
                   />
-                </div>
-                
-                <div className="space-y-2">
-                  <Label htmlFor="target_audience">Target Audience</Label>
-                  <Input
-                    id="target_audience"
-                    name="target_audience"
-                    placeholder="e.g., young professionals, families"
-                    value={formData.target_audience}
-                    onChange={handleInputChange}
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="contentType">Content Type</Label>
-                  <Select value={aiFormData.contentType} onValueChange={(value) => setAiFormData(prev => ({ ...prev, contentType: value }))}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select content type" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="copy">Copy/Text</SelectItem>
-                      <SelectItem value="image">Image</SelectItem>
-                      <SelectItem value="video">Video</SelectItem>
-                      <SelectItem value="all">All Types</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="platform">Platform</Label>
-                  <Select value={aiFormData.platform} onValueChange={(value) => setAiFormData(prev => ({ ...prev, platform: value }))}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select platform" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="facebook">Facebook</SelectItem>
-                      <SelectItem value="instagram">Instagram</SelectItem>
-                      <SelectItem value="twitter">Twitter</SelectItem>
-                      <SelectItem value="linkedin">LinkedIn</SelectItem>
-                      <SelectItem value="email">Email</SelectItem>
-                      <SelectItem value="website">Website</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="tone">Tone</Label>
-                  <Select value={aiFormData.tone} onValueChange={(value) => setAiFormData(prev => ({ ...prev, tone: value }))}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select tone" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="professional">Professional</SelectItem>
-                      <SelectItem value="casual">Casual</SelectItem>
-                      <SelectItem value="enthusiastic">Enthusiastic</SelectItem>
-                      <SelectItem value="informative">Informative</SelectItem>
-                      <SelectItem value="humorous">Humorous</SelectItem>
-                    </SelectContent>
-                  </Select>
                 </div>
               </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="keywords">Keywords (comma-separated)</Label>
-                <Input
-                  id="keywords"
-                  placeholder="innovation, quality, trusted, premium"
-                  value={aiFormData.keywords}
-                  onChange={(e) => setAiFormData(prev => ({ ...prev, keywords: e.target.value }))}
-                />
+              {/* AI Content Generation Settings */}
+              <div className="border-t pt-6">
+                <h4 className="text-lg font-semibold mb-4 flex items-center">
+                  <Sparkles className="h-5 w-5 mr-2 text-blue-600" />
+                  AI Content Settings
+                </h4>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="target_audience">Target Audience</Label>
+                    <Input
+                      id="target_audience"
+                      name="target_audience"
+                      placeholder="e.g., young professionals, families"
+                      value={formData.target_audience}
+                      onChange={handleInputChange}
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="contentType">Content Type</Label>
+                    <Select value={aiFormData.contentType} onValueChange={(value) => setAiFormData(prev => ({ ...prev, contentType: value }))}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select content type" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="copy">Copy/Text</SelectItem>
+                        <SelectItem value="image">Image</SelectItem>
+                        <SelectItem value="video">Video</SelectItem>
+                        <SelectItem value="all">All Types</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="platform">Platform</Label>
+                    <Select value={aiFormData.platform} onValueChange={(value) => setAiFormData(prev => ({ ...prev, platform: value }))}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select platform" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="facebook">Facebook</SelectItem>
+                        <SelectItem value="instagram">Instagram</SelectItem>
+                        <SelectItem value="twitter">Twitter</SelectItem>
+                        <SelectItem value="linkedin">LinkedIn</SelectItem>
+                        <SelectItem value="email">Email</SelectItem>
+                        <SelectItem value="website">Website</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="tone">Tone</Label>
+                    <Select value={aiFormData.tone} onValueChange={(value) => setAiFormData(prev => ({ ...prev, tone: value }))}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select tone" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="professional">Professional</SelectItem>
+                        <SelectItem value="casual">Casual</SelectItem>
+                        <SelectItem value="enthusiastic">Enthusiastic</SelectItem>
+                        <SelectItem value="informative">Informative</SelectItem>
+                        <SelectItem value="humorous">Humorous</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+
+                <div className="space-y-2 mt-4">
+                  <Label htmlFor="keywords">Keywords (comma-separated)</Label>
+                  <Input
+                    id="keywords"
+                    placeholder="innovation, quality, trusted, premium"
+                    value={aiFormData.keywords}
+                    onChange={(e) => setAiFormData(prev => ({ ...prev, keywords: e.target.value }))}
+                  />
+                </div>
+
+                <Button 
+                  type="button"
+                  onClick={handleGenerateContent}
+                  disabled={isGeneratingContent}
+                  className="w-full mt-4 bg-gradient-to-r from-blue-600 to-teal-600 hover:from-blue-700 hover:to-teal-700"
+                >
+                  {isGeneratingContent ? (
+                    <>
+                      <Wand2 className="mr-2 h-4 w-4 animate-spin" />
+                      Generating Content...
+                    </>
+                  ) : (
+                    <>
+                      <Wand2 className="mr-2 h-4 w-4" />
+                      Generate Content
+                    </>
+                  )}
+                </Button>
               </div>
 
-              <Button 
-                type="button"
-                onClick={handleGenerateContent}
-                disabled={isGeneratingContent}
-                className="w-full bg-gradient-to-r from-blue-600 to-teal-600 hover:from-blue-700 hover:to-teal-700"
-              >
-                {isGeneratingContent ? (
-                  <>
-                    <Wand2 className="mr-2 h-4 w-4 animate-spin" />
-                    Generating Content...
-                  </>
-                ) : (
-                  <>
-                    <Wand2 className="mr-2 h-4 w-4" />
-                    Generate Content
-                  </>
-                )}
-              </Button>
+              {/* Budget and Schedule - Bottom */}
+              <div className="border-t pt-6">
+                <h4 className="text-lg font-semibold mb-4">Budget & Schedule</h4>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="budget">Budget</Label>
+                    <Input
+                      id="budget"
+                      name="budget"
+                      type="number"
+                      placeholder="Enter budget"
+                      value={formData.budget}
+                      onChange={handleInputChange}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="start_date">Start Date</Label>
+                    <Input
+                      id="start_date"
+                      name="start_date"
+                      type="date"
+                      value={formData.start_date}
+                      onChange={handleInputChange}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="end_date">End Date</Label>
+                    <Input
+                      id="end_date"
+                      name="end_date"
+                      type="date"
+                      value={formData.end_date}
+                      onChange={handleInputChange}
+                    />
+                  </div>
+                </div>
+              </div>
             </CardContent>
           </Card>
 
@@ -398,73 +471,7 @@ const CreateCampaign = () => {
             </div>
           )}
 
-          {/* Campaign Details - Secondary Section */}
-          <Card className="border-0 shadow-lg bg-white/80 backdrop-blur-sm">
-            <CardHeader>
-              <CardTitle className="text-lg">Campaign Details</CardTitle>
-              <p className="text-sm text-gray-600">Additional information for your campaign</p>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="description">Description *</Label>
-                <Textarea
-                  id="description"
-                  name="description"
-                  placeholder="Enter campaign description"
-                  value={formData.description}
-                  onChange={handleInputChange}
-                  required
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="campaign_goals">Campaign Goals (comma-separated)</Label>
-                <Input
-                  id="campaign_goals"
-                  name="campaign_goals"
-                  placeholder="Enter campaign goals"
-                  value={formData.campaign_goals.join(', ')}
-                  onChange={handleGoalsChange}
-                />
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="budget">Budget</Label>
-                  <Input
-                    id="budget"
-                    name="budget"
-                    type="number"
-                    placeholder="Enter budget"
-                    value={formData.budget}
-                    onChange={handleInputChange}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="start_date">Start Date</Label>
-                  <Input
-                    id="start_date"
-                    name="start_date"
-                    type="date"
-                    value={formData.start_date}
-                    onChange={handleInputChange}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="end_date">End Date</Label>
-                  <Input
-                    id="end_date"
-                    name="end_date"
-                    type="date"
-                    value={formData.end_date}
-                    onChange={handleInputChange}
-                  />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Save Campaign Button */}
+          {/* Single Save Campaign Button */}
           <Button
             type="submit"
             className="w-full bg-gradient-to-r from-blue-600 to-teal-600 hover:from-blue-700 hover:to-teal-700"
@@ -473,13 +480,13 @@ const CreateCampaign = () => {
           >
             {isLoading ? (
               <>
-                <Save className="mr-2 h-4 w-4 animate-spin" />
-                Saving Campaign...
+                <Wand2 className="mr-2 h-4 w-4 animate-spin" />
+                Creating Campaign...
               </>
             ) : (
               <>
-                <Save className="mr-2 h-4 w-4" />
-                Save Campaign
+                <Wand2 className="mr-2 h-4 w-4" />
+                Create Campaign & Save Content
               </>
             )}
           </Button>

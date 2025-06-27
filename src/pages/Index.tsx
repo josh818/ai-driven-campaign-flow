@@ -88,8 +88,9 @@ const Index = () => {
           </CardContent>
         </Card>
 
-        {/* Quick Actions */}
+        {/* Quick Actions and Insights Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
+          {/* Quick Actions - Takes up 2 columns */}
           <div className="lg:col-span-2">
             <Card className="border-0 shadow-lg bg-white/80 backdrop-blur-sm">
               <CardHeader>
@@ -118,6 +119,7 @@ const Index = () => {
             </Card>
           </div>
 
+          {/* Right Column - Insights */}
           <div className="space-y-6">
             <Card className="border-0 shadow-lg bg-white/80 backdrop-blur-sm">
               <CardHeader>
@@ -169,7 +171,7 @@ const Index = () => {
           </div>
         </div>
 
-        {/* Content Previews Section */}
+        {/* Content Previews Section - Now positioned right after the insights */}
         <ContentPreviews />
       </main>
     </div>
