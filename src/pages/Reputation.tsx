@@ -23,10 +23,27 @@ import {
   ThumbsDown
 } from 'lucide-react';
 import Header from '@/components/Header';
-import { Database } from '@/integrations/supabase/types';
 
-type BrandMention = Database['public']['Tables']['brand_mentions']['Row'];
-type MonitoredTerm = Database['public']['Tables']['monitored_terms']['Row'];
+// Define types for monitored terms since they're not in the generated types yet
+type MonitoredTerm = {
+  id: string;
+  user_id: string;
+  term: string;
+  created_at: string;
+  updated_at: string;
+};
+
+type BrandMention = {
+  id: string;
+  brand_name: string;
+  mention_text: string;
+  platform: string;
+  sentiment: string | null;
+  url: string | null;
+  mentioned_at: string;
+  created_at: string;
+  user_id: string;
+};
 
 const Reputation = () => {
   const { user } = useAuth();
@@ -50,7 +67,8 @@ const Reputation = () => {
     try {
       const [mentionsResult, termsResult] = await Promise.all([
         supabase.from('brand_mentions').select('*').order('mentioned_at', { ascending: false }),
-        supabase.from('monitored_terms').select('*').order('created_at', { ascending: false })
+        // Use type assertion for monitored_terms since types aren't updated yet
+        (supabase as any).from('monitored_terms').select('*').order('created_at', { ascending: false })
       ]);
 
       if (mentionsResult.error) throw mentionsResult.error;
@@ -74,7 +92,8 @@ const Reputation = () => {
     if (!newTerm.trim()) return;
 
     try {
-      const { error } = await supabase
+      // Use type assertion for monitored_terms since types aren't updated yet
+      const { error } = await (supabase as any)
         .from('monitored_terms')
         .insert([{ term: newTerm.trim(), user_id: user?.id }]);
 
