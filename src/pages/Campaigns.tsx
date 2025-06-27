@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
-import { Plus, Calendar, Target, DollarSign, MoreHorizontal, Play, Pause, Edit } from 'lucide-react';
+import { Plus, Calendar, Target, DollarSign, MoreHorizontal, Play, Pause, Edit, Eye } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import Header from '@/components/Header';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
@@ -157,6 +157,12 @@ const Campaigns = () => {
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent>
+                          <DropdownMenuItem asChild>
+                            <Link to={`/campaigns/${campaign.id}`}>
+                              <Eye className="mr-2 h-4 w-4" />
+                              View Details
+                            </Link>
+                          </DropdownMenuItem>
                           {campaign.status === 'draft' || campaign.status === 'paused' ? (
                             <DropdownMenuItem onClick={() => updateCampaignStatus(campaign.id, 'active')}>
                               <Play className="mr-2 h-4 w-4" />
@@ -210,6 +216,13 @@ const Campaigns = () => {
                         </div>
                       )}
                     </div>
+
+                    <Link to={`/campaigns/${campaign.id}`}>
+                      <Button variant="outline" size="sm" className="w-full mt-2">
+                        <Eye className="h-4 w-4 mr-2" />
+                        View Campaign & Content
+                      </Button>
+                    </Link>
                   </div>
                 </CardContent>
               </Card>
