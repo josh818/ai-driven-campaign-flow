@@ -30,18 +30,27 @@ export const useOnboardingData = () => {
     if (!user) return;
 
     try {
-      // Try to fetch from onboarding_data table
-      const { data, error } = await supabase
-        .from('onboarding_data')
+      // Try to fetch basic profile data as fallback
+      const { data: profileData, error: profileError } = await supabase
+        .from('profiles')
         .select('*')
-        .eq('user_id', user.id)
-        .maybeSingle();
+        .eq('id', user.id)
+        .single();
 
-      if (error) {
-        console.error('Error fetching onboarding data:', error);
-        setOnboardingData(null);
+      if (!profileError && profileData) {
+        // Create a mock onboarding data structure from profile
+        const mockOnboardingData: OnboardingData = {
+          id: profileData.id,
+          user_id: profileData.id,
+          company_description: '',
+          target_audience: '',
+          logo_url: '',
+          office_image_url: '',
+          onboarding_completed: !!(profileData.full_name && profileData.company_name)
+        };
+        setOnboardingData(mockOnboardingData);
       } else {
-        setOnboardingData(data);
+        setOnboardingData(null);
       }
     } catch (error) {
       console.error('Error fetching onboarding data:', error);

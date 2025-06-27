@@ -17,7 +17,6 @@ const Onboarding = () => {
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
   const [currentStep, setCurrentStep] = useState(1);
-  const [tableExists, setTableExists] = useState(false);
   const [formData, setFormData] = useState({
     full_name: user?.user_metadata?.full_name || '',
     company_name: '',
@@ -35,25 +34,20 @@ const Onboarding = () => {
     if (!user) return;
 
     try {
-      // Check if onboarding_data table exists by trying to query it
-      const { data, error } = await supabase
-        .from('onboarding_data')
-        .select('onboarding_completed')
-        .eq('user_id', user.id)
-        .maybeSingle();
+      const { data: profileData, error } = await supabase
+        .from('profiles')
+        .select('full_name, company_name')
+        .eq('id', user.id)
+        .single();
 
-      if (!error) {
-        setTableExists(true);
-        if (data?.onboarding_completed) {
+      if (!error && profileData) {
+        const hasCompletedOnboarding = profileData.full_name && profileData.company_name;
+        if (hasCompletedOnboarding) {
           navigate('/');
         }
-      } else {
-        setTableExists(false);
-        console.log('Onboarding data table not available yet');
       }
     } catch (error) {
       console.error('Error checking onboarding status:', error);
-      setTableExists(false);
     }
   };
 
@@ -116,24 +110,7 @@ const Onboarding = () => {
 
       if (profileError) {
         console.error('Profile update error:', profileError);
-      }
-
-      // Try to create onboarding data if table exists
-      if (tableExists) {
-        const { error: onboardingError } = await supabase
-          .from('onboarding_data')
-          .upsert({
-            user_id: user.id,
-            company_description: formData.company_description,
-            target_audience: formData.target_audience,
-            logo_url: logoUrl,
-            office_image_url: officeImageUrl,
-            onboarding_completed: true
-          });
-
-        if (onboardingError) {
-          console.error('Onboarding data error:', onboardingError);
-        }
+        throw profileError;
       }
 
       toast({
@@ -167,16 +144,16 @@ const Onboarding = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 to-pink-50 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-teal-50 flex items-center justify-center p-4">
       <Card className="w-full max-w-2xl shadow-xl border-0 bg-white/80 backdrop-blur-sm">
         <CardHeader className="text-center space-y-4">
           <div className="flex justify-center">
-            <div className="p-3 bg-gradient-to-br from-purple-500 to-pink-500 rounded-2xl">
+            <div className="p-3 bg-gradient-to-br from-blue-500 to-teal-500 rounded-2xl">
               <Sparkles className="h-8 w-8 text-white" />
             </div>
           </div>
           <div>
-            <CardTitle className="text-2xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
+            <CardTitle className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-teal-600 bg-clip-text text-transparent">
               Welcome to Campaign Manager
             </CardTitle>
             <p className="text-gray-600 mt-2">
@@ -184,21 +161,19 @@ const Onboarding = () => {
             </p>
           </div>
           
-          {!tableExists && (
-            <div className="p-3 bg-yellow-50 rounded-lg">
-              <div className="flex items-center gap-2 text-yellow-800">
-                <AlertCircle className="h-4 w-4" />
-                <p className="text-sm">
-                  Advanced onboarding features are being set up. Basic profile setup is available.
-                </p>
-              </div>
+          <div className="p-3 bg-blue-50 rounded-lg">
+            <div className="flex items-center gap-2 text-blue-800">
+              <AlertCircle className="h-4 w-4" />
+              <p className="text-sm">
+                Complete your basic profile setup to access all features.
+              </p>
             </div>
-          )}
+          </div>
           
           {/* Progress Bar */}
           <div className="w-full bg-gray-200 rounded-full h-2">
             <div 
-              className="bg-gradient-to-r from-purple-600 to-pink-600 h-2 rounded-full transition-all duration-300"
+              className="bg-gradient-to-r from-blue-600 to-teal-600 h-2 rounded-full transition-all duration-300"
               style={{ width: `${(currentStep / 3) * 100}%` }}
             />
           </div>
@@ -211,7 +186,7 @@ const Onboarding = () => {
             {currentStep === 1 && (
               <div className="space-y-4">
                 <div className="text-center mb-6">
-                  <User className="h-12 w-12 text-purple-600 mx-auto mb-2" />
+                  <User className="h-12 w-12 text-blue-600 mx-auto mb-2" />
                   <h3 className="text-lg font-semibold text-gray-900">Personal Information</h3>
                   <p className="text-sm text-gray-600">Tell us about yourself</p>
                 </div>
@@ -244,7 +219,7 @@ const Onboarding = () => {
             {currentStep === 2 && (
               <div className="space-y-4">
                 <div className="text-center mb-6">
-                  <Building className="h-12 w-12 text-purple-600 mx-auto mb-2" />
+                  <Building className="h-12 w-12 text-blue-600 mx-auto mb-2" />
                   <h3 className="text-lg font-semibold text-gray-900">Company Details</h3>
                   <p className="text-sm text-gray-600">Help us understand your business</p>
                 </div>
@@ -277,7 +252,7 @@ const Onboarding = () => {
             {currentStep === 3 && (
               <div className="space-y-4">
                 <div className="text-center mb-6">
-                  <Image className="h-12 w-12 text-purple-600 mx-auto mb-2" />
+                  <Image className="h-12 w-12 text-blue-600 mx-auto mb-2" />
                   <h3 className="text-lg font-semibold text-gray-900">Brand Assets</h3>
                   <p className="text-sm text-gray-600">Upload your brand images (optional)</p>
                 </div>
@@ -340,6 +315,7 @@ const Onboarding = () => {
                   disabled={
                     (currentStep === 1 && (!formData.full_name || !formData.company_name))
                   }
+                  className="bg-gradient-to-r from-blue-600 to-teal-600 hover:from-blue-700 hover:to-teal-700"
                 >
                   Next
                 </Button>
@@ -347,7 +323,7 @@ const Onboarding = () => {
                 <Button
                   type="submit"
                   disabled={isLoading}
-                  className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700"
+                  className="bg-gradient-to-r from-blue-600 to-teal-600 hover:from-blue-700 hover:to-teal-700"
                 >
                   {isLoading ? 'Saving...' : 'Complete Setup'}
                 </Button>

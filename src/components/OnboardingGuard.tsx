@@ -24,22 +24,22 @@ const OnboardingGuard = ({ children }: OnboardingGuardProps) => {
 
   const checkOnboardingStatus = async () => {
     try {
-      // First try to check if onboarding_data table exists and has data
-      const { data: onboardingData, error: onboardingError } = await supabase
-        .from('onboarding_data')
-        .select('onboarding_completed')
-        .eq('user_id', user!.id)
-        .maybeSingle();
+      // Check if user has completed basic profile setup
+      const { data: profileData, error: profileError } = await supabase
+        .from('profiles')
+        .select('full_name, company_name')
+        .eq('id', user!.id)
+        .single();
 
-      if (!onboardingError && onboardingData) {
-        setOnboardingCompleted(onboardingData.onboarding_completed || false);
+      if (!profileError && profileData) {
+        // Consider onboarding complete if user has both name and company
+        const hasBasicInfo = profileData.full_name && profileData.company_name;
+        setOnboardingCompleted(hasBasicInfo);
       } else {
-        // Fallback: assume onboarding not completed if no data found
         setOnboardingCompleted(false);
       }
     } catch (error) {
       console.error('Error checking onboarding status:', error);
-      // If there's an error (like table doesn't exist), assume onboarding not completed
       setOnboardingCompleted(false);
     } finally {
       setIsLoading(false);
@@ -48,8 +48,8 @@ const OnboardingGuard = ({ children }: OnboardingGuardProps) => {
 
   if (loading || isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-purple-50 to-pink-50">
-        <Loader2 className="h-8 w-8 animate-spin text-purple-600" />
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-teal-50">
+        <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
       </div>
     );
   }
