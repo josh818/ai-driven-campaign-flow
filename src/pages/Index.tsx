@@ -204,9 +204,9 @@ const Index = () => {
           </CardContent>
         </Card>
 
-        {/* Quick Actions and Insights Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
-          {/* Quick Actions - Takes up 2 columns */}
+        {/* Main Content Grid */}
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 mb-8">
+          {/* Quick Actions - Takes up 2.5 columns */}
           <div className="lg:col-span-2">
             <Card className="border-0 shadow-lg bg-white/80 backdrop-blur-sm">
               <CardHeader>
@@ -235,8 +235,8 @@ const Index = () => {
             </Card>
           </div>
 
-          {/* Right Column - Insights */}
-          <div className="space-y-6">
+          {/* Right Column - Recent Activity and Reputation Insights - Takes up 1.5 columns each */}
+          <div className="lg:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-6">
             <Card className="border-0 shadow-lg bg-white/80 backdrop-blur-sm">
               <CardHeader>
                 <CardTitle className="text-lg">Recent Activity</CardTitle>
@@ -287,8 +287,10 @@ const Index = () => {
           </div>
         </div>
 
-        {/* Content Previews Section - Now positioned right after the insights */}
-        <ContentPreviews />
+        {/* Schedule By Channel Section - Now positioned right after the main content grid */}
+        <div className="max-w-5xl">
+          <ContentPreviews />
+        </div>
       </main>
     </div>
   );

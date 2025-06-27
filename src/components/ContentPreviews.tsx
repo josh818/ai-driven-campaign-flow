@@ -169,7 +169,7 @@ const ContentPreviews = () => {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h3 className="text-xl font-semibold text-gray-900">Recent AI Content</h3>
+        <h3 className="text-xl font-semibold text-gray-900">Schedule By Channel</h3>
         <Link to="/create-campaign">
           <Button className="bg-gradient-to-r from-blue-500 to-teal-500 hover:from-blue-600 hover:to-teal-600">
             <Plus className="h-4 w-4 mr-2" />
