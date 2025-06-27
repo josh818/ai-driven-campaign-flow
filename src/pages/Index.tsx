@@ -1,5 +1,7 @@
 
+import { useState, useEffect } from 'react';
 import { useAuth } from '@/hooks/useAuth';
+import { supabase } from '@/integrations/supabase/client';
 import Header from '@/components/Header';
 import ContentPreviews from '@/components/ContentPreviews';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -20,12 +22,115 @@ import { Link } from 'react-router-dom';
 
 const Index = () => {
   const { user } = useAuth();
+  const [dashboardStats, setDashboardStats] = useState({
+    activeCampaigns: 'N/A',
+    totalReach: 'N/A',
+    engagementRate: 'N/A',
+    brandMentions: 'N/A',
+    isLoading: true
+  });
+
+  useEffect(() => {
+    if (user) {
+      fetchDashboardData();
+    }
+  }, [user]);
+
+  const fetchDashboardData = async () => {
+    try {
+      // Fetch active campaigns count
+      const { data: campaignsData, error: campaignsError } = await supabase
+        .from('campaigns')
+        .select('id', { count: 'exact' })
+        .eq('user_id', user!.id)
+        .eq('status', 'active');
+
+      if (campaignsError) throw campaignsError;
+
+      // Fetch brand mentions count for the past week
+      const oneWeekAgo = new Date();
+      oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
+
+      const { data: mentionsData, error: mentionsError } = await supabase
+        .from('brand_mentions')
+        .select('id', { count: 'exact' })
+        .gte('mentioned_at', oneWeekAgo.toISOString());
+
+      if (mentionsError) throw mentionsError;
+
+      // Fetch campaign analytics for reach and engagement (mock calculation for now)
+      const { data: analyticsData, error: analyticsError } = await supabase
+        .from('campaign_analytics')
+        .select('*')
+        .in('campaign_id', campaignsData?.map(c => c.id) || []);
+
+      if (analyticsError) throw analyticsError;
+
+      // Calculate stats
+      const activeCampaignsCount = campaignsData?.length || 0;
+      const brandMentionsCount = mentionsData?.length || 0;
+      
+      // Mock calculations for reach and engagement based on available data
+      const totalReach = analyticsData?.reduce((sum, metric) => {
+        if (metric.metric_name === 'reach' || metric.metric_name === 'impressions') {
+          return sum + Number(metric.metric_value);
+        }
+        return sum;
+      }, 0) || 0;
+
+      const engagementMetrics = analyticsData?.filter(metric => 
+        metric.metric_name === 'engagement' || metric.metric_name === 'likes' || metric.metric_name === 'shares'
+      ) || [];
+      
+      const avgEngagement = engagementMetrics.length > 0 
+        ? engagementMetrics.reduce((sum, metric) => sum + Number(metric.metric_value), 0) / engagementMetrics.length
+        : 0;
+
+      setDashboardStats({
+        activeCampaigns: activeCampaignsCount.toString(),
+        totalReach: totalReach > 0 ? `${(totalReach / 1000).toFixed(1)}K` : '0',
+        engagementRate: avgEngagement > 0 ? `${avgEngagement.toFixed(1)}%` : '0%',
+        brandMentions: brandMentionsCount.toString(),
+        isLoading: false
+      });
+
+    } catch (error) {
+      console.error('Error fetching dashboard data:', error);
+      setDashboardStats({
+        activeCampaigns: '0',
+        totalReach: '0',
+        engagementRate: '0%',
+        brandMentions: '0',
+        isLoading: false
+      });
+    }
+  };
 
   const stats = [
-    { name: 'Active Campaigns', value: '12', icon: Target, change: '+2.5%' },
-    { name: 'Total Reach', value: '45.2K', icon: Users, change: '+12.3%' },
-    { name: 'Engagement Rate', value: '8.4%', icon: TrendingUp, change: '+0.8%' },
-    { name: 'Brand Mentions', value: '28', icon: Shield, change: '+5 this week' },
+    { 
+      name: 'Active Campaigns', 
+      value: dashboardStats.activeCampaigns, 
+      icon: Target, 
+      change: dashboardStats.isLoading ? '...' : '+2.5%' 
+    },
+    { 
+      name: 'Total Reach', 
+      value: dashboardStats.totalReach, 
+      icon: Users, 
+      change: dashboardStats.isLoading ? '...' : '+12.3%' 
+    },
+    { 
+      name: 'Engagement Rate', 
+      value: dashboardStats.engagementRate, 
+      icon: TrendingUp, 
+      change: dashboardStats.isLoading ? '...' : '+0.8%' 
+    },
+    { 
+      name: 'Brand Mentions', 
+      value: dashboardStats.brandMentions, 
+      icon: Shield, 
+      change: dashboardStats.isLoading ? '...' : '+5 this week' 
+    },
   ];
 
   const quickActions = [
@@ -58,7 +163,13 @@ const Index = () => {
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm font-medium text-gray-600">{stat.name}</p>
-                    <p className="text-2xl font-bold text-gray-900">{stat.value}</p>
+                    <p className="text-2xl font-bold text-gray-900">
+                      {dashboardStats.isLoading ? (
+                        <span className="animate-pulse bg-gray-200 rounded w-16 h-8 inline-block"></span>
+                      ) : (
+                        stat.value
+                      )}
+                    </p>
                     <p className="text-xs text-teal-600 font-medium">{stat.change}</p>
                   </div>
                   <div className="p-3 bg-gradient-to-br from-blue-500 to-teal-500 rounded-xl">
@@ -77,7 +188,12 @@ const Index = () => {
               <AlertTriangle className="h-8 w-8 text-orange-500" />
               <div className="flex-1">
                 <h3 className="text-lg font-semibold text-gray-900">Brand Monitoring Active</h3>
-                <p className="text-gray-600">3 new mentions detected in the last 24 hours. 2 require attention.</p>
+                <p className="text-gray-600">
+                  {dashboardStats.brandMentions !== 'N/A' && dashboardStats.brandMentions !== '0' 
+                    ? `${dashboardStats.brandMentions} mentions detected in the last week. Review needed.`
+                    : 'No recent brand mentions detected. Monitoring is active.'
+                  }
+                </p>
               </div>
               <Link to="/reputation">
                 <Button className="bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600">
