@@ -1,12 +1,13 @@
-
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, LineChart, Line, PieChart, Pie, Cell } from 'recharts';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line, PieChart, Pie, Cell } from 'recharts';
 import { TrendingUp, Users, Eye, MousePointer, DollarSign } from 'lucide-react';
 import Header from '@/components/Header';
+import BrandMonitoring from '@/components/BrandMonitoring';
 
 interface Campaign {
   id: string;
@@ -28,13 +29,14 @@ const Analytics = () => {
   const [selectedCampaign, setSelectedCampaign] = useState<string>('all');
   const [analyticsData, setAnalyticsData] = useState<AnalyticsData[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [selectedPeriod, setSelectedPeriod] = useState('7d');
 
   useEffect(() => {
     if (user) {
       fetchCampaigns();
       fetchAnalytics();
     }
-  }, [user, selectedCampaign]);
+  }, [user, selectedCampaign, selectedPeriod]);
 
   const fetchCampaigns = async () => {
     try {
@@ -105,176 +107,194 @@ const Analytics = () => {
     <div className="min-h-screen bg-gradient-to-br from-purple-50 to-pink-50">
       <Header />
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="flex justify-between items-center mb-8">
-          <div>
-            <h2 className="text-3xl font-bold text-gray-900">Analytics Dashboard</h2>
-            <p className="text-gray-600">Monitor your campaign performance</p>
-          </div>
-          <Select value={selectedCampaign} onValueChange={setSelectedCampaign}>
-            <SelectTrigger className="w-[200px]">
-              <SelectValue placeholder="Select campaign" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Campaigns</SelectItem>
-              {campaigns.map((campaign) => (
-                <SelectItem key={campaign.id} value={campaign.id}>
-                  {campaign.title}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+        <div className="mb-8">
+          <h2 className="text-3xl font-bold text-gray-900">Analytics Dashboard</h2>
+          <p className="text-gray-600">Track your campaign performance and brand mentions</p>
         </div>
 
-        {/* Key Metrics */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 mb-8">
-          <Card className="border-0 shadow-lg bg-white/80 backdrop-blur-sm">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-gray-600">Impressions</p>
-                  <p className="text-2xl font-bold text-gray-900">{totalImpressions.toLocaleString()}</p>
-                  <p className="text-xs text-green-600 font-medium">+12.3%</p>
-                </div>
-                <div className="p-3 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-xl">
-                  <Eye className="h-6 w-6 text-white" />
-                </div>
+        <Tabs defaultValue="performance" className="space-y-6">
+          <TabsList>
+            <TabsTrigger value="performance">Performance</TabsTrigger>
+            <TabsTrigger value="brand-monitoring">Brand Monitoring</TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="performance">
+            <div className="flex justify-between items-center mb-8">
+              <div>
+                <p className="text-3xl font-bold text-gray-900">Performance</p>
+                <p className="text-gray-600">Monitor your campaign performance</p>
               </div>
-            </CardContent>
-          </Card>
+              <Select value={selectedCampaign} onValueChange={setSelectedCampaign}>
+                <SelectTrigger className="w-[200px]">
+                  <SelectValue placeholder="Select campaign" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Campaigns</SelectItem>
+                  {campaigns.map((campaign) => (
+                    <SelectItem key={campaign.id} value={campaign.id}>
+                      {campaign.title}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
 
-          <Card className="border-0 shadow-lg bg-white/80 backdrop-blur-sm">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-gray-600">Clicks</p>
-                  <p className="text-2xl font-bold text-gray-900">{totalClicks.toLocaleString()}</p>
-                  <p className="text-xs text-green-600 font-medium">+8.7%</p>
-                </div>
-                <div className="p-3 bg-gradient-to-br from-green-500 to-emerald-500 rounded-xl">
-                  <MousePointer className="h-6 w-6 text-white" />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+            {/* Key Metrics */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 mb-8">
+              <Card className="border-0 shadow-lg bg-white/80 backdrop-blur-sm">
+                <CardContent className="p-6">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm font-medium text-gray-600">Impressions</p>
+                      <p className="text-2xl font-bold text-gray-900">{totalImpressions.toLocaleString()}</p>
+                      <p className="text-xs text-green-600 font-medium">+12.3%</p>
+                    </div>
+                    <div className="p-3 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-xl">
+                      <Eye className="h-6 w-6 text-white" />
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
 
-          <Card className="border-0 shadow-lg bg-white/80 backdrop-blur-sm">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-gray-600">CTR</p>
-                  <p className="text-2xl font-bold text-gray-900">{ctr.toFixed(2)}%</p>
-                  <p className="text-xs text-green-600 font-medium">+2.1%</p>
-                </div>
-                <div className="p-3 bg-gradient-to-br from-purple-500 to-pink-500 rounded-xl">
-                  <TrendingUp className="h-6 w-6 text-white" />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+              <Card className="border-0 shadow-lg bg-white/80 backdrop-blur-sm">
+                <CardContent className="p-6">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm font-medium text-gray-600">Clicks</p>
+                      <p className="text-2xl font-bold text-gray-900">{totalClicks.toLocaleString()}</p>
+                      <p className="text-xs text-green-600 font-medium">+8.7%</p>
+                    </div>
+                    <div className="p-3 bg-gradient-to-br from-green-500 to-emerald-500 rounded-xl">
+                      <MousePointer className="h-6 w-6 text-white" />
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
 
-          <Card className="border-0 shadow-lg bg-white/80 backdrop-blur-sm">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-gray-600">Conversions</p>
-                  <p className="text-2xl font-bold text-gray-900">{totalConversions}</p>
-                  <p className="text-xs text-green-600 font-medium">+15.4%</p>
-                </div>
-                <div className="p-3 bg-gradient-to-br from-orange-500 to-red-500 rounded-xl">
-                  <Users className="h-6 w-6 text-white" />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+              <Card className="border-0 shadow-lg bg-white/80 backdrop-blur-sm">
+                <CardContent className="p-6">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm font-medium text-gray-600">CTR</p>
+                      <p className="text-2xl font-bold text-gray-900">{ctr.toFixed(2)}%</p>
+                      <p className="text-xs text-green-600 font-medium">+2.1%</p>
+                    </div>
+                    <div className="p-3 bg-gradient-to-br from-purple-500 to-pink-500 rounded-xl">
+                      <TrendingUp className="h-6 w-6 text-white" />
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
 
-          <Card className="border-0 shadow-lg bg-white/80 backdrop-blur-sm">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-gray-600">Spend</p>
-                  <p className="text-2xl font-bold text-gray-900">${totalSpend}</p>
-                  <p className="text-xs text-red-600 font-medium">+5.2%</p>
-                </div>
-                <div className="p-3 bg-gradient-to-br from-yellow-500 to-orange-500 rounded-xl">
-                  <DollarSign className="h-6 w-6 text-white" />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
+              <Card className="border-0 shadow-lg bg-white/80 backdrop-blur-sm">
+                <CardContent className="p-6">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm font-medium text-gray-600">Conversions</p>
+                      <p className="text-2xl font-bold text-gray-900">{totalConversions}</p>
+                      <p className="text-xs text-green-600 font-medium">+15.4%</p>
+                    </div>
+                    <div className="p-3 bg-gradient-to-br from-orange-500 to-red-500 rounded-xl">
+                      <Users className="h-6 w-6 text-white" />
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
 
-        {/* Charts */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
-          <Card className="border-0 shadow-lg bg-white/80 backdrop-blur-sm">
-            <CardHeader>
-              <CardTitle>Performance Over Time</CardTitle>
-              <CardDescription>Daily metrics for the past week</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <ResponsiveContainer width="100%" height={300}>
-                <LineChart data={mockData}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="date" tickFormatter={(value) => new Date(value).toLocaleDateString()} />
-                  <YAxis />
-                  <Tooltip labelFormatter={(value) => new Date(value).toLocaleDateString()} />
-                  <Legend />
-                  <Line type="monotone" dataKey="impressions" stroke="#8884d8" strokeWidth={2} />
-                  <Line type="monotone" dataKey="clicks" stroke="#82ca9d" strokeWidth={2} />
-                  <Line type="monotone" dataKey="conversions" stroke="#ffc658" strokeWidth={2} />
-                </LineChart>
-              </ResponsiveContainer>
-            </CardContent>
-          </Card>
+              <Card className="border-0 shadow-lg bg-white/80 backdrop-blur-sm">
+                <CardContent className="p-6">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm font-medium text-gray-600">Spend</p>
+                      <p className="text-2xl font-bold text-gray-900">${totalSpend}</p>
+                      <p className="text-xs text-red-600 font-medium">+5.2%</p>
+                    </div>
+                    <div className="p-3 bg-gradient-to-br from-yellow-500 to-orange-500 rounded-xl">
+                      <DollarSign className="h-6 w-6 text-white" />
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
 
-          <Card className="border-0 shadow-lg bg-white/80 backdrop-blur-sm">
-            <CardHeader>
-              <CardTitle>Platform Distribution</CardTitle>
-              <CardDescription>Traffic breakdown by platform</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <ResponsiveContainer width="100%" height={300}>
-                <PieChart>
-                  <Pie
-                    data={platformData}
-                    cx="50%"
-                    cy="50%"
-                    labelLine={false}
-                    label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
-                    outerRadius={80}
-                    fill="#8884d8"
-                    dataKey="value"
-                  >
-                    {platformData.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={entry.color} />
-                    ))}
-                  </Pie>
-                  <Tooltip />
-                </PieChart>
-              </ResponsiveContainer>
-            </CardContent>
-          </Card>
-        </div>
+            {/* Charts */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+              <Card className="border-0 shadow-lg bg-white/80 backdrop-blur-sm">
+                <CardHeader>
+                  <CardTitle>Performance Over Time</CardTitle>
+                  <CardDescription>Daily metrics for the past week</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <ResponsiveContainer width="100%" height={300}>
+                    <LineChart data={mockData}>
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis dataKey="date" tickFormatter={(value) => new Date(value).toLocaleDateString()} />
+                      <YAxis />
+                      <Tooltip labelFormatter={(value) => new Date(value).toLocaleDateString()} />
+                      <Legend />
+                      <Line type="monotone" dataKey="impressions" stroke="#8884d8" strokeWidth={2} />
+                      <Line type="monotone" dataKey="clicks" stroke="#82ca9d" strokeWidth={2} />
+                      <Line type="monotone" dataKey="conversions" stroke="#ffc658" strokeWidth={2} />
+                    </LineChart>
+                  </ResponsiveContainer>
+                </CardContent>
+              </Card>
 
-        {/* Spend Analysis */}
-        <Card className="border-0 shadow-lg bg-white/80 backdrop-blur-sm">
-          <CardHeader>
-            <CardTitle>Spend Analysis</CardTitle>
-            <CardDescription>Daily advertising spend and performance</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <ResponsiveContainer width="100%" height={300}>
-              <BarChart data={mockData}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="date" tickFormatter={(value) => new Date(value).toLocaleDateString()} />
-                <YAxis />
-                <Tooltip labelFormatter={(value) => new Date(value).toLocaleDateString()} />
-                <Legend />
-                <Bar dataKey="spend" fill="#8884d8" />
-                <Bar dataKey="conversions" fill="#82ca9d" />
-              </BarChart>
-            </ResponsiveContainer>
-          </CardContent>
-        </Card>
+              <Card className="border-0 shadow-lg bg-white/80 backdrop-blur-sm">
+                <CardHeader>
+                  <CardTitle>Platform Distribution</CardTitle>
+                  <CardDescription>Traffic breakdown by platform</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <ResponsiveContainer width="100%" height={300}>
+                    <PieChart>
+                      <Pie
+                        data={platformData}
+                        cx="50%"
+                        cy="50%"
+                        labelLine={false}
+                        label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                        outerRadius={80}
+                        fill="#8884d8"
+                        dataKey="value"
+                      >
+                        {platformData.map((entry, index) => (
+                          <Cell key={`cell-${index}`} fill={entry.color} />
+                        ))}
+                      </Pie>
+                      <Tooltip />
+                    </PieChart>
+                  </ResponsiveContainer>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Spend Analysis */}
+            <Card className="border-0 shadow-lg bg-white/80 backdrop-blur-sm">
+              <CardHeader>
+                <CardTitle>Spend Analysis</CardTitle>
+                <CardDescription>Daily advertising spend and performance</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <ResponsiveContainer width="100%" height={300}>
+                  <BarChart data={mockData}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="date" tickFormatter={(value) => new Date(value).toLocaleDateString()} />
+                    <YAxis />
+                    <Tooltip labelFormatter={(value) => new Date(value).toLocaleDateString()} />
+                    <Legend />
+                    <Bar dataKey="spend" fill="#8884d8" />
+                    <Bar dataKey="conversions" fill="#82ca9d" />
+                  </BarChart>
+                </ResponsiveContainer>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="brand-monitoring">
+            <BrandMonitoring />
+          </TabsContent>
+        </Tabs>
       </div>
     </div>
   );
