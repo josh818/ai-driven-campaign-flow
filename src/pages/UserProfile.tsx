@@ -28,6 +28,7 @@ type AdminRole = Database['public']['Tables']['admin_roles']['Row'];
 interface UserWithDetails extends Profile {
   admin_roles?: AdminRole[];
   campaigns?: Campaign[];
+  is_admin?: boolean;
 }
 
 const UserProfile = () => {
@@ -44,18 +45,34 @@ const UserProfile = () => {
 
   const fetchUserProfile = async () => {
     try {
-      const { data, error } = await supabase
+      // First fetch the profile
+      const { data: profile, error: profileError } = await supabase
         .from('profiles')
-        .select(`
-          *,
-          admin_roles(*),
-          campaigns(*)
-        `)
+        .select('*')
         .eq('id', userId!)
         .single();
 
-      if (error) throw error;
-      setUserProfile(data);
+      if (profileError) throw profileError;
+
+      // Then fetch admin roles and campaigns separately
+      const { data: adminRoles } = await supabase
+        .from('admin_roles')
+        .select('*')
+        .eq('user_id', userId!);
+
+      const { data: campaigns } = await supabase
+        .from('campaigns')
+        .select('*')
+        .eq('user_id', userId!);
+
+      const userWithDetails: UserWithDetails = {
+        ...profile,
+        admin_roles: adminRoles || [],
+        campaigns: campaigns || [],
+        is_admin: (adminRoles || []).length > 0
+      };
+
+      setUserProfile(userWithDetails);
     } catch (error) {
       console.error('Error fetching user profile:', error);
     } finally {
@@ -156,7 +173,7 @@ const UserProfile = () => {
                     {userProfile.full_name || 'Unnamed User'}
                   </h3>
                   
-                  {userProfile.admin_roles && userProfile.admin_roles.length > 0 && (
+                  {userProfile.is_admin && (
                     <Badge className="bg-red-100 text-red-800 mb-4">
                       Administrator
                     </Badge>

@@ -26,6 +26,7 @@ type AdminRole = Database['public']['Tables']['admin_roles']['Row'];
 interface UserWithAdmin extends Profile {
   admin_roles?: AdminRole[];
   campaign_count?: number;
+  is_admin?: boolean;
 }
 
 const AdminUsers = () => {
@@ -42,26 +43,39 @@ const AdminUsers = () => {
 
   const fetchUsers = async () => {
     try {
-      // Fetch profiles with admin roles and campaign counts
+      // First fetch all profiles
       const { data: profiles, error: profilesError } = await supabase
         .from('profiles')
-        .select(`
-          *,
-          admin_roles(*),
-          campaigns(id)
-        `)
+        .select('*')
         .order('created_at', { ascending: false });
 
       if (profilesError) throw profilesError;
 
-      // Transform the data to include campaign counts
-      const usersWithCounts = profiles?.map(profile => ({
-        ...profile,
-        campaign_count: profile.campaigns?.length || 0,
-        campaigns: undefined // Remove the campaigns array since we only need the count
-      })) || [];
+      // Then fetch admin roles and campaign counts separately
+      const usersWithDetails = await Promise.all(
+        (profiles || []).map(async (profile) => {
+          // Get admin roles for this user
+          const { data: adminRoles } = await supabase
+            .from('admin_roles')
+            .select('*')
+            .eq('user_id', profile.id);
 
-      setUsers(usersWithCounts);
+          // Get campaign count for this user
+          const { data: campaigns } = await supabase
+            .from('campaigns')
+            .select('id')
+            .eq('user_id', profile.id);
+
+          return {
+            ...profile,
+            admin_roles: adminRoles || [],
+            campaign_count: campaigns?.length || 0,
+            is_admin: (adminRoles || []).length > 0
+          };
+        })
+      );
+
+      setUsers(usersWithDetails);
     } catch (error) {
       console.error('Error fetching users:', error);
     } finally {
@@ -190,7 +204,7 @@ const AdminUsers = () => {
                               <h3 className="font-semibold text-gray-900">
                                 {userProfile.full_name || 'Unnamed User'}
                               </h3>
-                              {userProfile.admin_roles && userProfile.admin_roles.length > 0 && (
+                              {userProfile.is_admin && (
                                 <Badge variant="default" className="bg-red-100 text-red-800">
                                   <Settings className="h-3 w-3 mr-1" />
                                   Admin
@@ -231,7 +245,7 @@ const AdminUsers = () => {
                             </Button>
                           </Link>
                           
-                          {userProfile.admin_roles && userProfile.admin_roles.length > 0 ? (
+                          {userProfile.is_admin ? (
                             <Button
                               variant="outline"
                               size="sm"
