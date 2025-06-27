@@ -1,33 +1,34 @@
+
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
-import AdminGuard from '@/components/AdminGuard';
-import Header from '@/components/Header';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
+import { Badge } from '@/components/ui/badge';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { 
   Users, 
-  Settings, 
   Shield, 
   Plus, 
-  Search,
-  UserPlus,
+  Search, 
   Eye,
-  Trash2
+  UserPlus,
+  AlertCircle,
+  Settings,
+  Monitor
 } from 'lucide-react';
-import { Link } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
+import AdminGuard from '@/components/AdminGuard';
 
 interface User {
   id: string;
   email: string;
-  full_name: string;
-  company_name: string;
-  onboarding_completed: boolean;
+  full_name: string | null;
+  company_name: string | null;
   created_at: string;
+  updated_at: string;
 }
 
 interface MonitoredTerm {
@@ -35,7 +36,7 @@ interface MonitoredTerm {
   term: string;
   user_id: string;
   created_at: string;
-  user_email?: string;
+  email?: string;
 }
 
 const AdminDashboard = () => {
@@ -44,20 +45,16 @@ const AdminDashboard = () => {
   const [users, setUsers] = useState<User[]>([]);
   const [monitoredTerms, setMonitoredTerms] = useState<MonitoredTerm[]>([]);
   const [newTerm, setNewTerm] = useState('');
-  const [selectedUserId, setSelectedUserId] = useState<string>('');
+  const [selectedUserId, setSelectedUserId] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
   const [isLoading, setIsLoading] = useState(true);
-  const [stats, setStats] = useState({
-    totalUsers: 0,
-    activeUsers: 0,
-    totalTerms: 0,
-    completedOnboarding: 0
-  });
 
   useEffect(() => {
-    fetchUsers();
-    fetchMonitoredTerms();
-  }, []);
+    if (user) {
+      fetchUsers();
+      fetchMonitoredTerms();
+    }
+  }, [user]);
 
   const fetchUsers = async () => {
     try {
@@ -66,22 +63,20 @@ const AdminDashboard = () => {
         .select('*')
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
-
-      setUsers(data || []);
-      setStats(prev => ({
-        ...prev,
-        totalUsers: data?.length || 0,
-        completedOnboarding: data?.filter(u => u.onboarding_completed).length || 0,
-        activeUsers: data?.length || 0 // For now, all users are considered active
-      }));
+      if (error) {
+        console.error('Error fetching users:', error);
+        toast({
+          title: "Error",
+          description: "Failed to fetch users",
+          variant: "destructive"
+        });
+      } else if (data) {
+        setUsers(data);
+      }
     } catch (error) {
       console.error('Error fetching users:', error);
-      toast({
-        title: "Error",
-        description: "Failed to fetch users",
-        variant: "destructive"
-      });
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -95,27 +90,17 @@ const AdminDashboard = () => {
         `)
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
-
-      const termsWithEmail = data?.map(term => ({
-        ...term,
-        user_email: term.profiles?.email
-      })) || [];
-
-      setMonitoredTerms(termsWithEmail);
-      setStats(prev => ({
-        ...prev,
-        totalTerms: termsWithEmail.length
-      }));
+      if (error) {
+        console.error('Error fetching monitored terms:', error);
+      } else if (data) {
+        const termsWithEmail = data.map(term => ({
+          ...term,
+          email: (term.profiles as any)?.email || 'Unknown'
+        }));
+        setMonitoredTerms(termsWithEmail);
+      }
     } catch (error) {
       console.error('Error fetching monitored terms:', error);
-      toast({
-        title: "Error",
-        description: "Failed to fetch monitored terms",
-        variant: "destructive"
-      });
-    } finally {
-      setIsLoading(false);
     }
   };
 
@@ -137,46 +122,50 @@ const AdminDashboard = () => {
           user_id: selectedUserId
         });
 
-      if (error) throw error;
-
-      setNewTerm('');
-      setSelectedUserId('');
-      fetchMonitoredTerms();
-      toast({
-        title: "Success",
-        description: "Monitored term added successfully"
-      });
+      if (error) {
+        console.error('Error adding monitored term:', error);
+        toast({
+          title: "Error",
+          description: "Failed to add monitored term",
+          variant: "destructive"
+        });
+      } else {
+        toast({
+          title: "Success",
+          description: "Monitored term added successfully"
+        });
+        setNewTerm('');
+        setSelectedUserId('');
+        fetchMonitoredTerms();
+      }
     } catch (error) {
       console.error('Error adding monitored term:', error);
-      toast({
-        title: "Error",
-        description: "Failed to add monitored term",
-        variant: "destructive"
-      });
     }
   };
 
-  const deleteMonitoredTerm = async (termId: string) => {
+  const removeMonitoredTerm = async (termId: string) => {
     try {
       const { error } = await supabase
         .from('monitored_terms')
         .delete()
         .eq('id', termId);
 
-      if (error) throw error;
-
-      fetchMonitoredTerms();
-      toast({
-        title: "Success",
-        description: "Monitored term deleted successfully"
-      });
+      if (error) {
+        console.error('Error removing monitored term:', error);
+        toast({
+          title: "Error",
+          description: "Failed to remove monitored term",
+          variant: "destructive"
+        });
+      } else {
+        toast({
+          title: "Success",
+          description: "Monitored term removed successfully"
+        });
+        fetchMonitoredTerms();
+      }
     } catch (error) {
-      console.error('Error deleting monitored term:', error);
-      toast({
-        title: "Error",
-        description: "Failed to delete monitored term",
-        variant: "destructive"
-      });
+      console.error('Error removing monitored term:', error);
     }
   };
 
@@ -188,258 +177,207 @@ const AdminDashboard = () => {
 
   const filteredTerms = monitoredTerms.filter(term =>
     term.term.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    term.user_email?.toLowerCase().includes(searchTerm.toLowerCase())
+    term.email?.toLowerCase().includes(searchTerm.toLowerCase())
   );
-
-  if (isLoading) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-teal-50">
-        <Header />
-        <div className="flex items-center justify-center min-h-96">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <AdminGuard>
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-teal-50">
-        <Header />
-        
-        <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="mb-8">
             <h1 className="text-3xl font-bold text-gray-900 mb-2">Admin Dashboard</h1>
-            <p className="text-gray-600">Manage users, campaigns, and reputation monitoring</p>
+            <p className="text-gray-600">Manage users, campaigns, and system settings</p>
           </div>
 
-          {/* Stats Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-            <Card className="border-0 shadow-lg bg-white/80 backdrop-blur-sm">
-              <CardContent className="p-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-medium text-gray-600">Total Users</p>
-                    <p className="text-2xl font-bold text-gray-900">{stats.totalUsers}</p>
-                  </div>
-                  <div className="p-3 bg-gradient-to-br from-blue-500 to-teal-500 rounded-xl">
-                    <Users className="h-6 w-6 text-white" />
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+          <Tabs defaultValue="users" className="space-y-6">
+            <TabsList className="grid w-full grid-cols-3">
+              <TabsTrigger value="users" className="flex items-center gap-2">
+                <Users className="h-4 w-4" />
+                Users
+              </TabsTrigger>
+              <TabsTrigger value="monitoring" className="flex items-center gap-2">
+                <Monitor className="h-4 w-4" />
+                Reputation Monitoring
+              </TabsTrigger>
+              <TabsTrigger value="settings" className="flex items-center gap-2">
+                <Settings className="h-4 w-4" />
+                Settings
+              </TabsTrigger>
+            </TabsList>
 
-            <Card className="border-0 shadow-lg bg-white/80 backdrop-blur-sm">
-              <CardContent className="p-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-medium text-gray-600">Completed Onboarding</p>
-                    <p className="text-2xl font-bold text-gray-900">{stats.completedOnboarding}</p>
+            <TabsContent value="users" className="space-y-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Users className="h-5 w-5" />
+                    User Management
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="mb-4">
+                    <div className="relative">
+                      <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                      <Input
+                        placeholder="Search users..."
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                        className="pl-10"
+                      />
+                    </div>
                   </div>
-                  <div className="p-3 bg-gradient-to-br from-green-500 to-teal-500 rounded-xl">
-                    <UserPlus className="h-6 w-6 text-white" />
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
 
-            <Card className="border-0 shadow-lg bg-white/80 backdrop-blur-sm">
-              <CardContent className="p-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-medium text-gray-600">Active Users</p>
-                    <p className="text-2xl font-bold text-gray-900">{stats.activeUsers}</p>
-                  </div>
-                  <div className="p-3 bg-gradient-to-br from-purple-500 to-pink-500 rounded-xl">
-                    <Eye className="h-6 w-6 text-white" />
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card className="border-0 shadow-lg bg-white/80 backdrop-blur-sm">
-              <CardContent className="p-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-medium text-gray-600">Monitored Terms</p>
-                    <p className="text-2xl font-bold text-gray-900">{stats.totalTerms}</p>
-                  </div>
-                  <div className="p-3 bg-gradient-to-br from-orange-500 to-red-500 rounded-xl">
-                    <Shield className="h-6 w-6 text-white" />
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-
-          {/* Search */}
-          <div className="mb-6">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-              <Input
-                placeholder="Search users, terms, or companies..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10"
-              />
-            </div>
-          </div>
-
-          {/* Main Content Grid */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            {/* Users Management */}
-            <Card className="border-0 shadow-lg bg-white/80 backdrop-blur-sm">
-              <CardHeader>
-                <CardTitle className="flex items-center space-x-2">
-                  <Users className="h-5 w-5 text-blue-600" />
-                  <span>User Management</span>
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  {filteredUsers.map((user) => (
-                    <div key={user.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
-                      <div className="flex-1">
-                        <div className="flex items-center space-x-3">
-                          <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-teal-500 rounded-full flex items-center justify-center">
-                            <span className="text-white font-medium text-sm">
-                              {user.full_name?.[0] || user.email[0].toUpperCase()}
-                            </span>
-                          </div>
-                          <div>
-                            <p className="font-medium text-gray-900">{user.full_name || 'No name'}</p>
-                            <p className="text-sm text-gray-600">{user.email}</p>
-                            {user.company_name && (
-                              <p className="text-xs text-gray-500">{user.company_name}</p>
-                            )}
+                  <div className="space-y-4">
+                    {isLoading ? (
+                      <div className="text-center py-8">
+                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
+                        <p className="text-gray-500 mt-2">Loading users...</p>
+                      </div>
+                    ) : filteredUsers.length === 0 ? (
+                      <div className="text-center py-8">
+                        <AlertCircle className="h-12 w-12 text-gray-400 mx-auto mb-2" />
+                        <p className="text-gray-500">No users found</p>
+                      </div>
+                    ) : (
+                      filteredUsers.map((user) => (
+                        <div key={user.id} className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
+                          <div className="flex items-center justify-between">
+                            <div className="flex-1">
+                              <div className="flex items-center gap-3 mb-2">
+                                <h3 className="font-semibold text-gray-900">
+                                  {user.full_name || 'No name'}
+                                </h3>
+                                <Badge variant="outline" className="text-xs">
+                                  {user.company_name || 'No company'}
+                                </Badge>
+                              </div>
+                              <p className="text-sm text-gray-600 mb-1">{user.email}</p>
+                              <p className="text-xs text-gray-500">
+                                Joined {new Date(user.created_at).toLocaleDateString()}
+                              </p>
+                            </div>
+                            <div className="flex gap-2">
+                              <Button variant="outline" size="sm">
+                                <Eye className="h-4 w-4 mr-1" />
+                                View
+                              </Button>
+                              <Button variant="outline" size="sm">
+                                <UserPlus className="h-4 w-4 mr-1" />
+                                Manage
+                              </Button>
+                            </div>
                           </div>
                         </div>
+                      ))
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            <TabsContent value="monitoring" className="space-y-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Monitor className="h-5 w-5" />
+                    Reputation Monitoring Terms
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="mb-6 p-4 bg-blue-50 rounded-lg">
+                    <h3 className="font-semibold text-blue-900 mb-3">Add New Monitoring Term</h3>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                      <div>
+                        <Label htmlFor="user-select">Select User</Label>
+                        <select
+                          id="user-select"
+                          value={selectedUserId}
+                          onChange={(e) => setSelectedUserId(e.target.value)}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        >
+                          <option value="">Choose a user</option>
+                          {users.map((user) => (
+                            <option key={user.id} value={user.id}>
+                              {user.email} - {user.full_name || 'No name'}
+                            </option>
+                          ))}
+                        </select>
                       </div>
-                      <div className="flex items-center space-x-2">
-                        {user.onboarding_completed ? (
-                          <span className="px-2 py-1 bg-green-100 text-green-800 text-xs rounded-full">
-                            Completed
-                          </span>
-                        ) : (
-                          <span className="px-2 py-1 bg-yellow-100 text-yellow-800 text-xs rounded-full">
-                            Pending
-                          </span>
-                        )}
-                        <Button variant="outline" size="sm" asChild>
-                          <Link to={`/admin/users/${user.id}`}>
-                            <Eye className="h-4 w-4" />
-                          </Link>
+                      <div>
+                        <Label htmlFor="new-term">Monitoring Term</Label>
+                        <Input
+                          id="new-term"
+                          placeholder="Enter term to monitor"
+                          value={newTerm}
+                          onChange={(e) => setNewTerm(e.target.value)}
+                        />
+                      </div>
+                      <div className="flex items-end">
+                        <Button onClick={addMonitoredTerm} className="w-full">
+                          <Plus className="h-4 w-4 mr-1" />
+                          Add Term
                         </Button>
                       </div>
                     </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Reputation Monitoring */}
-            <Card className="border-0 shadow-lg bg-white/80 backdrop-blur-sm">
-              <CardHeader>
-                <CardTitle className="flex items-center space-x-2">
-                  <Shield className="h-5 w-5 text-teal-600" />
-                  <span>Reputation Monitoring</span>
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                {/* Add New Term */}
-                <div className="mb-6 p-4 bg-gray-50 rounded-lg">
-                  <h3 className="font-medium text-gray-900 mb-3">Add Monitored Term</h3>
-                  <div className="space-y-3">
-                    <div>
-                      <Label htmlFor="term">Term to Monitor</Label>
-                      <Input
-                        id="term"
-                        value={newTerm}
-                        onChange={(e) => setNewTerm(e.target.value)}
-                        placeholder="Enter brand name, product, etc."
-                      />
-                    </div>
-                    <div>
-                      <Label htmlFor="user">Assign to User</Label>
-                      <select
-                        id="user"
-                        value={selectedUserId}
-                        onChange={(e) => setSelectedUserId(e.target.value)}
-                        className="w-full p-2 border border-gray-300 rounded-md"
-                      >
-                        <option value="">Select a user</option>
-                        {users.map((user) => (
-                          <option key={user.id} value={user.id}>
-                            {user.email} - {user.full_name || 'No name'}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-                    <Button onClick={addMonitoredTerm} className="w-full">
-                      <Plus className="h-4 w-4 mr-2" />
-                      Add Term
-                    </Button>
                   </div>
-                </div>
 
-                {/* Existing Terms */}
-                <div className="space-y-3">
-                  <h3 className="font-medium text-gray-900">Existing Terms</h3>
-                  {filteredTerms.map((term) => (
-                    <div key={term.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                      <div>
-                        <p className="font-medium text-gray-900">{term.term}</p>
-                        <p className="text-sm text-gray-600">{term.user_email}</p>
+                  <div className="space-y-3">
+                    {filteredTerms.length === 0 ? (
+                      <div className="text-center py-8">
+                        <Monitor className="h-12 w-12 text-gray-400 mx-auto mb-2" />
+                        <p className="text-gray-500">No monitoring terms found</p>
                       </div>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => deleteMonitoredTerm(term.id)}
-                        className="text-red-600 hover:text-red-700"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-          </div>
+                    ) : (
+                      filteredTerms.map((term) => (
+                        <div key={term.id} className="flex items-center justify-between p-3 border border-gray-200 rounded-lg">
+                          <div>
+                            <p className="font-medium text-gray-900">{term.term}</p>
+                            <p className="text-sm text-gray-600">
+                              User: {term.email} • Added {new Date(term.created_at).toLocaleDateString()}
+                            </p>
+                          </div>
+                          <Button
+                            variant="destructive"
+                            size="sm"
+                            onClick={() => removeMonitoredTerm(term.id)}
+                          >
+                            Remove
+                          </Button>
+                        </div>
+                      ))
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+            </TabsContent>
 
-          {/* Quick Actions */}
-          <div className="mt-8">
-            <Card className="border-0 shadow-lg bg-white/80 backdrop-blur-sm">
-              <CardHeader>
-                <CardTitle className="flex items-center space-x-2">
-                  <Settings className="h-5 w-5 text-gray-600" />
-                  <span>Quick Actions</span>
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <Button variant="outline" asChild>
-                    <Link to="/admin/users">
-                      <Users className="h-4 w-4 mr-2" />
-                      Manage All Users
-                    </Link>
-                  </Button>
-                  <Button variant="outline" asChild>
-                    <Link to="/create-campaign">
-                      <Plus className="h-4 w-4 mr-2" />
-                      Create Campaign
-                    </Link>
-                  </Button>
-                  <Button variant="outline" asChild>
-                    <Link to="/analytics">
-                      <Shield className="h-4 w-4 mr-2" />
-                      View Analytics
-                    </Link>
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-        </main>
+            <TabsContent value="settings" className="space-y-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Settings className="h-5 w-5" />
+                    System Settings
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    <div className="p-4 bg-gray-50 rounded-lg">
+                      <h3 className="font-semibold text-gray-900 mb-2">Database Status</h3>
+                      <p className="text-sm text-gray-600">
+                        System is operational. All core features are available.
+                      </p>
+                    </div>
+                    <div className="p-4 bg-yellow-50 rounded-lg">
+                      <h3 className="font-semibold text-yellow-900 mb-2">Onboarding System</h3>
+                      <p className="text-sm text-yellow-700">
+                        Advanced onboarding features require database migration to be completed.
+                      </p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </TabsContent>
+          </Tabs>
+        </div>
       </div>
     </AdminGuard>
   );

@@ -24,20 +24,22 @@ const OnboardingGuard = ({ children }: OnboardingGuardProps) => {
 
   const checkOnboardingStatus = async () => {
     try {
-      const { data, error } = await supabase
-        .from('profiles')
+      // First try to check if onboarding_data table exists and has data
+      const { data: onboardingData, error: onboardingError } = await supabase
+        .from('onboarding_data')
         .select('onboarding_completed')
-        .eq('id', user!.id)
-        .single();
+        .eq('user_id', user!.id)
+        .maybeSingle();
 
-      if (error) {
-        console.error('Error checking onboarding status:', error);
-        setOnboardingCompleted(false);
+      if (!onboardingError && onboardingData) {
+        setOnboardingCompleted(onboardingData.onboarding_completed || false);
       } else {
-        setOnboardingCompleted(data?.onboarding_completed || false);
+        // Fallback: assume onboarding not completed if no data found
+        setOnboardingCompleted(false);
       }
     } catch (error) {
       console.error('Error checking onboarding status:', error);
+      // If there's an error (like table doesn't exist), assume onboarding not completed
       setOnboardingCompleted(false);
     } finally {
       setIsLoading(false);

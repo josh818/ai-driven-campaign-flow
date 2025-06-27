@@ -21,6 +21,8 @@ export const useOnboardingData = () => {
   useEffect(() => {
     if (user) {
       fetchOnboardingData();
+    } else {
+      setIsLoading(false);
     }
   }, [user]);
 
@@ -28,19 +30,22 @@ export const useOnboardingData = () => {
     if (!user) return;
 
     try {
+      // Try to fetch from onboarding_data table
       const { data, error } = await supabase
         .from('onboarding_data')
         .select('*')
         .eq('user_id', user.id)
-        .single();
+        .maybeSingle();
 
-      if (error && error.code !== 'PGRST116') {
+      if (error) {
         console.error('Error fetching onboarding data:', error);
+        setOnboardingData(null);
       } else {
         setOnboardingData(data);
       }
     } catch (error) {
       console.error('Error fetching onboarding data:', error);
+      setOnboardingData(null);
     } finally {
       setIsLoading(false);
     }

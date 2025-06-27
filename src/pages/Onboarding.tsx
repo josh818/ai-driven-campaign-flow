@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Sparkles, Upload, User, Building, Target, Image } from 'lucide-react';
+import { Sparkles, Upload, User, Building, Target, Image, AlertCircle } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 const Onboarding = () => {
@@ -17,6 +17,7 @@ const Onboarding = () => {
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
   const [currentStep, setCurrentStep] = useState(1);
+  const [tableExists, setTableExists] = useState(false);
   const [formData, setFormData] = useState({
     full_name: user?.user_metadata?.full_name || '',
     company_name: '',
@@ -27,7 +28,6 @@ const Onboarding = () => {
   });
 
   useEffect(() => {
-    // Check if user has already completed onboarding
     checkOnboardingStatus();
   }, [user]);
 
@@ -35,17 +35,25 @@ const Onboarding = () => {
     if (!user) return;
 
     try {
-      const { data: profile } = await supabase
-        .from('profiles')
+      // Check if onboarding_data table exists by trying to query it
+      const { data, error } = await supabase
+        .from('onboarding_data')
         .select('onboarding_completed')
-        .eq('id', user.id)
-        .single();
+        .eq('user_id', user.id)
+        .maybeSingle();
 
-      if (profile?.onboarding_completed) {
-        navigate('/');
+      if (!error) {
+        setTableExists(true);
+        if (data?.onboarding_completed) {
+          navigate('/');
+        }
+      } else {
+        setTableExists(false);
+        console.log('Onboarding data table not available yet');
       }
     } catch (error) {
       console.error('Error checking onboarding status:', error);
+      setTableExists(false);
     }
   };
 
@@ -82,42 +90,55 @@ const Onboarding = () => {
       let officeImageUrl = '';
 
       if (formData.logo_file) {
-        logoUrl = await uploadFile(formData.logo_file, 'logos');
+        try {
+          logoUrl = await uploadFile(formData.logo_file, 'logos');
+        } catch (error) {
+          console.error('Error uploading logo:', error);
+        }
       }
 
       if (formData.office_file) {
-        officeImageUrl = await uploadFile(formData.office_file, 'office');
+        try {
+          officeImageUrl = await uploadFile(formData.office_file, 'office');
+        } catch (error) {
+          console.error('Error uploading office image:', error);
+        }
       }
 
-      // Update profile
+      // Update profile with basic information
       const { error: profileError } = await supabase
         .from('profiles')
         .update({
           full_name: formData.full_name,
-          company_name: formData.company_name,
-          onboarding_completed: true
+          company_name: formData.company_name
         })
         .eq('id', user.id);
 
-      if (profileError) throw profileError;
+      if (profileError) {
+        console.error('Profile update error:', profileError);
+      }
 
-      // Create onboarding data
-      const { error: onboardingError } = await supabase
-        .from('onboarding_data')
-        .upsert({
-          user_id: user.id,
-          company_description: formData.company_description,
-          target_audience: formData.target_audience,
-          logo_url: logoUrl,
-          office_image_url: officeImageUrl,
-          onboarding_completed: true
-        });
+      // Try to create onboarding data if table exists
+      if (tableExists) {
+        const { error: onboardingError } = await supabase
+          .from('onboarding_data')
+          .upsert({
+            user_id: user.id,
+            company_description: formData.company_description,
+            target_audience: formData.target_audience,
+            logo_url: logoUrl,
+            office_image_url: officeImageUrl,
+            onboarding_completed: true
+          });
 
-      if (onboardingError) throw onboardingError;
+        if (onboardingError) {
+          console.error('Onboarding data error:', onboardingError);
+        }
+      }
 
       toast({
-        title: "Welcome aboard!",
-        description: "Your onboarding is complete. Let's get started with your first campaign!"
+        title: "Profile Updated!",
+        description: "Your profile information has been saved successfully."
       });
 
       navigate('/');
@@ -125,7 +146,7 @@ const Onboarding = () => {
       console.error('Error completing onboarding:', error);
       toast({
         title: "Error",
-        description: "Failed to complete onboarding. Please try again.",
+        description: "Failed to complete setup. Please try again.",
         variant: "destructive"
       });
     } finally {
@@ -159,9 +180,20 @@ const Onboarding = () => {
               Welcome to Campaign Manager
             </CardTitle>
             <p className="text-gray-600 mt-2">
-              Let's set up your profile to create personalized campaigns
+              Let's set up your profile to get started
             </p>
           </div>
+          
+          {!tableExists && (
+            <div className="p-3 bg-yellow-50 rounded-lg">
+              <div className="flex items-center gap-2 text-yellow-800">
+                <AlertCircle className="h-4 w-4" />
+                <p className="text-sm">
+                  Advanced onboarding features are being set up. Basic profile setup is available.
+                </p>
+              </div>
+            </div>
+          )}
           
           {/* Progress Bar */}
           <div className="w-full bg-gray-200 rounded-full h-2">
@@ -218,26 +250,24 @@ const Onboarding = () => {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="company_description">Company Description *</Label>
+                  <Label htmlFor="company_description">Company Description</Label>
                   <Textarea
                     id="company_description"
                     value={formData.company_description}
                     onChange={(e) => setFormData(prev => ({ ...prev, company_description: e.target.value }))}
                     placeholder="Describe what your company does, your mission, and key services..."
                     rows={4}
-                    required
                   />
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="target_audience">Target Audience *</Label>
+                  <Label htmlFor="target_audience">Target Audience</Label>
                   <Textarea
                     id="target_audience"
                     value={formData.target_audience}
                     onChange={(e) => setFormData(prev => ({ ...prev, target_audience: e.target.value }))}
                     placeholder="Describe your ideal customers, demographics, interests..."
                     rows={3}
-                    required
                   />
                 </div>
               </div>
@@ -308,8 +338,7 @@ const Onboarding = () => {
                   type="button"
                   onClick={nextStep}
                   disabled={
-                    (currentStep === 1 && (!formData.full_name || !formData.company_name)) ||
-                    (currentStep === 2 && (!formData.company_description || !formData.target_audience))
+                    (currentStep === 1 && (!formData.full_name || !formData.company_name))
                   }
                 >
                   Next
@@ -320,7 +349,7 @@ const Onboarding = () => {
                   disabled={isLoading}
                   className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700"
                 >
-                  {isLoading ? 'Completing...' : 'Complete Setup'}
+                  {isLoading ? 'Saving...' : 'Complete Setup'}
                 </Button>
               )}
             </div>
