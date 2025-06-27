@@ -1,6 +1,7 @@
 
 import { useAuth } from '@/hooks/useAuth';
 import Header from '@/components/Header';
+import ContentPreviews from '@/components/ContentPreviews';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { 
@@ -88,7 +89,7 @@ const Index = () => {
         </Card>
 
         {/* Quick Actions */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
           <div className="lg:col-span-2">
             <Card className="border-0 shadow-lg bg-white/80 backdrop-blur-sm">
               <CardHeader>
@@ -167,6 +168,9 @@ const Index = () => {
             </Card>
           </div>
         </div>
+
+        {/* Content Previews Section */}
+        <ContentPreviews />
       </main>
     </div>
   );
