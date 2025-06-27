@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
@@ -182,20 +183,20 @@ const Index = () => {
           ))}
         </div>
 
-        {/* Brand Monitoring Section - Made 60% less tall */}
+        {/* Brand Monitoring Section - Reduced height by 55% */}
         <div className="mb-8">
           <Card className="border-0 shadow-lg bg-white/80 backdrop-blur-sm">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-xl flex items-center space-x-2">
-                <Shield className="h-6 w-6 text-teal-600" />
+            <CardHeader className="pb-1">
+              <CardTitle className="text-lg flex items-center space-x-2">
+                <Shield className="h-5 w-5 text-teal-600" />
                 <span>Brand Monitoring</span>
               </CardTitle>
-              <CardDescription>
+              <CardDescription className="text-xs">
                 Recent brand mentions and monitoring activity
               </CardDescription>
             </CardHeader>
-            <CardContent className="pt-2">
-              <div className="max-h-64 overflow-hidden">
+            <CardContent className="pt-1 pb-3">
+              <div className="max-h-32 overflow-hidden">
                 <BrandMonitoring />
               </div>
             </CardContent>
