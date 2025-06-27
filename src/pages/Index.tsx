@@ -11,7 +11,9 @@ import {
   Zap,
   TrendingUp,
   Users,
-  Target
+  Target,
+  Shield,
+  AlertTriangle
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
@@ -22,18 +24,18 @@ const Index = () => {
     { name: 'Active Campaigns', value: '12', icon: Target, change: '+2.5%' },
     { name: 'Total Reach', value: '45.2K', icon: Users, change: '+12.3%' },
     { name: 'Engagement Rate', value: '8.4%', icon: TrendingUp, change: '+0.8%' },
-    { name: 'AI Generated', value: '28', icon: Zap, change: '+5 this week' },
+    { name: 'Brand Mentions', value: '28', icon: Shield, change: '+5 this week' },
   ];
 
   const quickActions = [
-    { name: 'Create Campaign', icon: PlusCircle, color: 'from-purple-500 to-pink-500', href: '/create-campaign' },
-    { name: 'View Calendar', icon: Calendar, color: 'from-blue-500 to-cyan-500', href: '/calendar' },
-    { name: 'Analytics', icon: BarChart3, color: 'from-green-500 to-emerald-500', href: '/analytics' },
-    { name: 'All Campaigns', icon: MessageSquare, color: 'from-orange-500 to-red-500', href: '/campaigns' },
+    { name: 'Create Campaign', icon: PlusCircle, color: 'from-blue-500 to-cyan-500', href: '/create-campaign' },
+    { name: 'Reputation Manager', icon: Shield, color: 'from-teal-500 to-green-500', href: '/reputation' },
+    { name: 'View Calendar', icon: Calendar, color: 'from-cyan-500 to-blue-500', href: '/calendar' },
+    { name: 'Analytics', icon: BarChart3, color: 'from-green-500 to-teal-500', href: '/analytics' },
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 to-pink-50">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-teal-50">
       <Header />
       
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -43,7 +45,7 @@ const Index = () => {
             Welcome back, {user?.user_metadata?.full_name || 'there'}! 👋
           </h2>
           <p className="text-gray-600">
-            Here's what's happening with your marketing campaigns today.
+            Monitor your brand reputation and manage your marketing campaigns.
           </p>
         </div>
 
@@ -56,9 +58,9 @@ const Index = () => {
                   <div>
                     <p className="text-sm font-medium text-gray-600">{stat.name}</p>
                     <p className="text-2xl font-bold text-gray-900">{stat.value}</p>
-                    <p className="text-xs text-green-600 font-medium">{stat.change}</p>
+                    <p className="text-xs text-teal-600 font-medium">{stat.change}</p>
                   </div>
-                  <div className="p-3 bg-gradient-to-br from-purple-500 to-pink-500 rounded-xl">
+                  <div className="p-3 bg-gradient-to-br from-blue-500 to-teal-500 rounded-xl">
                     <stat.icon className="h-6 w-6 text-white" />
                   </div>
                 </div>
@@ -66,6 +68,24 @@ const Index = () => {
             </Card>
           ))}
         </div>
+
+        {/* Brand Alert Banner */}
+        <Card className="border-0 shadow-lg bg-gradient-to-r from-orange-50 to-red-50 border-l-4 border-orange-400 mb-8">
+          <CardContent className="p-6">
+            <div className="flex items-center space-x-4">
+              <AlertTriangle className="h-8 w-8 text-orange-500" />
+              <div className="flex-1">
+                <h3 className="text-lg font-semibold text-gray-900">Brand Monitoring Active</h3>
+                <p className="text-gray-600">3 new mentions detected in the last 24 hours. 2 require attention.</p>
+              </div>
+              <Link to="/reputation">
+                <Button className="bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600">
+                  View Details
+                </Button>
+              </Link>
+            </div>
+          </CardContent>
+        </Card>
 
         {/* Quick Actions */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -83,7 +103,7 @@ const Index = () => {
                     <Link key={action.name} to={action.href}>
                       <Button
                         variant="outline"
-                        className="h-20 w-full flex-col space-y-2 border-2 hover:border-purple-300 transition-all duration-200"
+                        className="h-20 w-full flex-col space-y-2 border-2 hover:border-teal-300 transition-all duration-200"
                       >
                         <div className={`p-2 bg-gradient-to-br ${action.color} rounded-lg`}>
                           <action.icon className="h-6 w-6 text-white" />
@@ -109,12 +129,16 @@ const Index = () => {
                     <span className="text-gray-600">Campaign "Summer Sale" published</span>
                   </div>
                   <div className="flex items-center space-x-3">
+                    <div className="w-2 h-2 bg-orange-500 rounded-full"></div>
+                    <span className="text-gray-600">Negative brand mention detected</span>
+                  </div>
+                  <div className="flex items-center space-x-3">
                     <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
                     <span className="text-gray-600">AI generated 3 new post ideas</span>
                   </div>
                   <div className="flex items-center space-x-3">
-                    <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
-                    <span className="text-gray-600">Brand mention detected</span>
+                    <div className="w-2 h-2 bg-teal-500 rounded-full"></div>
+                    <span className="text-gray-600">Response drafted for review</span>
                   </div>
                 </div>
               </CardContent>
@@ -122,15 +146,21 @@ const Index = () => {
 
             <Card className="border-0 shadow-lg bg-white/80 backdrop-blur-sm">
               <CardHeader>
-                <CardTitle className="text-lg">AI Insights</CardTitle>
+                <CardTitle className="text-lg flex items-center space-x-2">
+                  <Shield className="h-5 w-5 text-teal-600" />
+                  <span>Reputation Insights</span>
+                </CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="space-y-3 text-sm">
                   <p className="text-gray-600">
-                    🎯 Your best performing content type is <strong>video content</strong> with 12.3% engagement rate.
+                    🛡️ Your brand sentiment is <strong>82% positive</strong> this week.
                   </p>
                   <p className="text-gray-600">
-                    📈 Consider posting on <strong>Tuesday evenings</strong> for maximum reach.
+                    📈 Response time to mentions: <strong>2.3 hours average</strong>.
+                  </p>
+                  <p className="text-gray-600">
+                    🎯 Most mentions from <strong>Twitter</strong> and <strong>Reddit</strong>.
                   </p>
                 </div>
               </CardContent>

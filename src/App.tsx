@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -15,6 +14,7 @@ import CampaignDetails from "./pages/CampaignDetails";
 import Calendar from "./pages/Calendar";
 import Analytics from "./pages/Analytics";
 import Settings from "./pages/Settings";
+import Reputation from "./pages/Reputation";
 
 const queryClient = new QueryClient();
 
@@ -57,6 +57,14 @@ function App() {
                 element={
                   <ProtectedRoute>
                     <CreateCampaign />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/reputation"
+                element={
+                  <ProtectedRoute>
+                    <Reputation />
                   </ProtectedRoute>
                 }
               />
