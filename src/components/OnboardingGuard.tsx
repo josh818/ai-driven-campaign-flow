@@ -33,7 +33,7 @@ const OnboardingGuard = ({ children }: OnboardingGuardProps) => {
 
       if (!profileError && profileData) {
         // Consider onboarding complete if user has both name and company
-        const hasBasicInfo = profileData.full_name && profileData.company_name;
+        const hasBasicInfo = !!(profileData.full_name && profileData.company_name);
         setOnboardingCompleted(hasBasicInfo);
       } else {
         setOnboardingCompleted(false);
