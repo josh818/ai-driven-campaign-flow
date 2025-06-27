@@ -6,8 +6,11 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/hooks/useAuth";
 import ProtectedRoute from "@/components/ProtectedRoute";
+import OnboardingGuard from "@/components/OnboardingGuard";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
+import Onboarding from "./pages/Onboarding";
+import AdminDashboard from "./pages/AdminDashboard";
 import CreateCampaign from "./pages/CreateCampaign";
 import Campaigns from "./pages/Campaigns";
 import CampaignDetails from "./pages/CampaignDetails";
@@ -30,54 +33,86 @@ const App = () => (
         <BrowserRouter>
           <Routes>
             <Route path="/auth" element={<Auth />} />
+            <Route path="/onboarding" element={
+              <ProtectedRoute>
+                <Onboarding />
+              </ProtectedRoute>
+            } />
+            <Route path="/admin/dashboard" element={
+              <ProtectedRoute>
+                <OnboardingGuard>
+                  <AdminDashboard />
+                </OnboardingGuard>
+              </ProtectedRoute>
+            } />
             <Route path="/" element={
               <ProtectedRoute>
-                <Index />
+                <OnboardingGuard>
+                  <Index />
+                </OnboardingGuard>
               </ProtectedRoute>
             } />
             <Route path="/create-campaign" element={
               <ProtectedRoute>
-                <CreateCampaign />
+                <OnboardingGuard>
+                  <CreateCampaign />
+                </OnboardingGuard>
               </ProtectedRoute>
             } />
             <Route path="/campaigns" element={
               <ProtectedRoute>
-                <Campaigns />
+                <OnboardingGuard>
+                  <Campaigns />
+                </OnboardingGuard>
               </ProtectedRoute>
             } />
             <Route path="/campaigns/:id" element={
               <ProtectedRoute>
-                <CampaignDetails />
+                <OnboardingGuard>
+                  <CampaignDetails />
+                </OnboardingGuard>
               </ProtectedRoute>
             } />
             <Route path="/calendar" element={
               <ProtectedRoute>
-                <Calendar />
+                <OnboardingGuard>
+                  <Calendar />
+                </OnboardingGuard>
               </ProtectedRoute>
             } />
             <Route path="/analytics" element={
               <ProtectedRoute>
-                <Analytics />
+                <OnboardingGuard>
+                  <Analytics />
+                </OnboardingGuard>
               </ProtectedRoute>
             } />
             <Route path="/reputation" element={
               <ProtectedRoute>
-                <Reputation />
+                <OnboardingGuard>
+                  <Reputation />
+                </OnboardingGuard>
               </ProtectedRoute>
             } />
             <Route path="/settings" element={
               <ProtectedRoute>
-                <Settings />
+                <OnboardingGuard>
+                  <Settings />
+                </OnboardingGuard>
               </ProtectedRoute>
             } />
             <Route path="/admin/users" element={
               <ProtectedRoute>
-                <AdminUsers />
+                <OnboardingGuard>
+                  <AdminUsers />
+                </OnboardingGuard>
               </ProtectedRoute>
             } />
             <Route path="/admin/users/:userId" element={
               <ProtectedRoute>
-                <UserProfile />
+                <OnboardingGuard>
+                  <UserProfile />
+                </OnboardingGuard>
               </ProtectedRoute>
             } />
             <Route path="*" element={<NotFound />} />
