@@ -8,7 +8,18 @@ import {
   DropdownMenuTrigger 
 } from '@/components/ui/dropdown-menu';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { Sparkles, LogOut, User, Settings, ArrowLeft, Home, Shield } from 'lucide-react';
+import { 
+  Sparkles, 
+  LogOut, 
+  User, 
+  Settings, 
+  ArrowLeft, 
+  Home, 
+  Shield,
+  PlusCircle,
+  Calendar,
+  BarChart3
+} from 'lucide-react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 
 const Header = () => {
@@ -61,9 +72,30 @@ const Header = () => {
 
           <div className="flex items-center space-x-4">
             <Button variant="ghost" size="sm" asChild>
+              <Link to="/create-campaign">
+                <PlusCircle className="h-4 w-4 mr-2" />
+                Create Campaign
+              </Link>
+            </Button>
+
+            <Button variant="ghost" size="sm" asChild>
               <Link to="/reputation">
                 <Shield className="h-4 w-4 mr-2" />
                 Reputation
+              </Link>
+            </Button>
+
+            <Button variant="ghost" size="sm" asChild>
+              <Link to="/calendar">
+                <Calendar className="h-4 w-4 mr-2" />
+                Calendar
+              </Link>
+            </Button>
+
+            <Button variant="ghost" size="sm" asChild>
+              <Link to="/analytics">
+                <BarChart3 className="h-4 w-4 mr-2" />
+                Analytics
               </Link>
             </Button>
 
