@@ -10,19 +10,9 @@ import { Plus, Calendar, Target, DollarSign, MoreHorizontal, Play, Pause, Edit }
 import { Link } from 'react-router-dom';
 import Header from '@/components/Header';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { Database } from '@/integrations/supabase/types';
 
-interface Campaign {
-  id: string;
-  title: string;
-  description: string;
-  brand_name: string;
-  status: 'draft' | 'active' | 'paused' | 'completed';
-  start_date: string;
-  end_date: string;
-  budget: number;
-  campaign_goals: string[];
-  created_at: string;
-}
+type Campaign = Database['public']['Tables']['campaigns']['Row'];
 
 const Campaigns = () => {
   const { user } = useAuth();
@@ -57,7 +47,7 @@ const Campaigns = () => {
     }
   };
 
-  const updateCampaignStatus = async (id: string, status: string) => {
+  const updateCampaignStatus = async (id: string, status: Campaign['status']) => {
     try {
       const { error } = await supabase
         .from('campaigns')
@@ -68,7 +58,7 @@ const Campaigns = () => {
       
       setCampaigns(prev => 
         prev.map(campaign => 
-          campaign.id === id ? { ...campaign, status: status as any } : campaign
+          campaign.id === id ? { ...campaign, status } : campaign
         )
       );
 
