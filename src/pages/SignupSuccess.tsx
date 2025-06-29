@@ -4,7 +4,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { CheckCircle, Loader2 } from 'lucide-react';
+import { CheckCircle, Loader2, Sparkles } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 const SignupSuccess = () => {
@@ -48,6 +48,14 @@ const SignupSuccess = () => {
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-teal-50 flex items-center justify-center p-4">
       <Card className="border-0 shadow-lg bg-white/80 backdrop-blur-sm max-w-md w-full">
         <CardHeader className="text-center">
+          <div className="flex items-center justify-center space-x-3 mb-4">
+            <div className="p-2 bg-gradient-to-br from-blue-500 to-teal-500 rounded-xl">
+              <Sparkles className="h-6 w-6 text-white" />
+            </div>
+            <h1 className="text-xl font-bold bg-gradient-to-r from-blue-600 to-teal-600 bg-clip-text text-transparent">
+              BiggerBite Campaign Manager
+            </h1>
+          </div>
           <CheckCircle className="h-16 w-16 text-green-600 mx-auto mb-4" />
           <CardTitle className="text-2xl text-green-800">Welcome to BiggerBite!</CardTitle>
         </CardHeader>

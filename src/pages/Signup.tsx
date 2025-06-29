@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2, CreditCard, Check } from 'lucide-react';
+import { Loader2, CreditCard, Check, Sparkles } from 'lucide-react';
 
 const Signup = () => {
   const [email, setEmail] = useState('');
@@ -67,10 +67,19 @@ const Signup = () => {
       <div className="w-full max-w-4xl grid md:grid-cols-2 gap-8 items-center">
         {/* Left side - Features */}
         <div className="space-y-6">
-          <div>
-            <h1 className="text-4xl font-bold text-gray-900 mb-4">
-              Join BiggerBite Premium
+          <div className="flex items-center space-x-3 mb-6">
+            <div className="p-2 bg-gradient-to-br from-blue-500 to-teal-500 rounded-xl">
+              <Sparkles className="h-6 w-6 text-white" />
+            </div>
+            <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-teal-600 bg-clip-text text-transparent">
+              BiggerBite Campaign Manager
             </h1>
+          </div>
+          
+          <div>
+            <h2 className="text-4xl font-bold text-gray-900 mb-4">
+              Join BiggerBite Premium
+            </h2>
             <p className="text-xl text-gray-600 mb-8">
               Supercharge your marketing campaigns with AI-powered content generation and advanced analytics.
             </p>
