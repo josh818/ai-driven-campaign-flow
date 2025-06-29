@@ -20,6 +20,7 @@ import Settings from "./pages/Settings";
 import AdminUsers from "./pages/AdminUsers";
 import UserProfile from "./pages/UserProfile";
 import Signup from "./pages/Signup";
+import Website from "./pages/Website";
 import SignupSuccess from "./pages/SignupSuccess";
 import NotFound from "./pages/NotFound";
 
@@ -35,6 +36,7 @@ const App = () => (
           <Routes>
             <Route path="/auth" element={<Auth />} />
             <Route path="/signup" element={<Signup />} />
+            <Route path="/website" element={<Website />} />
             <Route path="/signup-success" element={<SignupSuccess />} />
             <Route path="/onboarding" element={
               <ProtectedRoute>
