@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Sparkles, Upload, User, Building, Target, Image, AlertCircle } from 'lucide-react';
+import { Upload, User, Building, Target, Image, AlertCircle } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 const Onboarding = () => {
@@ -148,8 +148,8 @@ const Onboarding = () => {
       <Card className="w-full max-w-2xl shadow-xl border-0 bg-white/80 backdrop-blur-sm">
         <CardHeader className="text-center space-y-4">
           <div className="flex justify-center">
-            <div className="p-3 bg-gradient-to-br from-blue-500 to-teal-500 rounded-2xl">
-              <Sparkles className="h-8 w-8 text-white" />
+            <div className="p-3 bg-gradient-to-br from-blue-500 to-teal-500 rounded-2xl flex items-center justify-center">
+              <span className="text-white font-bold text-xl">BB</span>
             </div>
           </div>
           <div>

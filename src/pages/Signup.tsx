@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2, CreditCard, Check, Sparkles } from 'lucide-react';
+import { Loader2, CreditCard, Check } from 'lucide-react';
 
 const Signup = () => {
   const [email, setEmail] = useState('');
@@ -68,8 +68,8 @@ const Signup = () => {
         {/* Left side - Features */}
         <div className="space-y-6">
           <div className="flex items-center space-x-3 mb-6">
-            <div className="p-2 bg-gradient-to-br from-blue-500 to-teal-500 rounded-xl">
-              <Sparkles className="h-6 w-6 text-white" />
+            <div className="p-2 bg-gradient-to-br from-blue-500 to-teal-500 rounded-xl flex items-center justify-center">
+              <span className="text-white font-bold text-lg">BB</span>
             </div>
             <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-teal-600 bg-clip-text text-transparent">
               BiggerBite Campaign Manager

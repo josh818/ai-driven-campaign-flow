@@ -10,7 +10,6 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { 
-  Sparkles, 
   LogOut, 
   User, 
   Settings, 
@@ -73,8 +72,8 @@ const Header = () => {
               </Button>
             )}
             <Link to="/" className="flex items-center space-x-3 hover:opacity-80 transition-opacity">
-              <div className="p-2 bg-gradient-to-br from-blue-500 to-teal-500 rounded-xl">
-                <Sparkles className="h-6 w-6 text-white" />
+              <div className="p-2 bg-gradient-to-br from-blue-500 to-teal-500 rounded-xl flex items-center justify-center">
+                <span className="text-white font-bold text-lg">BB</span>
               </div>
               <div>
                 <h1 className="text-xl font-bold bg-gradient-to-r from-blue-600 to-teal-600 bg-clip-text text-transparent">
