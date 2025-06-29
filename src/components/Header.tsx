@@ -78,7 +78,7 @@ const Header = () => {
               </div>
               <div>
                 <h1 className="text-xl font-bold bg-gradient-to-r from-blue-600 to-teal-600 bg-clip-text text-transparent">
-                  Campaign Manager
+                  BiggerBite Campaign Manager
                 </h1>
               </div>
             </Link>
