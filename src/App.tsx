@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -20,6 +19,8 @@ import Reputation from "./pages/Reputation";
 import Settings from "./pages/Settings";
 import AdminUsers from "./pages/AdminUsers";
 import UserProfile from "./pages/UserProfile";
+import Signup from "./pages/Signup";
+import SignupSuccess from "./pages/SignupSuccess";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -33,6 +34,8 @@ const App = () => (
         <BrowserRouter>
           <Routes>
             <Route path="/auth" element={<Auth />} />
+            <Route path="/signup" element={<Signup />} />
+            <Route path="/signup-success" element={<SignupSuccess />} />
             <Route path="/onboarding" element={
               <ProtectedRoute>
                 <Onboarding />

@@ -1,4 +1,3 @@
-
 import { useState, useEffect, createContext, useContext } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
@@ -10,6 +9,8 @@ interface AuthContextType {
   loading: boolean;
   signIn: (email: string, password: string) => Promise<{ error: any }>;
   signOut: () => Promise<void>;
+  subscriptionStatus: any;
+  checkSubscription: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -18,7 +19,21 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
+  const [subscriptionStatus, setSubscriptionStatus] = useState<any>(null);
   const { toast } = useToast();
+
+  const checkSubscription = async () => {
+    if (!user) return;
+    
+    try {
+      const { data, error } = await supabase.functions.invoke('check-subscription');
+      if (!error && data) {
+        setSubscriptionStatus(data);
+      }
+    } catch (error) {
+      console.error('Error checking subscription:', error);
+    }
+  };
 
   useEffect(() => {
     // Set up auth state listener
@@ -27,6 +42,15 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         setSession(session);
         setUser(session?.user ?? null);
         setLoading(false);
+        
+        // Check subscription when user changes
+        if (session?.user) {
+          setTimeout(() => {
+            checkSubscription();
+          }, 0);
+        } else {
+          setSubscriptionStatus(null);
+        }
       }
     );
 
@@ -35,6 +59,12 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       setSession(session);
       setUser(session?.user ?? null);
       setLoading(false);
+      
+      if (session?.user) {
+        setTimeout(() => {
+          checkSubscription();
+        }, 0);
+      }
     });
 
     return () => subscription.unsubscribe();
@@ -59,6 +89,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   const signOut = async () => {
     await supabase.auth.signOut();
+    setSubscriptionStatus(null);
     toast({
       title: "Signed Out",
       description: "You have been successfully signed out."
@@ -71,7 +102,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       session,
       loading,
       signIn,
-      signOut
+      signOut,
+      subscriptionStatus,
+      checkSubscription
     }}>
       {children}
     </AuthContext.Provider>
