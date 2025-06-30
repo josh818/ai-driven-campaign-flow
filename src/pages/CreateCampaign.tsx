@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
@@ -17,6 +16,7 @@ interface GeneratedContent {
   type: 'copy' | 'image' | 'video';
   content: string;
   platform?: string;
+  mediaUrl?: string;
 }
 
 const CreateCampaign = () => {
@@ -86,13 +86,15 @@ const CreateCampaign = () => {
             mockContent.push({
               type: 'image',
               content: item.content || 'Generated professional image',
-              platform: item.platform
+              platform: item.platform,
+              mediaUrl: item.media_url || undefined
             });
           } else if (item.media_type === 'video') {
             mockContent.push({
               type: 'video',
               content: item.content || 'Generated video concept and script',
-              platform: item.platform
+              platform: item.platform,
+              mediaUrl: item.media_url || undefined
             });
           }
         });
