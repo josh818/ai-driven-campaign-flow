@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
@@ -8,7 +7,6 @@ import SuggestedCampaigns from '@/components/SuggestedCampaigns';
 import BrandMonitoring from '@/components/BrandMonitoring';
 import HeroSection from '@/components/dashboard/HeroSection';
 import StatsGrid from '@/components/dashboard/StatsGrid';
-import FeaturesShowcase from '@/components/dashboard/FeaturesShowcase';
 import QuickActionsGrid from '@/components/dashboard/QuickActionsGrid';
 import ActivityInsights from '@/components/dashboard/ActivityInsights';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -107,7 +105,6 @@ const Index = () => {
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <HeroSection />
         <StatsGrid dashboardStats={dashboardStats} />
-        <FeaturesShowcase />
         
         <div className="mb-8" data-id="suggested-campaigns">
           <SuggestedCampaigns />
