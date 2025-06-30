@@ -41,7 +41,7 @@ serve(async (req) => {
 
     const generatedContent: GeneratedContent[] = [];
 
-    // Process requests in smaller batches to avoid rate limits
+    // Process requests with longer delays to avoid rate limits
     for (const platform of platforms) {
       for (const contentType of contentTypes) {
         for (const mediaType of mediaTypes) {
@@ -96,8 +96,8 @@ serve(async (req) => {
             media_url: mediaUrl
           });
 
-          // Add delay between requests to avoid rate limits
-          await new Promise(resolve => setTimeout(resolve, 500));
+          // Increased delay between requests to avoid rate limits
+          await new Promise(resolve => setTimeout(resolve, 1500));
         }
       }
     }

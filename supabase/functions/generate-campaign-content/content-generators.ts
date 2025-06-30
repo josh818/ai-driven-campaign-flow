@@ -123,34 +123,15 @@ export async function generateImageContent(
 ): Promise<{ content: string; mediaUrl: string }> {
   const tone = aiSettings?.tone || 'professional';
   
-  const imagePrompt = `Create a ${contentType} image for ${campaignData.brand_name}'s "${campaignData.title}" campaign.
-                     
-                     CAMPAIGN CONTEXT (MUST REFLECT IN IMAGE):
-                     - Brand: ${campaignData.brand_name}
-                     - Campaign: ${campaignData.title}
-                     - Description: ${campaignData.description || 'Premium brand experience'}
-                     - Target audience: ${campaignData.target_audience || 'general audience'}
-                     
-                     VISUAL STYLE based on ${tone} tone:
-                     ${tone === 'professional' ? 'Clean, corporate, business-focused design with professional color palette' :
-                       tone === 'casual' ? 'Relaxed, friendly, approachable lifestyle photography with warm colors' :
-                       tone === 'enthusiastic' ? 'Dynamic, energetic, vibrant colors with exciting visual elements' :
-                       tone === 'informative' ? 'Clear, educational design with infographic elements' :
-                       tone === 'humorous' ? 'Playful, fun, creative design with light-hearted elements' :
-                       'High-quality, premium professional design'}
-                     
-                     Platform optimization: ${platform === 'instagram' ? 'Square 1:1 ratio, vibrant and social media ready' : 
-                                           platform === 'linkedin' ? 'Professional business design, horizontal format' :
-                                           platform === 'facebook' ? 'Engaging social design, horizontal format' :
-                                           platform === 'twitter' ? 'Eye-catching, optimized for social sharing' :
-                                           'Social media optimized, engaging visual'}
-                     
-                     Content focus: ${contentType === 'paid_ad' ? 'Promotional with clear value proposition' : 'Brand storytelling and lifestyle'}
-                     
-                     The image must visually represent: "${campaignData.description}"
-                     Include elements related to: ${aiSettings?.keywords || 'quality, innovation'}
-                     
-                     High resolution, modern design, no text overlays, photorealistic.`;
+  // Create a simpler, more compliant image prompt
+  const imagePrompt = `A professional marketing image for ${campaignData.brand_name}. 
+                     Clean, modern design with ${tone === 'professional' ? 'corporate business style' : 
+                                                tone === 'casual' ? 'friendly approachable style' :
+                                                tone === 'enthusiastic' ? 'energetic vibrant style' :
+                                                'professional clean style'}. 
+                     ${platform === 'instagram' ? 'Square format, social media optimized' : 
+                       'Horizontal format, social media ready'}. 
+                     High quality, modern, no text overlay, photorealistic.`;
 
   try {
     const imageResponse = await makeOpenAIRequest('https://api.openai.com/v1/images/generations', {
@@ -165,7 +146,7 @@ export async function generateImageContent(
       const imageData = await imageResponse.json();
       if (imageData.data && imageData.data[0] && imageData.data[0].url) {
         return {
-          content: `${tone} image for ${campaignData.brand_name} "${campaignData.title}" campaign - ${campaignData.description}`,
+          content: `${tone} professional image for ${campaignData.brand_name} "${campaignData.title}" campaign - ${campaignData.description}`,
           mediaUrl: imageData.data[0].url
         };
       } else {
@@ -178,9 +159,20 @@ export async function generateImageContent(
     }
   } catch (imageError) {
     console.error('Image generation error:', imageError);
+    // Use different stock images to provide variety
+    const stockImages = [
+      'https://images.unsplash.com/photo-1560472354-b33ff0c44a43?w=800&h=600&fit=crop&q=80',
+      'https://images.unsplash.com/photo-1611224923853-80b023f02d71?w=800&h=600&fit=crop&q=80',
+      'https://images.unsplash.com/photo-1557804506-669a67965ba0?w=800&h=600&fit=crop&q=80',
+      'https://images.unsplash.com/photo-1552664730-d307ca884978?w=800&h=600&fit=crop&q=80',
+      'https://images.unsplash.com/photo-1504384308090-c894fdcc538d?w=800&h=600&fit=crop&q=80'
+    ];
+    
+    const randomImage = stockImages[Math.floor(Math.random() * stockImages.length)];
+    
     return {
       content: `${tone} image concept for ${campaignData.brand_name} "${campaignData.title}" - ${campaignData.description} - optimized for ${platform} ${contentType}`,
-      mediaUrl: `https://images.unsplash.com/photo-1560472354-b33ff0c44a43?w=800&h=600&fit=crop&q=80`
+      mediaUrl: randomImage
     };
   }
 }
@@ -242,7 +234,7 @@ export async function generateVideoContent(
       if (scriptData.choices && scriptData.choices[0] && scriptData.choices[0].message) {
         return {
           content: `[15-Second ${tone} Video Script for ${campaignData.brand_name}]\n\n${scriptData.choices[0].message.content}\n\n🎬 Optimized for ${platform} ${contentType}`,
-          mediaUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4'
+          mediaUrl: 'https://sample-videos.com/zip/10/mp4/SampleVideo_1280x720_1mb.mp4'
         };
       } else {
         throw new Error('Invalid script response structure');
@@ -290,7 +282,7 @@ Visual: Clear call-to-action with brand logo
 🎵 AUDIO: ${toneDirection} background music
 📝 KEYWORDS: ${aiSettings?.keywords || 'quality, innovation'}
 ✨ Platform optimized for ${platform}`,
-      mediaUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4'
+      mediaUrl: 'https://sample-videos.com/zip/10/mp4/SampleVideo_1280x720_1mb.mp4'
     };
   }
 }

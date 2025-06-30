@@ -13,8 +13,8 @@ export async function makeOpenAIRequest(url: string, body: any, retries = 2) {
       });
 
       if (response.status === 429 && i < retries) {
-        // Rate limited - wait and retry
-        const waitTime = Math.pow(2, i) * 1000; // Exponential backoff
+        // Rate limited - wait longer and retry
+        const waitTime = Math.pow(2, i) * 2000; // Increased wait time: 2s, 4s, 8s
         console.log(`Rate limited, waiting ${waitTime}ms before retry ${i + 1}`);
         await new Promise(resolve => setTimeout(resolve, waitTime));
         continue;
@@ -24,7 +24,7 @@ export async function makeOpenAIRequest(url: string, body: any, retries = 2) {
     } catch (error) {
       if (i === retries) throw error;
       console.log(`Request failed, retrying... (${i + 1}/${retries})`);
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      await new Promise(resolve => setTimeout(resolve, 2000)); // Increased retry delay
     }
   }
 }
