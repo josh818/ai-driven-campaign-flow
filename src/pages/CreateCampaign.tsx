@@ -13,7 +13,7 @@ import BudgetScheduleForm from '@/components/campaign/BudgetScheduleForm';
 import GeneratedContentDisplay from '@/components/campaign/GeneratedContentDisplay';
 
 interface GeneratedContent {
-  type: 'copy' | 'image' | 'video';
+  type: 'copy' | 'image' | 'video' | 'email';
   content: string;
   platform?: string;
   mediaUrl?: string;
@@ -96,6 +96,12 @@ const CreateCampaign = () => {
               platform: item.platform,
               mediaUrl: item.media_url || undefined
             });
+          } else if (item.media_type === 'email') {
+            mockContent.push({
+              type: 'copy',
+              content: item.content || 'Generated email content',
+              platform: 'email'
+            });
           }
         });
       }
@@ -119,17 +125,35 @@ const CreateCampaign = () => {
       const mockContent: GeneratedContent[] = [];
       
       if (aiFormData.contentType === 'copy' || aiFormData.contentType === 'all') {
+        const tonePrefix = aiFormData.tone === 'casual' ? 'Hey there! 😊' :
+                          aiFormData.tone === 'enthusiastic' ? '🚀 Exciting news!' :
+                          aiFormData.tone === 'humorous' ? '😄 Ready for this?' :
+                          aiFormData.tone === 'informative' ? 'Here are the details:' :
+                          'We are pleased to announce:';
+        
         mockContent.push({
           type: 'copy',
-          content: `🚀 Exciting news from ${formData.brand_name}! Our new ${formData.title} campaign is here to revolutionize your experience. Perfect for ${formData.target_audience || 'our amazing customers'}. ${aiFormData.keywords ? `#${aiFormData.keywords.split(',').join(' #')}` : ''} #Innovation #Quality #Excellence`,
+          content: `${tonePrefix} ${formData.brand_name} presents: ${formData.title}! ${formData.description || 'Experience something amazing.'} Perfect for ${formData.target_audience || 'everyone'}. ${aiFormData.keywords ? `#${aiFormData.keywords.split(',').join(' #')}` : ''} #Innovation #Quality`,
           platform: aiFormData.platform || 'social'
+        });
+      }
+      
+      if (aiFormData.contentType === 'email' || aiFormData.contentType === 'all') {
+        const emailTone = aiFormData.tone === 'casual' ? 'Hi there!' :
+                         aiFormData.tone === 'enthusiastic' ? 'We\'re thrilled to share!' :
+                         'We are pleased to inform you';
+        
+        mockContent.push({
+          type: 'copy',
+          content: `Subject: ${formData.title} - ${formData.brand_name}\n\n${emailTone}\n\nWe're excited to introduce our ${formData.title} campaign.\n\n${formData.description || 'This represents our commitment to excellence and innovation.'}\n\nDesigned specifically for ${formData.target_audience || 'our valued customers'}, this campaign focuses on delivering exceptional value.\n\nKey benefits:\n• ${formData.title} showcases our latest innovations\n• Tailored for ${formData.target_audience || 'your needs'}\n• ${formData.description || 'Premium quality you can trust'}\n\nThank you for being part of our community.\n\nBest regards,\nThe ${formData.brand_name} Team`,
+          platform: 'email'
         });
       }
       
       if (aiFormData.contentType === 'image' || aiFormData.contentType === 'all') {
         mockContent.push({
           type: 'image',
-          content: `Professional ${aiFormData.tone || 'high-quality'} image featuring ${formData.brand_name} ${formData.title} campaign elements`,
+          content: `${aiFormData.tone || 'Professional'} image for ${formData.brand_name} ${formData.title} campaign - ${formData.description}`,
           platform: aiFormData.platform || 'social',
           mediaUrl: `https://images.unsplash.com/photo-1649972904349-6e44c42644a7?w=800&h=600&fit=crop`
         });
@@ -138,7 +162,7 @@ const CreateCampaign = () => {
       if (aiFormData.contentType === 'video' || aiFormData.contentType === 'all') {
         mockContent.push({
           type: 'video',
-          content: `Professional video script for ${formData.brand_name} ${formData.title}: 30-second ${aiFormData.tone || 'engaging'} video showcasing key benefits with clear call-to-action.`,
+          content: `15-second ${aiFormData.tone || 'engaging'} video script for ${formData.brand_name} ${formData.title}: Hook (0-3s) → Core message about "${formData.description}" (3-12s) → Call-to-action (12-15s).`,
           platform: aiFormData.platform || 'social'
         });
       }

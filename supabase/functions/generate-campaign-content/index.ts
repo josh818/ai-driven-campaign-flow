@@ -27,9 +27,16 @@ serve(async (req) => {
       aiSettings: AISettings;
     } = await req.json();
 
-    const platforms = aiSettings?.platform ? [aiSettings.platform] : ['facebook', 'instagram', 'linkedin', 'twitter'];
+    // Handle email as both content type and platform
+    const platforms = aiSettings?.platform ? [aiSettings.platform] : 
+                     aiSettings?.contentType === 'email' ? ['email'] :
+                     ['facebook', 'instagram', 'linkedin', 'twitter'];
+    
     const contentTypes = ['organic_post', 'paid_ad'];
-    const mediaTypes = aiSettings?.contentType === 'all' ? ['copy', 'image', 'video'] : 
+    
+    // Updated media types to include email
+    const mediaTypes = aiSettings?.contentType === 'all' ? ['copy', 'image', 'video', 'email'] : 
+                      aiSettings?.contentType === 'email' ? ['email'] :
                       aiSettings?.contentType ? [aiSettings.contentType] : ['copy', 'image'];
 
     const generatedContent: GeneratedContent[] = [];
@@ -38,15 +45,25 @@ serve(async (req) => {
     for (const platform of platforms) {
       for (const contentType of contentTypes) {
         for (const mediaType of mediaTypes) {
+          // Skip image/video generation for email platform
+          if (platform === 'email' && (mediaType === 'image' || mediaType === 'video')) {
+            continue;
+          }
+          
+          // Skip non-email content for email media type
+          if (mediaType === 'email' && platform !== 'email') {
+            continue;
+          }
+
           let content = '';
           let mediaUrl = '';
           let prompt = '';
 
           console.log(`Generating ${mediaType} for ${platform} ${contentType}`);
 
-          if (mediaType === 'copy') {
+          if (mediaType === 'copy' || mediaType === 'email') {
             content = await generateCopyContent(platform, contentType, campaignData, aiSettings);
-            prompt = `Copy for ${platform} ${contentType}`;
+            prompt = `${mediaType === 'email' ? 'Email' : 'Copy'} for ${platform} ${contentType}`;
           } else if (mediaType === 'image') {
             const result = await generateImageContent(platform, contentType, campaignData, aiSettings);
             content = result.content;
@@ -56,7 +73,7 @@ serve(async (req) => {
             const result = await generateVideoContent(platform, contentType, campaignData, aiSettings);
             content = result.content;
             mediaUrl = result.mediaUrl;
-            prompt = `Video script for ${platform} ${contentType}`;
+            prompt = `15-second video script for ${platform} ${contentType}`;
           }
 
           // Store generated content in database

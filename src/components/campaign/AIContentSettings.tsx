@@ -57,6 +57,7 @@ const AIContentSettings = ({
               <SelectItem value="copy">Copy/Text</SelectItem>
               <SelectItem value="image">Image</SelectItem>
               <SelectItem value="video">Video</SelectItem>
+              <SelectItem value="email">Email</SelectItem>
               <SelectItem value="all">All Types</SelectItem>
             </SelectContent>
           </Select>
