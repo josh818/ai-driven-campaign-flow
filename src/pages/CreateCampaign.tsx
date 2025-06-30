@@ -59,8 +59,61 @@ const CreateCampaign = () => {
 
     setIsGeneratingContent(true);
     
-    // Simulate AI content generation with more detailed content
-    setTimeout(() => {
+    try {
+      // Call the actual Supabase Edge Function
+      const { data, error } = await supabase.functions.invoke('generate-campaign-content', {
+        body: {
+          campaignId: null, // Will be created later
+          campaignData: formData,
+          aiSettings: aiFormData
+        }
+      });
+
+      if (error) throw error;
+
+      // Convert the response to our expected format
+      const mockContent: GeneratedContent[] = [];
+      
+      if (data.preview && Array.isArray(data.preview)) {
+        data.preview.forEach((item: any) => {
+          if (item.media_type === 'copy') {
+            mockContent.push({
+              type: 'copy',
+              content: item.content || 'Generated copy content',
+              platform: item.platform
+            });
+          } else if (item.media_type === 'image') {
+            mockContent.push({
+              type: 'image',
+              content: item.content || 'Generated professional image',
+              platform: item.platform
+            });
+          } else if (item.media_type === 'video') {
+            mockContent.push({
+              type: 'video',
+              content: item.content || 'Generated video concept and script',
+              platform: item.platform
+            });
+          }
+        });
+      }
+
+      setGeneratedContent(mockContent);
+      
+      toast({
+        title: "Content Generated Successfully",
+        description: `Generated ${data.generatedCount} professional content pieces using AI!`,
+      });
+      
+    } catch (error: any) {
+      console.error('Error generating content:', error);
+      toast({
+        title: "Generation Failed",
+        description: error.message || "Failed to generate content. Please try again.",
+        variant: "destructive"
+      });
+      
+      // Fallback to mock content for development
       const mockContent: GeneratedContent[] = [];
       
       if (aiFormData.contentType === 'copy' || aiFormData.contentType === 'all') {
@@ -74,25 +127,21 @@ const CreateCampaign = () => {
       if (aiFormData.contentType === 'image' || aiFormData.contentType === 'all') {
         mockContent.push({
           type: 'image',
-          content: `AI-generated image concept: High-quality ${aiFormData.tone || 'professional'} image featuring ${formData.brand_name} ${formData.title} campaign elements, optimized for ${aiFormData.platform || 'social media'} with vibrant colors and modern design.`
+          content: `AI-generated image: High-quality ${aiFormData.tone || 'professional'} image featuring ${formData.brand_name} ${formData.title} campaign elements, optimized for ${aiFormData.platform || 'social media'} with vibrant colors and modern design.`
         });
       }
       
       if (aiFormData.contentType === 'video' || aiFormData.contentType === 'all') {
         mockContent.push({
           type: 'video',
-          content: `AI-generated video concept: 30-second ${aiFormData.tone || 'engaging'} video showcasing ${formData.brand_name} ${formData.title}, featuring dynamic transitions, ${formData.target_audience || 'target audience'} testimonials, and clear call-to-action.`
+          content: `AI-generated video script: 30-second ${aiFormData.tone || 'engaging'} video showcasing ${formData.brand_name} ${formData.title}, featuring dynamic transitions, ${formData.target_audience || 'target audience'} testimonials, and clear call-to-action.`
         });
       }
       
       setGeneratedContent(mockContent);
+    } finally {
       setIsGeneratingContent(false);
-      
-      toast({
-        title: "Content Generated",
-        description: `Generated ${mockContent.length} piece(s) of content successfully!`,
-      });
-    }, 2000);
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -130,10 +179,35 @@ const CreateCampaign = () => {
 
       if (error) throw error;
 
-      toast({
-        title: "Campaign Created!",
-        description: "Your campaign has been saved with the generated content.",
-      });
+      // If we have generated content, save it to the campaign
+      if (generatedContent.length > 0) {
+        const { error: contentError } = await supabase.functions.invoke('generate-campaign-content', {
+          body: {
+            campaignId: data.id,
+            campaignData: formData,
+            aiSettings: aiFormData
+          }
+        });
+
+        if (contentError) {
+          console.error('Error saving generated content:', contentError);
+          toast({
+            title: "Campaign Created",
+            description: "Campaign created but there was an issue saving the generated content.",
+            variant: "destructive"
+          });
+        } else {
+          toast({
+            title: "Campaign Created Successfully!",
+            description: "Your campaign has been created with AI-generated professional content.",
+          });
+        }
+      } else {
+        toast({
+          title: "Campaign Created!",
+          description: "Your campaign has been saved.",
+        });
+      }
 
       navigate('/campaigns');
     } catch (error: any) {
@@ -195,9 +269,9 @@ const CreateCampaign = () => {
             <CardHeader className="pb-4">
               <CardTitle className="flex items-center space-x-2">
                 <Wand2 className="h-5 w-5 text-blue-600" />
-                <span>Campaign & AI Content Generator</span>
+                <span>Professional Campaign & AI Content Generator</span>
               </CardTitle>
-              <p className="text-sm text-gray-600">Create your campaign and generate AI-powered content</p>
+              <p className="text-sm text-gray-600">Create your campaign and generate professional AI-powered content by our 20+ year experts</p>
             </CardHeader>
             <CardContent className="space-y-6">
               <CampaignDetailsForm
@@ -233,12 +307,12 @@ const CreateCampaign = () => {
             {isLoading ? (
               <>
                 <Wand2 className="mr-2 h-4 w-4 animate-spin" />
-                Creating Campaign...
+                Creating Professional Campaign...
               </>
             ) : (
               <>
                 <Wand2 className="mr-2 h-4 w-4" />
-                Create Campaign & Save Content
+                Create Campaign & Save Professional Content
               </>
             )}
           </Button>
