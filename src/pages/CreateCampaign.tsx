@@ -87,7 +87,7 @@ const CreateCampaign = () => {
               type: 'image',
               content: item.content || 'Generated professional image',
               platform: item.platform,
-              mediaUrl: item.media_url || undefined
+              mediaUrl: item.media_url || 'https://images.unsplash.com/photo-1649972904349-6e44c42644a7?w=800&h=600&fit=crop'
             });
           } else if (item.media_type === 'video') {
             mockContent.push({
@@ -165,20 +165,29 @@ const CreateCampaign = () => {
         return;
       }
 
+      // Fix timestamp issue by only including dates if they have values
+      const campaignData: any = {
+        user_id: user!.id,
+        title,
+        description,
+        brand_name,
+        target_audience,
+        campaign_goals,
+        budget: budget ? parseFloat(budget) : null,
+        status: 'draft'
+      };
+
+      // Only add dates if they are not empty strings
+      if (start_date && start_date.trim() !== '') {
+        campaignData.start_date = start_date;
+      }
+      if (end_date && end_date.trim() !== '') {
+        campaignData.end_date = end_date;
+      }
+
       const { data, error } = await supabase
         .from('campaigns')
-        .insert({
-          user_id: user!.id,
-          title,
-          description,
-          brand_name,
-          target_audience,
-          campaign_goals,
-          budget: budget ? parseFloat(budget) : null,
-          start_date,
-          end_date,
-          status: 'draft'
-        })
+        .insert(campaignData)
         .select()
         .single();
 
