@@ -40,18 +40,13 @@ const Auth = () => {
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 via-blue-50 to-cyan-50 p-4">
       <Card className="w-full max-w-md shadow-2xl border-0 bg-white/90 backdrop-blur-sm">
-        <CardHeader className="text-center space-y-6">
-          <div className="flex justify-center">
-            <div className="p-4 bg-gradient-to-br from-blue-500 to-teal-500 rounded-2xl shadow-lg">
-              <span className="text-white font-bold text-2xl">BB</span>
-            </div>
-          </div>
+        <CardHeader className="text-center space-y-3 pb-4">
           <div>
-            <CardTitle className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-teal-600 bg-clip-text text-transparent">
-              Welcome Back
+            <CardTitle className="text-lg font-bold bg-gradient-to-r from-blue-600 to-teal-600 bg-clip-text text-transparent">
+              Welcome back, Champion! 🚀
             </CardTitle>
-            <CardDescription className="text-gray-600 mt-2">
-              Sign in to your BiggerBite account
+            <CardDescription className="text-gray-600 mt-2 text-sm">
+              Your AI-powered campaign command center is ready. Monitor your brand, create compelling content, and watch your engagement soar.
             </CardDescription>
           </div>
         </CardHeader>
