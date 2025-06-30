@@ -1,11 +1,11 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Copy, Download, Image, Video, FileText, Sparkles, Play } from 'lucide-react';
+import { Copy, Download, Image, Video, FileText, Sparkles, Play, Mail } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 interface GeneratedContent {
-  type: 'copy' | 'image' | 'video';
+  type: 'copy' | 'image' | 'video' | 'email';
   content: string;
   platform?: string;
   mediaUrl?: string;
@@ -45,7 +45,18 @@ const GeneratedContentDisplay = ({ content }: GeneratedContentDisplayProps) => {
       case 'copy': return <FileText className="h-5 w-5" />;
       case 'image': return <Image className="h-5 w-5" />;
       case 'video': return <Video className="h-5 w-5" />;
+      case 'email': return <Mail className="h-5 w-5" />;
       default: return <FileText className="h-5 w-5" />;
+    }
+  };
+
+  const getContentLabel = (type: string) => {
+    switch (type) {
+      case 'copy': return 'Copy Content';
+      case 'image': return 'Image Content';
+      case 'video': return 'Video Content';
+      case 'email': return 'Email Content';
+      default: return 'Content';
     }
   };
 
@@ -62,7 +73,7 @@ const GeneratedContentDisplay = ({ content }: GeneratedContentDisplayProps) => {
           <CardHeader>
             <CardTitle className="flex items-center space-x-2">
               {getContentIcon(item.type)}
-              <span className="capitalize">Professional {item.type} Content</span>
+              <span className="capitalize">Professional {getContentLabel(item.type)}</span>
               {item.platform && (
                 <span className="text-sm text-gray-600">• {item.platform}</span>
               )}

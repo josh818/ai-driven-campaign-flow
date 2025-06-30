@@ -98,7 +98,7 @@ const CreateCampaign = () => {
             });
           } else if (item.media_type === 'email') {
             mockContent.push({
-              type: 'copy',
+              type: 'email',
               content: item.content || 'Generated email content',
               platform: 'email'
             });
@@ -144,7 +144,7 @@ const CreateCampaign = () => {
                          'We are pleased to inform you';
         
         mockContent.push({
-          type: 'copy',
+          type: 'email',
           content: `Subject: ${formData.title} - ${formData.brand_name}\n\n${emailTone}\n\nWe're excited to introduce our ${formData.title} campaign.\n\n${formData.description || 'This represents our commitment to excellence and innovation.'}\n\nDesigned specifically for ${formData.target_audience || 'our valued customers'}, this campaign focuses on delivering exceptional value.\n\nKey benefits:\n• ${formData.title} showcases our latest innovations\n• Tailored for ${formData.target_audience || 'your needs'}\n• ${formData.description || 'Premium quality you can trust'}\n\nThank you for being part of our community.\n\nBest regards,\nThe ${formData.brand_name} Team`,
           platform: 'email'
         });
