@@ -1,4 +1,3 @@
-
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
@@ -18,6 +17,8 @@ serve(async (req) => {
     if (!openAIApiKey) {
       throw new Error('OpenAI API key not configured');
     }
+
+    const huggingFaceApiKey = Deno.env.get('HUGGING_FACE_API_KEY');
 
     const supabaseClient = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
@@ -103,7 +104,6 @@ serve(async (req) => {
 
               if (imageResponse.ok) {
                 const imageData = await imageResponse.json();
-                // For gpt-image-1, the response includes base64 data
                 if (imageData.data && imageData.data[0]) {
                   content = `Generated professional image for ${platform} ${contentType}`;
                   mediaUrl = imageData.data[0].url || `data:image/png;base64,${imageData.data[0].b64_json}`;
@@ -118,34 +118,79 @@ serve(async (req) => {
             }
             
           } else if (mediaType === 'video') {
-            const videoPrompt = `Create a detailed video script and concept for ${contentType} on ${platform} for ${campaignData.brand_name} ${campaignData.title}.
-                               Target: ${campaignData.target_audience || 'general audience'}.
-                               Tone: ${aiSettings?.tone || 'professional'}.
-                               Duration: ${platform === 'instagram' ? '15-30 seconds for Reel' : 
-                                          platform === 'twitter' ? '30-60 seconds' : 
-                                          '60-90 seconds'}.
-                               Include: Scene descriptions, voiceover script, visual elements, music suggestions.
-                               ${contentType === 'paid_ad' ? 'Include clear product shots, benefits, and strong CTA' : 'Focus on storytelling, brand personality, and engagement'}.`;
+            const videoPrompt = `${campaignData.brand_name} ${campaignData.title} campaign video for ${platform}. ${aiSettings?.tone || 'Professional'} style showcasing ${campaignData.target_audience || 'target audience'}. ${contentType === 'paid_ad' ? 'Product focused with clear benefits and call-to-action' : 'Brand storytelling and engagement focused'}. High quality, modern, ${platform === 'instagram' ? 'vertical format' : 'landscape format'}.`;
 
-            const videoResponse = await fetch('https://api.openai.com/v1/chat/completions', {
-              method: 'POST',
-              headers: {
-                'Authorization': `Bearer ${openAIApiKey}`,
-                'Content-Type': 'application/json',
-              },
-              body: JSON.stringify({
-                model: 'gpt-4o-mini',
-                messages: [
-                  { role: 'system', content: 'You are a professional video content creator and scriptwriter. Create detailed, actionable video concepts with scene-by-scene breakdowns.' },
-                  { role: 'user', content: videoPrompt }
-                ],
-                temperature: 0.7,
-                max_tokens: 800,
-              }),
-            });
+            try {
+              if (huggingFaceApiKey) {
+                // Use Hugging Face for actual video generation
+                console.log('Generating video with Hugging Face:', videoPrompt);
+                
+                const hfResponse = await fetch('https://api-inference.huggingface.co/models/damo-vilab/text-to-video-ms-1.7b', {
+                  method: 'POST',
+                  headers: {
+                    'Authorization': `Bearer ${huggingFaceApiKey}`,
+                    'Content-Type': 'application/json',
+                  },
+                  body: JSON.stringify({
+                    inputs: videoPrompt,
+                    parameters: {
+                      num_frames: platform === 'instagram' ? 16 : 24,
+                      num_inference_steps: 25
+                    }
+                  }),
+                });
 
-            const videoData = await videoResponse.json();
-            content = videoData.choices[0].message.content;
+                if (hfResponse.ok) {
+                  const videoBlob = await hfResponse.blob();
+                  if (videoBlob.size > 0) {
+                    // Convert blob to base64 for storage
+                    const arrayBuffer = await videoBlob.arrayBuffer();
+                    const base64Video = btoa(String.fromCharCode(...new Uint8Array(arrayBuffer)));
+                    mediaUrl = `data:video/mp4;base64,${base64Video}`;
+                    content = `AI-generated video for ${platform} ${contentType} - ${campaignData.brand_name} ${campaignData.title}`;
+                  } else {
+                    throw new Error('Empty video response');
+                  }
+                } else {
+                  const errorText = await hfResponse.text();
+                  console.error('Hugging Face video generation failed:', errorText);
+                  throw new Error(`HF API error: ${errorText}`);
+                }
+              } else {
+                throw new Error('Hugging Face API key not configured');
+              }
+            } catch (videoError) {
+              console.error('Video generation error:', videoError);
+              
+              // Fallback to detailed video script generation
+              const scriptResponse = await fetch('https://api.openai.com/v1/chat/completions', {
+                method: 'POST',
+                headers: {
+                  'Authorization': `Bearer ${openAIApiKey}`,
+                  'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                  model: 'gpt-4o-mini',
+                  messages: [
+                    { role: 'system', content: 'You are a professional video content creator and scriptwriter. Create detailed, actionable video concepts with scene-by-scene breakdowns that can be easily produced.' },
+                    { role: 'user', content: `Create a detailed video script and production guide for ${contentType} on ${platform} for ${campaignData.brand_name} ${campaignData.title}.
+                                           Target: ${campaignData.target_audience || 'general audience'}.
+                                           Tone: ${aiSettings?.tone || 'professional'}.
+                                           Duration: ${platform === 'instagram' ? '15-30 seconds for Reel' : 
+                                                      platform === 'twitter' ? '30-60 seconds' : 
+                                                      '60-90 seconds'}.
+                                           Include: Scene descriptions, voiceover script, visual elements, music suggestions, call-to-action.
+                                           ${contentType === 'paid_ad' ? 'Include clear product shots, benefits, and strong CTA' : 'Focus on storytelling, brand personality, and engagement'}.
+                                           Note: Video generation temporarily unavailable - providing detailed production script instead.` }
+                  ],
+                  temperature: 0.7,
+                  max_tokens: 800,
+                }),
+              });
+
+              const scriptData = await scriptResponse.json();
+              content = `[Video Script - Ready for Production]\n\n${scriptData.choices[0].message.content}\n\n⚠️ Note: Actual video generation will be available once Hugging Face API is configured.`;
+            }
           }
 
           // Store generated content in database
@@ -158,7 +203,7 @@ serve(async (req) => {
               media_type: mediaType,
               content_text: content,
               media_url: mediaUrl || null,
-              generated_prompt: prompt,
+              generated_prompt: prompt || videoPrompt,
               status: 'generated'
             });
 
