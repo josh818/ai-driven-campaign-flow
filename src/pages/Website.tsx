@@ -1,4 +1,3 @@
-
 import { ArrowRight, Award, BarChart3, Shield, Users, Star, CheckCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -65,9 +64,9 @@ const Website = () => {
                 <p className="text-sm text-gray-600">Professional Campaign Management</p>
               </div>
             </div>
-            <Button className="bg-gradient-to-r from-blue-600 to-green-600 hover:from-blue-700 hover:to-green-700">
+            <a href="/signup" className="bg-gradient-to-r from-blue-600 to-green-600 hover:from-blue-700 hover:to-green-700 text-white px-6 py-2 rounded-lg font-medium transition-colors">
               Get Started
-            </Button>
+            </a>
           </div>
         </div>
       </header>
@@ -93,10 +92,10 @@ const Website = () => {
           </p>
 
           <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-12">
-            <Button size="lg" className="bg-gradient-to-r from-blue-600 to-green-600 hover:from-blue-700 hover:to-green-700 text-lg px-8 py-4">
+            <a href="/signup" className="bg-gradient-to-r from-blue-600 to-green-600 hover:from-blue-700 hover:to-green-700 text-white text-lg px-8 py-4 rounded-lg font-medium transition-colors inline-flex items-center">
               Start Professional Service
               <ArrowRight className="ml-2 h-5 w-5" />
-            </Button>
+            </a>
             <div className="text-center">
               <div className="text-2xl font-bold text-green-700">$1,500/month</div>
               <div className="text-sm text-gray-600">Professional expertise included</div>
@@ -219,9 +218,9 @@ const Website = () => {
                 ))}
               </div>
 
-              <Button size="lg" className="bg-gradient-to-r from-blue-600 to-green-600 hover:from-blue-700 hover:to-green-700 text-lg px-12 py-4">
+              <a href="/signup" className="bg-gradient-to-r from-blue-600 to-green-600 hover:from-blue-700 hover:to-green-700 text-white text-lg px-12 py-4 rounded-lg font-medium transition-colors inline-block">
                 Get Professional Service
-              </Button>
+              </a>
             </CardContent>
           </Card>
         </div>

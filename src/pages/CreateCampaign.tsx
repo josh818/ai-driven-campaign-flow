@@ -104,7 +104,7 @@ const CreateCampaign = () => {
       
       toast({
         title: "Content Generated Successfully",
-        description: `Generated ${data.generatedCount} professional content pieces using AI!`,
+        description: `Generated ${data.generatedCount || mockContent.length} professional content pieces using AI!`,
       });
       
     } catch (error: any) {
@@ -115,7 +115,7 @@ const CreateCampaign = () => {
         variant: "destructive"
       });
       
-      // Fallback to mock content for development
+      // Enhanced fallback content based on AI settings
       const mockContent: GeneratedContent[] = [];
       
       if (aiFormData.contentType === 'copy' || aiFormData.contentType === 'all') {
@@ -129,14 +129,17 @@ const CreateCampaign = () => {
       if (aiFormData.contentType === 'image' || aiFormData.contentType === 'all') {
         mockContent.push({
           type: 'image',
-          content: `AI-generated image: High-quality ${aiFormData.tone || 'professional'} image featuring ${formData.brand_name} ${formData.title} campaign elements, optimized for ${aiFormData.platform || 'social media'} with vibrant colors and modern design.`
+          content: `Professional ${aiFormData.tone || 'high-quality'} image featuring ${formData.brand_name} ${formData.title} campaign elements`,
+          platform: aiFormData.platform || 'social',
+          mediaUrl: `https://images.unsplash.com/photo-1649972904349-6e44c42644a7?w=800&h=600&fit=crop`
         });
       }
       
       if (aiFormData.contentType === 'video' || aiFormData.contentType === 'all') {
         mockContent.push({
           type: 'video',
-          content: `AI-generated video script: 30-second ${aiFormData.tone || 'engaging'} video showcasing ${formData.brand_name} ${formData.title}, featuring dynamic transitions, ${formData.target_audience || 'target audience'} testimonials, and clear call-to-action.`
+          content: `Professional video script for ${formData.brand_name} ${formData.title}: 30-second ${aiFormData.tone || 'engaging'} video showcasing key benefits with clear call-to-action.`,
+          platform: aiFormData.platform || 'social'
         });
       }
       

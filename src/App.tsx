@@ -1,3 +1,4 @@
+
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -34,23 +35,24 @@ const App = () => (
         <Sonner />
         <BrowserRouter>
           <Routes>
+            {/* Website as root */}
+            <Route path="/" element={<Website />} />
             <Route path="/auth" element={<Auth />} />
             <Route path="/signup" element={<Signup />} />
-            <Route path="/website" element={<Website />} />
             <Route path="/signup-success" element={<SignupSuccess />} />
             <Route path="/onboarding" element={
               <ProtectedRoute>
                 <Onboarding />
               </ProtectedRoute>
             } />
-            <Route path="/admin/dashboard" element={
+            <Route path="/admin12345678/dashboard" element={
               <ProtectedRoute>
                 <OnboardingGuard>
                   <AdminDashboard />
                 </OnboardingGuard>
               </ProtectedRoute>
             } />
-            <Route path="/" element={
+            <Route path="/dashboard" element={
               <ProtectedRoute>
                 <OnboardingGuard>
                   <Index />
@@ -106,14 +108,14 @@ const App = () => (
                 </OnboardingGuard>
               </ProtectedRoute>
             } />
-            <Route path="/admin/users" element={
+            <Route path="/admin12345678/users" element={
               <ProtectedRoute>
                 <OnboardingGuard>
                   <AdminUsers />
                 </OnboardingGuard>
               </ProtectedRoute>
             } />
-            <Route path="/admin/users/:userId" element={
+            <Route path="/admin12345678/users/:userId" element={
               <ProtectedRoute>
                 <OnboardingGuard>
                   <UserProfile />

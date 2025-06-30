@@ -231,14 +231,14 @@ const AdminUsers = () => {
                         </div>
                         
                         <div className="flex items-center space-x-2">
-                          <Link to={`/admin/users/${userProfile.id}`}>
+                          <Link to={`/admin12345678/users/${userProfile.id}`}>
                             <Button variant="outline" size="sm">
                               <Eye className="h-4 w-4 mr-2" />
                               View Profile
                             </Button>
                           </Link>
                           
-                          <Link to={`/admin/users/${userProfile.id}/create-campaign`}>
+                          <Link to={`/admin12345678/users/${userProfile.id}/create-campaign`}>
                             <Button size="sm" className="bg-gradient-to-r from-blue-500 to-teal-500 hover:from-blue-600 hover:to-teal-600">
                               <Plus className="h-4 w-4 mr-2" />
                               Create Campaign
