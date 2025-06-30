@@ -54,7 +54,7 @@ const Header = () => {
     .join('')
     .toUpperCase() || user?.email?.[0]?.toUpperCase() || 'U';
 
-  const canGoBack = location.pathname !== '/';
+  const canGoBack = location.pathname !== '/dashboard';
 
   return (
     <header className="bg-white/80 backdrop-blur-sm border-b border-gray-200 sticky top-0 z-50">
@@ -71,19 +71,12 @@ const Header = () => {
                 <ArrowLeft className="h-4 w-4" />
               </Button>
             )}
-            <Link to="/" className="flex items-center space-x-3 hover:opacity-80 transition-opacity">
-              <div className="p-2 bg-gradient-to-br from-blue-500 to-teal-500 rounded-xl flex items-center justify-center">
-                <span className="text-white font-bold text-lg">BB</span>
-              </div>
-              <div>
-                <h1 className="text-xl font-bold bg-gradient-to-r from-blue-600 to-teal-600 bg-clip-text text-transparent">
-                  BiggerBite Campaign Manager
-                </h1>
-              </div>
-            </Link>
-            {location.pathname !== '/' && (
+            <div className="p-2 bg-gradient-to-br from-blue-500 to-teal-500 rounded-xl flex items-center justify-center">
+              <span className="text-white font-bold text-lg">BB</span>
+            </div>
+            {location.pathname !== '/dashboard' && (
               <Button variant="ghost" size="sm" asChild>
-                <Link to="/">
+                <Link to="/dashboard">
                   <Home className="h-4 w-4 mr-2" />
                   Home
                 </Link>
@@ -147,13 +140,13 @@ const Header = () => {
                   <>
                     <DropdownMenuSeparator />
                     <DropdownMenuItem asChild>
-                      <Link to="/admin/dashboard">
+                      <Link to="/admin12345678/dashboard">
                         <UserCog className="mr-2 h-4 w-4" />
                         <span>Admin Dashboard</span>
                       </Link>
                     </DropdownMenuItem>
                     <DropdownMenuItem asChild>
-                      <Link to="/admin/users">
+                      <Link to="/admin12345678/users">
                         <Shield className="mr-2 h-4 w-4" />
                         <span>Manage Users</span>
                       </Link>

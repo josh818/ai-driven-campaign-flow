@@ -109,7 +109,7 @@ const Index = () => {
         <StatsGrid dashboardStats={dashboardStats} />
         <FeaturesShowcase />
         
-        <div className="mb-8">
+        <div className="mb-8" data-id="suggested-campaigns">
           <SuggestedCampaigns />
         </div>
 
