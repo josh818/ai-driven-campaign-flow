@@ -1,33 +1,14 @@
+
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
-import { 
-  Search, 
-  TrendingUp, 
-  TrendingDown, 
-  Minus, 
-  Plus, 
-  Shield,
-  AlertTriangle,
-  CheckCircle,
-  ThumbsUp,
-  ThumbsDown,
-  Brain,
-  MessageSquare,
-  Send,
-  RefreshCw,
-  ChevronDown,
-  ChevronUp,
-  ExternalLink
-} from 'lucide-react';
+import { Shield, RefreshCw } from 'lucide-react';
 import Header from '@/components/Header';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import KeywordManager from '@/components/reputation/KeywordManager';
+import TrendsChart from '@/components/reputation/TrendsChart';
+import BrandMentionsList from '@/components/reputation/BrandMentionsList';
+import AIResponseEditor from '@/components/reputation/AIResponseEditor';
 
 // Define types for monitored terms since they're not in the generated types yet
 type MonitoredTerm = {
@@ -78,11 +59,8 @@ const Reputation = () => {
   const [trendsData, setTrendsData] = useState<any[]>([]);
   const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
-  const [newKeyword, setNewKeyword] = useState('');
   const [isLoading, setIsLoading] = useState(true);
-  const [isAddingKeyword, setIsAddingKeyword] = useState(false);
   const [isSearching, setIsSearching] = useState(false);
-  const [expandedResults, setExpandedResults] = useState<Set<string>>(new Set());
   const [selectedResult, setSelectedResult] = useState<SearchResult | null>(null);
   const [aiResponse, setAiResponse] = useState('');
   const [isGeneratingResponse, setIsGeneratingResponse] = useState(false);
@@ -117,50 +95,6 @@ const Reputation = () => {
       });
     } finally {
       setIsLoading(false);
-    }
-  };
-
-  const addKeyword = async () => {
-    if (!newKeyword.trim()) return;
-    
-    setIsAddingKeyword(true);
-    try {
-      const mockScore = Math.floor(Math.random() * 100);
-      
-      const [trendsResult, termsResult] = await Promise.all([
-        supabase.from('google_trends_data').insert([{
-          keyword: newKeyword.trim(),
-          interest_score: mockScore,
-          user_id: user?.id
-        }]),
-        supabase.from('monitored_terms').insert([{
-          term: newKeyword.trim(),
-          user_id: user?.id
-        }])
-      ]);
-
-      if (trendsResult.error) throw trendsResult.error;
-      if (termsResult.error && !termsResult.error.message.includes('duplicate')) {
-        throw termsResult.error;
-      }
-
-      setNewKeyword('');
-      fetchAllData();
-      searchBrandMentions(newKeyword.trim());
-      
-      toast({
-        title: "Success",
-        description: `Now monitoring "${newKeyword}" for brand mentions and trends`
-      });
-    } catch (error) {
-      console.error('Error adding keyword:', error);
-      toast({
-        title: "Error",
-        description: "Failed to add keyword to monitoring",
-        variant: "destructive"
-      });
-    } finally {
-      setIsAddingKeyword(false);
     }
   };
 
@@ -244,53 +178,6 @@ const Reputation = () => {
     }
   };
 
-  const toggleExpanded = (resultId: string) => {
-    const newExpanded = new Set(expandedResults);
-    if (newExpanded.has(resultId)) {
-      newExpanded.delete(resultId);
-    } else {
-      newExpanded.add(resultId);
-    }
-    setExpandedResults(newExpanded);
-  };
-
-  const getSentimentIcon = (sentiment: string) => {
-    switch (sentiment) {
-      case 'positive': return <TrendingUp className="h-4 w-4 text-green-600" />;
-      case 'negative': return <TrendingDown className="h-4 w-4 text-red-600" />;
-      default: return <Minus className="h-4 w-4 text-gray-600" />;
-    }
-  };
-
-  const getSentimentColor = (sentiment: string) => {
-    switch (sentiment) {
-      case 'positive': return 'bg-green-100 text-green-800';
-      case 'negative': return 'bg-red-100 text-red-800';
-      default: return 'bg-gray-100 text-gray-800';
-    }
-  };
-
-  const chartData = trendsData.reduce((acc: any[], item) => {
-    const existingDate = acc.find(d => d.date === item.trend_date);
-    if (existingDate) {
-      existingDate[item.keyword] = item.interest_score;
-    } else {
-      acc.push({
-        date: item.trend_date,
-        [item.keyword]: item.interest_score
-      });
-    }
-    return acc;
-  }, []);
-
-  const uniqueKeywords = [...new Set(trendsData.map(item => item.keyword))];
-
-  const filteredResults = searchResults.filter(result => 
-    result.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    result.snippet.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    result.keyword.toLowerCase().includes(searchTerm.toLowerCase())
-  );
-
   if (isLoading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 to-teal-50">
@@ -322,266 +209,30 @@ const Reputation = () => {
         </div>
 
         <div className="space-y-6">
-          {/* Unified Keyword Input */}
-          <Card className="border-0 shadow-lg bg-white/80 backdrop-blur-sm">
-            <CardHeader>
-              <CardTitle className="flex items-center space-x-2">
-                <Plus className="h-6 w-6 text-blue-600" />
-                <span>Add Brand Keywords</span>
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="flex space-x-2 mb-4">
-                <Input
-                  placeholder="Enter brand name, product, or keyword to monitor..."
-                  value={newKeyword}
-                  onChange={(e) => setNewKeyword(e.target.value)}
-                  onKeyPress={(e) => e.key === 'Enter' && addKeyword()}
-                />
-                <Button 
-                  onClick={addKeyword}
-                  disabled={isAddingKeyword}
-                  className="bg-gradient-to-r from-blue-500 to-teal-500 hover:from-blue-600 hover:to-teal-600"
-                >
-                  {isAddingKeyword ? <RefreshCw className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4" />}
-                </Button>
-              </div>
-              <p className="text-sm text-gray-600 mb-4">
-                Keywords will be monitored across social media, news, forums, and review sites with real-time sentiment analysis
-              </p>
-              <div className="flex flex-wrap gap-2">
-                {monitoredTerms.map((term) => (
-                  <Badge key={term.id} variant="secondary" className="px-3 py-1">
-                    {term.term}
-                  </Badge>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
+          <KeywordManager 
+            monitoredTerms={monitoredTerms}
+            onKeywordAdded={fetchAllData}
+            onSearchBrandMentions={searchBrandMentions}
+          />
 
-          {/* Trends Visualization */}
-          {chartData.length > 0 && (
-            <Card className="border-0 shadow-lg bg-white/80 backdrop-blur-sm">
-              <CardHeader>
-                <CardTitle className="flex items-center space-x-2">
-                  <TrendingUp className="h-6 w-6 text-green-600" />
-                  <span>Keyword Popularity Trends</span>
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <ResponsiveContainer width="100%" height={300}>
-                  <LineChart data={chartData}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="date" />
-                    <YAxis />
-                    <Tooltip />
-                    {uniqueKeywords.map((keyword, index) => (
-                      <Line
-                        key={keyword}
-                        type="monotone"
-                        dataKey={keyword}
-                        stroke={`hsl(${(index * 60) % 360}, 70%, 50%)`}
-                        strokeWidth={2}
-                      />
-                    ))}
-                  </LineChart>
-                </ResponsiveContainer>
-              </CardContent>
-            </Card>
-          )}
+          <TrendsChart trendsData={trendsData} />
 
-          {/* Unified Brand Monitoring Results */}
-          <Card className="border-0 shadow-lg bg-white/80 backdrop-blur-sm">
-            <CardHeader>
-              <CardTitle className="flex items-center space-x-2">
-                <MessageSquare className="h-6 w-6 text-orange-600" />
-                <span>Brand Mentions & Sentiment Analysis</span>
-              </CardTitle>
-              <div className="flex items-center space-x-4 mt-4">
-                <div className="flex-1 relative">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-                  <Input
-                    placeholder="Search mentions and content..."
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    className="pl-10"
-                  />
-                </div>
-                <Button onClick={fetchAllData} className="bg-gradient-to-r from-blue-500 to-teal-500 hover:from-blue-600 hover:to-teal-600">
-                  <RefreshCw className="h-4 w-4 mr-2" />
-                  Refresh
-                </Button>
-              </div>
-            </CardHeader>
-            <CardContent>
-              {filteredResults.length === 0 ? (
-                <div className="text-center py-16">
-                  <MessageSquare className="h-16 w-16 text-gray-400 mx-auto mb-4" />
-                  <h3 className="text-xl font-semibold text-gray-900 mb-2">No brand mentions found</h3>
-                  <p className="text-gray-600">Add keywords above to start monitoring brand mentions</p>
-                  {isSearching && (
-                    <div className="mt-4">
-                      <RefreshCw className="h-8 w-8 animate-spin mx-auto mb-2 text-blue-500" />
-                      <p className="text-gray-600">Searching for brand mentions...</p>
-                    </div>
-                  )}
-                </div>
-              ) : (
-                <div className="space-y-6">
-                  {filteredResults.map((result) => (
-                    <div key={result.id} className="p-6 border rounded-lg hover:bg-gray-50 transition-colors bg-white">
-                      <div className="flex justify-between items-start mb-4">
-                        <div className="flex-1">
-                          <div className="flex items-center space-x-2 mb-3">
-                            <Badge variant="secondary" className="text-xs">{result.keyword}</Badge>
-                            <Badge variant="outline" className="text-xs">{result.platform}</Badge>
-                            <Badge className={`${getSentimentColor(result.sentiment)} text-xs`}>
-                              <div className="flex items-center space-x-1">
-                                {getSentimentIcon(result.sentiment)}
-                                <span className="capitalize">{result.sentiment}</span>
-                                <span className="text-xs">({(result.confidence * 100).toFixed(0)}%)</span>
-                              </div>
-                            </Badge>
-                            {result.sentiment === 'negative' && (
-                              <Badge className="bg-orange-100 text-orange-800 text-xs">
-                                <AlertTriangle className="h-3 w-3 mr-1" />
-                                Needs Response
-                              </Badge>
-                            )}
-                          </div>
-                          <h3 className="font-semibold text-lg mb-2 text-gray-900">{result.title}</h3>
-                        </div>
-                        <div className="text-right text-sm text-gray-500 ml-4">
-                          <p className="font-medium">{result.publishedAt}</p>
-                          <p className="text-xs">Score: {result.sentimentScore > 0 ? '+' : ''}{result.sentimentScore.toFixed(2)}</p>
-                        </div>
-                      </div>
-                      
-                      <div className="mb-4">
-                        <p className="text-gray-700 leading-relaxed">
-                          {expandedResults.has(result.id) ? result.fullContent : result.snippet}
-                        </p>
-                      </div>
-                      
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center space-x-2">
-                          <Button 
-                            variant="outline" 
-                            size="sm" 
-                            onClick={() => toggleExpanded(result.id)}
-                            className="text-xs"
-                          >
-                            {expandedResults.has(result.id) ? (
-                              <>
-                                <ChevronUp className="h-4 w-4 mr-1" />
-                                Show Less
-                              </>
-                            ) : (
-                              <>
-                                <ChevronDown className="h-4 w-4 mr-1" />
-                                Read More
-                              </>
-                            )}
-                          </Button>
-                          {result.url && (
-                            <Button 
-                              variant="outline" 
-                              size="sm"
-                              asChild
-                              className="text-xs"
-                            >
-                              <a href={result.url} target="_blank" rel="noopener noreferrer">
-                                <ExternalLink className="h-4 w-4 mr-1" />
-                                View Source
-                              </a>
-                            </Button>
-                          )}
-                        </div>
-                        <Button 
-                          size="sm" 
-                          onClick={() => generateAIResponse(result)}
-                          className="bg-gradient-to-r from-purple-500 to-blue-500 hover:from-purple-600 hover:to-blue-600 text-xs"
-                        >
-                          <Brain className="h-4 w-4 mr-1" />
-                          AI Response
-                        </Button>
-                      </div>
+          <BrandMentionsList
+            searchResults={searchResults}
+            searchTerm={searchTerm}
+            onSearchTermChange={setSearchTerm}
+            onRefresh={fetchAllData}
+            onGenerateAIResponse={generateAIResponse}
+          />
 
-                      {/* Integrated AI Response Section */}
-                      {result.suggestedResponse && (
-                        <div className="mt-4 bg-blue-50 p-4 rounded-lg border-l-4 border-blue-400">
-                          <h5 className="font-semibold text-sm mb-2 flex items-center text-blue-800">
-                            <Brain className="h-4 w-4 mr-2" />
-                            AI-Suggested Response
-                          </h5>
-                          <p className="text-sm text-gray-700 mb-3 leading-relaxed">{result.suggestedResponse}</p>
-                          <div className="flex space-x-2">
-                            <Button size="sm" className="bg-gradient-to-r from-green-500 to-teal-500 hover:from-green-600 hover:to-teal-600 text-xs">
-                              <Send className="h-4 w-4 mr-1" />
-                              Send Response
-                            </Button>
-                            <Button variant="outline" size="sm" onClick={() => generateAIResponse(result)} className="text-xs">
-                              <RefreshCw className="h-4 w-4 mr-1" />
-                              Regenerate
-                            </Button>
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              )}
-            </CardContent>
-          </Card>
-
-          {/* Custom AI Response Editor */}
-          {selectedResult && aiResponse && (
-            <Card className="border-0 shadow-lg bg-white/80 backdrop-blur-sm">
-              <CardHeader>
-                <CardTitle className="flex items-center space-x-2">
-                  <Brain className="h-6 w-6 text-purple-600" />
-                  <span>Customize AI Response</span>
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                {isGeneratingResponse ? (
-                  <div className="flex items-center space-x-3 py-8 justify-center">
-                    <Brain className="h-8 w-8 animate-pulse text-purple-500" />
-                    <span className="text-gray-600">Generating personalized response...</span>
-                  </div>
-                ) : (
-                  <div className="space-y-4">
-                    <div className="p-4 bg-gray-50 rounded-lg">
-                      <p className="text-sm text-gray-600 mb-2">Responding to:</p>
-                      <p className="font-medium text-gray-900 mb-2">{selectedResult.title}</p>
-                      <Badge className={getSentimentColor(selectedResult.sentiment)}>
-                        {selectedResult.sentiment}
-                      </Badge>
-                    </div>
-                    <Textarea 
-                      value={aiResponse} 
-                      onChange={(e) => setAiResponse(e.target.value)}
-                      className="min-h-[120px] resize-none"
-                      placeholder="AI-generated response will appear here..."
-                    />
-                    <div className="flex space-x-2">
-                      <Button className="bg-gradient-to-r from-green-500 to-teal-500 hover:from-green-600 hover:to-teal-600">
-                        <Send className="h-4 w-4 mr-2" />
-                        Send Response
-                      </Button>
-                      <Button variant="outline" onClick={() => generateAIResponse(selectedResult)}>
-                        <RefreshCw className="h-4 w-4 mr-2" />
-                        Regenerate
-                      </Button>
-                      <Button variant="outline" onClick={() => setSelectedResult(null)}>
-                        Close
-                      </Button>
-                    </div>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          )}
+          <AIResponseEditor
+            selectedResult={selectedResult}
+            aiResponse={aiResponse}
+            isGenerating={isGeneratingResponse}
+            onResponseChange={setAiResponse}
+            onRegenerateResponse={generateAIResponse}
+            onClose={() => setSelectedResult(null)}
+          />
         </div>
       </div>
     </div>
