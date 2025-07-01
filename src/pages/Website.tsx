@@ -1,3 +1,4 @@
+
 import { ArrowRight, Award, BarChart3, Shield, Users, Star, CheckCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -65,9 +66,17 @@ const Website = () => {
                 <p className="text-sm text-gray-600">Professional Campaign Management</p>
               </div>
             </div>
-            <Link to="/signup" className="bg-gradient-to-r from-blue-600 to-green-600 hover:from-blue-700 hover:to-green-700 text-white px-6 py-2 rounded-lg font-medium transition-colors">
-              Get Started
-            </Link>
+            <div className="flex items-center space-x-4">
+              <Link 
+                to="/auth" 
+                className="text-gray-600 hover:text-blue-600 underline underline-offset-4 transition-colors"
+              >
+                Login
+              </Link>
+              <Link to="/signup" className="bg-gradient-to-r from-blue-600 to-green-600 hover:from-blue-700 hover:to-green-700 text-white px-6 py-2 rounded-lg font-medium transition-colors">
+                Get Started
+              </Link>
+            </div>
           </div>
         </div>
       </header>
