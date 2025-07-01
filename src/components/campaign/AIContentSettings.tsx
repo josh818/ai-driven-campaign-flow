@@ -75,7 +75,6 @@ const AIContentSettings = ({
               <SelectItem value="twitter">Twitter</SelectItem>
               <SelectItem value="linkedin">LinkedIn</SelectItem>
               <SelectItem value="email">Email</SelectItem>
-              <SelectItem value="website">Website</SelectItem>
             </SelectContent>
           </Select>
         </div>
