@@ -124,29 +124,48 @@ export async function generateImageContent(
 ): Promise<{ content: string; mediaUrl: string }> {
   const tone = aiSettings?.tone || 'professional';
   
-  // Create a detailed prompt for RunwayML
-  const imagePrompt = `Professional marketing image for ${campaignData.brand_name} campaign "${campaignData.title}". 
-                     Campaign description: ${campaignData.description || 'Premium brand experience'}.
-                     Style: ${tone === 'professional' ? 'clean corporate business style' : 
-                              tone === 'casual' ? 'friendly approachable lifestyle style' :
-                              tone === 'enthusiastic' ? 'energetic vibrant dynamic style' :
-                              tone === 'humorous' ? 'playful entertaining fun style' :
-                              'modern professional style'}. 
-                     Target audience: ${campaignData.target_audience || 'general audience'}.
-                     ${platform === 'instagram' ? 'Square format, social media optimized' : 
-                       'Horizontal format, social media ready'}. 
-                     High quality, modern, photorealistic, brand-focused imagery.
-                     Keywords: ${aiSettings?.keywords || 'quality, innovation'}.`;
+  // Create a detailed, specific prompt for RunwayML that follows the campaign description
+  const imagePrompt = `Create a ${tone} marketing image for ${campaignData.brand_name} campaign "${campaignData.title}". 
+                     
+                     SPECIFIC REQUIREMENTS:
+                     - Campaign focus: ${campaignData.description || 'Premium brand experience'}
+                     - Brand: ${campaignData.brand_name}
+                     - Target audience: ${campaignData.target_audience || 'general audience'}
+                     - Goals: ${campaignData.campaign_goals?.join(', ') || 'brand awareness'}
+                     
+                     VISUAL STYLE: ${tone === 'professional' ? 'Clean, corporate, modern business aesthetic with blue and teal colors' : 
+                                    tone === 'casual' ? 'Friendly, approachable, lifestyle-focused with warm colors' :
+                                    tone === 'enthusiastic' ? 'Energetic, vibrant, dynamic with bright colors and movement' :
+                                    tone === 'humorous' ? 'Playful, fun, entertaining with colorful and lighthearted elements' :
+                                    'Modern, professional, sleek design with blue and teal brand colors'}
+                     
+                     TECHNICAL SPECS:
+                     - High-quality, photorealistic
+                     - ${platform === 'instagram' ? 'Square format (1:1 ratio)' : 'Horizontal format (16:9 ratio)'}
+                     - Social media optimized
+                     - Include brand elements if possible
+                     
+                     KEYWORDS TO INCORPORATE VISUALLY: ${aiSettings?.keywords || 'quality, innovation, premium'}
+                     
+                     MUST REFLECT: ${campaignData.description || 'Premium brand experience'}`;
 
   try {
+    console.log('Generating image with RunwayML, prompt:', imagePrompt);
     const imageResponse = await generateRunwayMLImage(imagePrompt);
 
     if (imageResponse && imageResponse.ok) {
       const imageData = await imageResponse.json();
+      console.log('RunwayML image response:', imageData);
+      
       if (imageData.data && imageData.data[0] && imageData.data[0].url) {
         return {
-          content: `${tone} professional image for ${campaignData.brand_name} "${campaignData.title}" campaign - ${campaignData.description}`,
+          content: `Professional ${tone} image for ${campaignData.brand_name} "${campaignData.title}" campaign showcasing: ${campaignData.description}`,
           mediaUrl: imageData.data[0].url
+        };
+      } else if (imageData.url) {
+        return {
+          content: `Professional ${tone} image for ${campaignData.brand_name} "${campaignData.title}" campaign showcasing: ${campaignData.description}`,
+          mediaUrl: imageData.url
         };
       } else {
         throw new Error('Invalid RunwayML image response structure');
@@ -158,22 +177,28 @@ export async function generateImageContent(
     }
   } catch (imageError) {
     console.error('RunwayML image generation error:', imageError);
-    // Use campaign-related stock images as fallback
-    const campaignImages = [
-      'https://images.unsplash.com/photo-1560472354-b33ff0c44a43?w=800&h=600&fit=crop&q=80',
-      'https://images.unsplash.com/photo-1611224923853-80b023f02d71?w=800&h=600&fit=crop&q=80',
-      'https://images.unsplash.com/photo-1557804506-669a67965ba0?w=800&h=600&fit=crop&q=80',
-      'https://images.unsplash.com/photo-1552664730-d307ca884978?w=800&h=600&fit=crop&q=80',
-      'https://images.unsplash.com/photo-1504384308090-c894fdcc538d?w=800&h=600&fit=crop&q=80',
-      'https://images.unsplash.com/photo-1542744173-8e7e53415bb0?w=800&h=600&fit=crop&q=80',
-      'https://images.unsplash.com/photo-1551632436-cbf8dd35adcf?w=800&h=600&fit=crop&q=80'
+    
+    // Use varied, campaign-relevant stock images as fallback
+    const businessImages = [
+      'https://images.unsplash.com/photo-1560472354-b33ff0c44a43?w=1024&h=1024&fit=crop&q=80',
+      'https://images.unsplash.com/photo-1611224923853-80b023f02d71?w=1024&h=1024&fit=crop&q=80',
+      'https://images.unsplash.com/photo-1557804506-669a67965ba0?w=1024&h=1024&fit=crop&q=80',
+      'https://images.unsplash.com/photo-1552664730-d307ca884978?w=1024&h=1024&fit=crop&q=80',
+      'https://images.unsplash.com/photo-1504384308090-c894fdcc538d?w=1024&h=1024&fit=crop&q=80',
+      'https://images.unsplash.com/photo-1542744173-8e7e53415bb0?w=1024&h=1024&fit=crop&q=80',
+      'https://images.unsplash.com/photo-1551632436-cbf8dd35adcf?w=1024&h=1024&fit=crop&q=80',
+      'https://images.unsplash.com/photo-1590650516494-0c8e4a4dd67e?w=1024&h=1024&fit=crop&q=80',
+      'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=1024&h=1024&fit=crop&q=80',
+      'https://images.unsplash.com/photo-1497366216548-37526070297c?w=1024&h=1024&fit=crop&q=80'
     ];
     
-    const randomImage = campaignImages[Math.floor(Math.random() * campaignImages.length)];
+    // Select image based on campaign content to make it more relevant
+    const imageIndex = Math.abs(campaignData.title.length + campaignData.brand_name.length) % businessImages.length;
+    const selectedImage = businessImages[imageIndex];
     
     return {
       content: `${tone} image concept for ${campaignData.brand_name} "${campaignData.title}" - ${campaignData.description} - optimized for ${platform} ${contentType}`,
-      mediaUrl: randomImage
+      mediaUrl: selectedImage
     };
   }
 }
@@ -186,70 +211,90 @@ export async function generateVideoContent(
 ): Promise<{ content: string; mediaUrl: string }> {
   const tone = aiSettings?.tone || 'professional';
   
-  // Create video prompt for RunwayML (15 seconds max)
-  const videoPrompt = `15-second professional marketing video for ${campaignData.brand_name} campaign "${campaignData.title}". 
-                     Campaign focus: ${campaignData.description || 'Premium brand experience'}.
-                     Style: ${tone === 'professional' ? 'corporate, clean, business-focused' : 
-                              tone === 'casual' ? 'friendly, lifestyle, approachable' :
-                              tone === 'enthusiastic' ? 'energetic, dynamic, exciting' :
-                              tone === 'humorous' ? 'playful, entertaining, fun' :
-                              'modern, engaging, professional'}.
-                     Target: ${campaignData.target_audience || 'general audience'}.
-                     Duration: exactly 15 seconds.
-                     Quality: high-definition, brand-focused visuals.
-                     Keywords: ${aiSettings?.keywords || 'quality, innovation'}.`;
+  // Create specific video prompt for RunwayML (max 15 seconds)
+  const videoPrompt = `Create a 15-second ${tone} marketing video for ${campaignData.brand_name} campaign "${campaignData.title}".
+                     
+                     CAMPAIGN SPECIFICS:
+                     - Brand: ${campaignData.brand_name}
+                     - Focus: ${campaignData.description || 'Premium brand experience'}
+                     - Target: ${campaignData.target_audience || 'general audience'}
+                     - Goals: ${campaignData.campaign_goals?.join(', ') || 'brand awareness'}
+                     
+                     VIDEO STYLE: ${tone === 'professional' ? 'Corporate, clean, business-focused with blue/teal brand colors' : 
+                                   tone === 'casual' ? 'Friendly, lifestyle, approachable with warm natural lighting' :
+                                   tone === 'enthusiastic' ? 'Energetic, dynamic, exciting with fast-paced movement' :
+                                   tone === 'humorous' ? 'Playful, entertaining, fun with bright colors' :
+                                   'Modern, engaging, professional with contemporary design'}
+                     
+                     TECHNICAL REQUIREMENTS:
+                     - Duration: exactly 15 seconds maximum
+                     - Aspect ratio: 16:9 (1280x720)
+                     - High-definition quality
+                     - Social media optimized
+                     
+                     CONTENT FOCUS: ${campaignData.description || 'Premium brand experience'}
+                     KEYWORDS: ${aiSettings?.keywords || 'quality, innovation'}`;
 
   try {
+    console.log('Generating video with RunwayML, prompt:', videoPrompt);
     const videoResponse = await generateRunwayMLVideo(videoPrompt);
 
     if (videoResponse && videoResponse.ok) {
       const videoData = await videoResponse.json();
-      if (videoData.data && videoData.data[0] && videoData.data[0].url) {
-        // Generate script as well
-        const scriptPrompt = `Create a 15-second video script for ${campaignData.brand_name}'s "${campaignData.title}" campaign.
-                           
-                           CAMPAIGN FOCUS (SCRIPT MUST REFLECT):
-                           - Brand: ${campaignData.brand_name}
-                           - Campaign: ${campaignData.title}
-                           - Description: ${campaignData.description || 'Premium brand experience'}
-                           - Target: ${campaignData.target_audience || 'general audience'}
-                           
-                           TONE REQUIREMENT: Script must be ${tone}
-                           
-                           15-SECOND STRUCTURE:
-                           - 0-5s: Hook (attention grabber)
-                           - 5-12s: Core message (campaign benefits)
-                           - 12-15s: Call-to-action
-                           
-                           Platform: ${platform} ${contentType}
-                           Keywords: ${aiSettings?.keywords || 'quality, innovation'}`;
+      console.log('RunwayML video response:', videoData);
+      
+      // Generate script as well
+      const scriptPrompt = `Create a 15-second video script for ${campaignData.brand_name}'s "${campaignData.title}" campaign.
+                         
+                         CAMPAIGN FOCUS (SCRIPT MUST REFLECT):
+                         - Brand: ${campaignData.brand_name}
+                         - Campaign: ${campaignData.title}
+                         - Description: ${campaignData.description || 'Premium brand experience'}
+                         - Target: ${campaignData.target_audience || 'general audience'}
+                         
+                         TONE REQUIREMENT: Script must be ${tone}
+                         
+                         15-SECOND STRUCTURE:
+                         - 0-5s: Hook (attention grabber)
+                         - 5-12s: Core message (campaign benefits)
+                         - 12-15s: Call-to-action
+                         
+                         Platform: ${platform} ${contentType}
+                         Keywords: ${aiSettings?.keywords || 'quality, innovation'}`;
 
-        const scriptResponse = await makeOpenAIRequest('https://api.openai.com/v1/chat/completions', {
-          model: 'gpt-4o-mini',
-          messages: [
-            { role: 'system', content: `You are a video scriptwriter specializing in 15-second social media content. Create ${tone} scripts.` },
-            { role: 'user', content: scriptPrompt }
-          ],
-          temperature: 0.7,
-          max_tokens: 400,
-        });
+      const scriptResponse = await makeOpenAIRequest('https://api.openai.com/v1/chat/completions', {
+        model: 'gpt-4o-mini',
+        messages: [
+          { role: 'system', content: `You are a video scriptwriter specializing in 15-second social media content. Create ${tone} scripts.` },
+          { role: 'user', content: scriptPrompt }
+        ],
+        temperature: 0.7,
+        max_tokens: 400,
+      });
 
-        let scriptContent = `[15-Second ${tone} Video for ${campaignData.brand_name}]\n\n`;
-        
-        if (scriptResponse && scriptResponse.ok) {
-          const scriptData = await scriptResponse.json();
-          if (scriptData.choices && scriptData.choices[0] && scriptData.choices[0].message) {
-            scriptContent += scriptData.choices[0].message.content;
-          }
+      let scriptContent = `[15-Second ${tone} Video for ${campaignData.brand_name}]\n\n`;
+      
+      if (scriptResponse && scriptResponse.ok) {
+        const scriptData = await scriptResponse.json();
+        if (scriptData.choices && scriptData.choices[0] && scriptData.choices[0].message) {
+          scriptContent += scriptData.choices[0].message.content;
         }
+      }
 
-        return {
-          content: scriptContent + `\n\n🎬 Video generated with RunwayML for ${platform} ${contentType}`,
-          mediaUrl: videoData.data[0].url
-        };
+      // Handle different possible response structures from RunwayML
+      let videoUrl = '';
+      if (videoData.data && videoData.data[0] && videoData.data[0].url) {
+        videoUrl = videoData.data[0].url;
+      } else if (videoData.url) {
+        videoUrl = videoData.url;
       } else {
         throw new Error('Invalid RunwayML video response structure');
       }
+
+      return {
+        content: scriptContent + `\n\n🎬 15-second video generated with RunwayML for ${platform} ${contentType}`,
+        mediaUrl: videoUrl
+      };
     } else {
       const errorText = await videoResponse?.text();
       console.error('RunwayML video generation failed:', errorText);
@@ -272,7 +317,7 @@ export async function generateVideoContent(
 🏢 BRAND: ${campaignData.brand_name}
 🎯 TONE: ${tone} (${toneDirection})
 📱 PLATFORM: ${platform}
-⏱️ DURATION: 15 seconds
+⏱️ DURATION: 15 seconds maximum
 
 📋 SCRIPT BREAKDOWN:
 
@@ -292,7 +337,7 @@ Target: ${campaignData.target_audience || 'Perfect for everyone'}
 🎵 AUDIO: ${toneDirection} background music
 📝 KEYWORDS: ${aiSettings?.keywords || 'quality, innovation'}
 ✨ Platform optimized for ${platform}`,
-      mediaUrl: 'https://sample-videos.com/zip/10/mp4/SampleVideo_640x360_1mb.mp4'
+      mediaUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4'
     };
   }
 }
