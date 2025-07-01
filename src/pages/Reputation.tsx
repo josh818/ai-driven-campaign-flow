@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
@@ -24,7 +23,8 @@ import {
   Send,
   RefreshCw,
   ChevronDown,
-  ChevronUp
+  ChevronUp,
+  ExternalLink
 } from 'lucide-react';
 import Header from '@/components/Header';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
@@ -67,6 +67,7 @@ type SearchResult = {
   suggestedResponse?: string;
   platform: string;
   publishedAt: string;
+  url?: string;
 };
 
 const Reputation = () => {
@@ -168,7 +169,6 @@ const Reputation = () => {
     try {
       await new Promise(resolve => setTimeout(resolve, 2000));
       
-      // Simulate AI-powered sentiment analysis and content generation
       const mockResults: SearchResult[] = [
         {
           id: `${keyword}-1`,
@@ -182,6 +182,7 @@ const Reputation = () => {
           confidence: 0.92,
           platform: 'Social Media',
           publishedAt: '2 hours ago',
+          url: `https://twitter.com/search?q=${encodeURIComponent(keyword)}`,
           suggestedResponse: "Thank you so much for your wonderful review! We're thrilled to hear about your positive experience with our product and team. Your feedback means the world to us and motivates us to continue delivering exceptional service."
         },
         {
@@ -196,6 +197,7 @@ const Reputation = () => {
           confidence: 0.88,
           platform: 'Forum',
           publishedAt: '5 hours ago',
+          url: `https://reddit.com/search?q=${encodeURIComponent(keyword)}`,
           suggestedResponse: "We sincerely apologize for your disappointing experience. This is not the level of service we strive for. Please reach out to our customer success team directly so we can make this right and address your concerns promptly."
         },
         {
@@ -210,21 +212,8 @@ const Reputation = () => {
           confidence: 0.85,
           platform: 'Review Site',
           publishedAt: '1 day ago',
+          url: `https://www.google.com/search?q=${encodeURIComponent(keyword)}+reviews`,
           suggestedResponse: "Thank you for taking the time to share your honest feedback. We appreciate all reviews as they help us improve. We'd love to learn more about the advanced features you were looking for - please feel free to reach out with suggestions."
-        },
-        {
-          id: `${keyword}-4`,
-          keyword,
-          title: `Breaking: ${keyword} announces new partnership`,
-          snippet: `${keyword} has just announced a strategic partnership that could change the industry...`,
-          fullContent: `${keyword} has just announced a strategic partnership that could change the industry landscape. This collaboration brings together two leading companies to deliver innovative solutions. Industry experts are calling this a game-changing move that could benefit customers significantly. The partnership is expected to launch new features and improved services by next quarter.`,
-          source: 'TechCrunch',
-          sentiment: 'positive',
-          sentimentScore: 0.6,
-          confidence: 0.90,
-          platform: 'News',
-          publishedAt: '3 hours ago',
-          suggestedResponse: "Thank you for covering our partnership announcement! We're excited about this collaboration and the value it will bring to our customers. Stay tuned for more updates on the innovative solutions we'll be launching together."
         }
       ];
       
@@ -327,18 +316,18 @@ const Reputation = () => {
         <div className="mb-8">
           <h2 className="text-3xl font-bold text-gray-900 mb-2 flex items-center space-x-3">
             <Shield className="h-8 w-8 text-teal-600" />
-            <span>Brand Monitoring & Sentiment Analysis</span>
+            <span>Brand Monitoring Dashboard</span>
           </h2>
-          <p className="text-gray-600">Monitor your brand across the web with AI-powered sentiment analysis and automated response suggestions</p>
+          <p className="text-gray-600">Monitor your brand across all platforms with AI-powered sentiment analysis and automated response suggestions</p>
         </div>
 
         <div className="space-y-6">
-          {/* Keyword Management */}
+          {/* Unified Keyword Input */}
           <Card className="border-0 shadow-lg bg-white/80 backdrop-blur-sm">
             <CardHeader>
               <CardTitle className="flex items-center space-x-2">
                 <Plus className="h-6 w-6 text-blue-600" />
-                <span>Add Keywords to Monitor</span>
+                <span>Add Brand Keywords</span>
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -358,7 +347,7 @@ const Reputation = () => {
                 </Button>
               </div>
               <p className="text-sm text-gray-600 mb-4">
-                Keywords are monitored across social media, news, forums, and review sites with AI sentiment analysis
+                Keywords will be monitored across social media, news, forums, and review sites with real-time sentiment analysis
               </p>
               <div className="flex flex-wrap gap-2">
                 {monitoredTerms.map((term) => (
@@ -370,7 +359,7 @@ const Reputation = () => {
             </CardContent>
           </Card>
 
-          {/* Trends Chart */}
+          {/* Trends Visualization */}
           {chartData.length > 0 && (
             <Card className="border-0 shadow-lg bg-white/80 backdrop-blur-sm">
               <CardHeader>
@@ -401,12 +390,12 @@ const Reputation = () => {
             </Card>
           )}
 
-          {/* Brand Mentions with Integrated Sentiment Analysis */}
+          {/* Unified Brand Monitoring Results */}
           <Card className="border-0 shadow-lg bg-white/80 backdrop-blur-sm">
             <CardHeader>
               <CardTitle className="flex items-center space-x-2">
                 <MessageSquare className="h-6 w-6 text-orange-600" />
-                <span>Brand Mentions & AI Analysis</span>
+                <span>Brand Mentions & Sentiment Analysis</span>
               </CardTitle>
               <div className="flex items-center space-x-4 mt-4">
                 <div className="flex-1 relative">
@@ -419,6 +408,7 @@ const Reputation = () => {
                   />
                 </div>
                 <Button onClick={fetchAllData} className="bg-gradient-to-r from-blue-500 to-teal-500 hover:from-blue-600 hover:to-teal-600">
+                  <RefreshCw className="h-4 w-4 mr-2" />
                   Refresh
                 </Button>
               </div>
@@ -437,15 +427,15 @@ const Reputation = () => {
                   )}
                 </div>
               ) : (
-                <div className="space-y-4">
+                <div className="space-y-6">
                   {filteredResults.map((result) => (
-                    <div key={result.id} className="p-4 border rounded-lg hover:bg-gray-50 transition-colors">
-                      <div className="flex justify-between items-start mb-3">
+                    <div key={result.id} className="p-6 border rounded-lg hover:bg-gray-50 transition-colors bg-white">
+                      <div className="flex justify-between items-start mb-4">
                         <div className="flex-1">
-                          <div className="flex items-center space-x-2 mb-2">
-                            <Badge variant="secondary">{result.keyword}</Badge>
-                            <Badge variant="outline">{result.platform}</Badge>
-                            <Badge className={getSentimentColor(result.sentiment)}>
+                          <div className="flex items-center space-x-2 mb-3">
+                            <Badge variant="secondary" className="text-xs">{result.keyword}</Badge>
+                            <Badge variant="outline" className="text-xs">{result.platform}</Badge>
+                            <Badge className={`${getSentimentColor(result.sentiment)} text-xs`}>
                               <div className="flex items-center space-x-1">
                                 {getSentimentIcon(result.sentiment)}
                                 <span className="capitalize">{result.sentiment}</span>
@@ -453,64 +443,88 @@ const Reputation = () => {
                               </div>
                             </Badge>
                             {result.sentiment === 'negative' && (
-                              <Badge className="bg-orange-100 text-orange-800">
+                              <Badge className="bg-orange-100 text-orange-800 text-xs">
                                 <AlertTriangle className="h-3 w-3 mr-1" />
-                                Action Needed
+                                Needs Response
                               </Badge>
                             )}
                           </div>
-                          <h3 className="font-semibold text-lg mb-2">{result.title}</h3>
+                          <h3 className="font-semibold text-lg mb-2 text-gray-900">{result.title}</h3>
                         </div>
-                        <div className="text-right text-sm text-gray-500">
-                          <p>{result.publishedAt}</p>
+                        <div className="text-right text-sm text-gray-500 ml-4">
+                          <p className="font-medium">{result.publishedAt}</p>
                           <p className="text-xs">Score: {result.sentimentScore > 0 ? '+' : ''}{result.sentimentScore.toFixed(2)}</p>
                         </div>
                       </div>
                       
-                      <p className="text-gray-700 mb-4">
-                        {expandedResults.has(result.id) ? result.fullContent : result.snippet}
-                      </p>
+                      <div className="mb-4">
+                        <p className="text-gray-700 leading-relaxed">
+                          {expandedResults.has(result.id) ? result.fullContent : result.snippet}
+                        </p>
+                      </div>
                       
-                      <div className="flex items-center space-x-2 mb-3">
-                        <Button 
-                          variant="outline" 
-                          size="sm" 
-                          onClick={() => toggleExpanded(result.id)}
-                        >
-                          {expandedResults.has(result.id) ? (
-                            <>
-                              <ChevronUp className="h-4 w-4 mr-2" />
-                              Show Less
-                            </>
-                          ) : (
-                            <>
-                              <ChevronDown className="h-4 w-4 mr-2" />
-                              Read More
-                            </>
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center space-x-2">
+                          <Button 
+                            variant="outline" 
+                            size="sm" 
+                            onClick={() => toggleExpanded(result.id)}
+                            className="text-xs"
+                          >
+                            {expandedResults.has(result.id) ? (
+                              <>
+                                <ChevronUp className="h-4 w-4 mr-1" />
+                                Show Less
+                              </>
+                            ) : (
+                              <>
+                                <ChevronDown className="h-4 w-4 mr-1" />
+                                Read More
+                              </>
+                            )}
+                          </Button>
+                          {result.url && (
+                            <Button 
+                              variant="outline" 
+                              size="sm"
+                              asChild
+                              className="text-xs"
+                            >
+                              <a href={result.url} target="_blank" rel="noopener noreferrer">
+                                <ExternalLink className="h-4 w-4 mr-1" />
+                                View Source
+                              </a>
+                            </Button>
                           )}
-                        </Button>
+                        </div>
                         <Button 
                           size="sm" 
                           onClick={() => generateAIResponse(result)}
-                          className="bg-gradient-to-r from-purple-500 to-blue-500 hover:from-purple-600 hover:to-blue-600"
+                          className="bg-gradient-to-r from-purple-500 to-blue-500 hover:from-purple-600 hover:to-blue-600 text-xs"
                         >
-                          <Brain className="h-4 w-4 mr-2" />
-                          Generate Response
+                          <Brain className="h-4 w-4 mr-1" />
+                          AI Response
                         </Button>
                       </div>
 
-                      {/* AI Suggested Response */}
+                      {/* Integrated AI Response Section */}
                       {result.suggestedResponse && (
-                        <div className="bg-blue-50 p-3 rounded border-l-4 border-blue-400">
-                          <h5 className="font-semibold text-sm mb-2 flex items-center">
-                            <Brain className="h-4 w-4 mr-2 text-blue-600" />
-                            AI Suggested Response
+                        <div className="mt-4 bg-blue-50 p-4 rounded-lg border-l-4 border-blue-400">
+                          <h5 className="font-semibold text-sm mb-2 flex items-center text-blue-800">
+                            <Brain className="h-4 w-4 mr-2" />
+                            AI-Suggested Response
                           </h5>
-                          <p className="text-sm text-gray-700 mb-2">{result.suggestedResponse}</p>
-                          <Button size="sm" className="bg-gradient-to-r from-green-500 to-teal-500">
-                            <Send className="h-4 w-4 mr-2" />
-                            Use Response
-                          </Button>
+                          <p className="text-sm text-gray-700 mb-3 leading-relaxed">{result.suggestedResponse}</p>
+                          <div className="flex space-x-2">
+                            <Button size="sm" className="bg-gradient-to-r from-green-500 to-teal-500 hover:from-green-600 hover:to-teal-600 text-xs">
+                              <Send className="h-4 w-4 mr-1" />
+                              Send Response
+                            </Button>
+                            <Button variant="outline" size="sm" onClick={() => generateAIResponse(result)} className="text-xs">
+                              <RefreshCw className="h-4 w-4 mr-1" />
+                              Regenerate
+                            </Button>
+                          </div>
                         </div>
                       )}
                     </div>
@@ -520,7 +534,7 @@ const Reputation = () => {
             </CardContent>
           </Card>
 
-          {/* AI Response Generator Modal-like Section */}
+          {/* Custom AI Response Editor */}
           {selectedResult && aiResponse && (
             <Card className="border-0 shadow-lg bg-white/80 backdrop-blur-sm">
               <CardHeader>
@@ -531,27 +545,27 @@ const Reputation = () => {
               </CardHeader>
               <CardContent>
                 {isGeneratingResponse ? (
-                  <div className="flex items-center space-x-2 py-8">
+                  <div className="flex items-center space-x-3 py-8 justify-center">
                     <Brain className="h-8 w-8 animate-pulse text-purple-500" />
                     <span className="text-gray-600">Generating personalized response...</span>
                   </div>
                 ) : (
                   <div className="space-y-4">
-                    <div className="p-3 bg-gray-50 rounded">
+                    <div className="p-4 bg-gray-50 rounded-lg">
                       <p className="text-sm text-gray-600 mb-2">Responding to:</p>
-                      <p className="font-medium">{selectedResult.title}</p>
-                      <Badge className={getSentimentColor(selectedResult.sentiment)} size="sm">
+                      <p className="font-medium text-gray-900 mb-2">{selectedResult.title}</p>
+                      <Badge className={getSentimentColor(selectedResult.sentiment)}>
                         {selectedResult.sentiment}
                       </Badge>
                     </div>
                     <Textarea 
                       value={aiResponse} 
                       onChange={(e) => setAiResponse(e.target.value)}
-                      className="min-h-[120px]"
+                      className="min-h-[120px] resize-none"
                       placeholder="AI-generated response will appear here..."
                     />
                     <div className="flex space-x-2">
-                      <Button className="bg-gradient-to-r from-green-500 to-teal-500">
+                      <Button className="bg-gradient-to-r from-green-500 to-teal-500 hover:from-green-600 hover:to-teal-600">
                         <Send className="h-4 w-4 mr-2" />
                         Send Response
                       </Button>
