@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
@@ -12,18 +13,18 @@ import {
   TrendingUp, 
   TrendingDown, 
   Minus, 
-  ExternalLink, 
   Plus, 
   Shield,
   AlertTriangle,
   CheckCircle,
-  Clock,
   ThumbsUp,
   ThumbsDown,
   Brain,
   MessageSquare,
   Send,
-  RefreshCw
+  RefreshCw,
+  ChevronDown,
+  ChevronUp
 } from 'lucide-react';
 import Header from '@/components/Header';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
@@ -53,19 +54,35 @@ type BrandMention = {
   user_id: string;
 };
 
+type SearchResult = {
+  id: string;
+  keyword: string;
+  title: string;
+  snippet: string;
+  fullContent: string;
+  source: string;
+  sentiment: 'positive' | 'negative' | 'neutral';
+  sentimentScore: number;
+  confidence: number;
+  suggestedResponse?: string;
+  platform: string;
+  publishedAt: string;
+};
+
 const Reputation = () => {
   const { user } = useAuth();
   const { toast } = useToast();
   const [mentions, setMentions] = useState<BrandMention[]>([]);
   const [monitoredTerms, setMonitoredTerms] = useState<MonitoredTerm[]>([]);
   const [trendsData, setTrendsData] = useState<any[]>([]);
-  const [trendResults, setTrendResults] = useState<any[]>([]);
+  const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [newKeyword, setNewKeyword] = useState('');
   const [isLoading, setIsLoading] = useState(true);
   const [isAddingKeyword, setIsAddingKeyword] = useState(false);
   const [isSearching, setIsSearching] = useState(false);
-  const [selectedMention, setSelectedMention] = useState<BrandMention | null>(null);
+  const [expandedResults, setExpandedResults] = useState<Set<string>>(new Set());
+  const [selectedResult, setSelectedResult] = useState<SearchResult | null>(null);
   const [aiResponse, setAiResponse] = useState('');
   const [isGeneratingResponse, setIsGeneratingResponse] = useState(false);
 
@@ -107,7 +124,6 @@ const Reputation = () => {
     
     setIsAddingKeyword(true);
     try {
-      // Add to both Google Trends and Brand Mentions monitoring
       const mockScore = Math.floor(Math.random() * 100);
       
       const [trendsResult, termsResult] = await Promise.all([
@@ -129,11 +145,11 @@ const Reputation = () => {
 
       setNewKeyword('');
       fetchAllData();
-      searchTrendResults(newKeyword.trim());
+      searchBrandMentions(newKeyword.trim());
       
       toast({
         title: "Success",
-        description: `Now monitoring "${newKeyword}" across all channels`
+        description: `Now monitoring "${newKeyword}" for brand mentions and trends`
       });
     } catch (error) {
       console.error('Error adding keyword:', error);
@@ -147,64 +163,86 @@ const Reputation = () => {
     }
   };
 
-  const searchTrendResults = async (keyword: string) => {
+  const searchBrandMentions = async (keyword: string) => {
     setIsSearching(true);
     try {
-      await new Promise(resolve => setTimeout(resolve, 1500));
+      await new Promise(resolve => setTimeout(resolve, 2000));
       
-      const mockResults = [
+      // Simulate AI-powered sentiment analysis and content generation
+      const mockResults: SearchResult[] = [
         {
+          id: `${keyword}-1`,
           keyword,
-          title: `${keyword} - Latest News and Updates`,
-          link: `https://www.google.com/search?q=${encodeURIComponent(keyword)}`,
-          snippet: `Recent developments and trending topics related to ${keyword}...`,
-          source: 'Google Search'
+          title: `Great experience with ${keyword} - highly recommend!`,
+          snippet: `I've been using ${keyword} for months now and absolutely love it. The customer service is exceptional...`,
+          fullContent: `I've been using ${keyword} for months now and absolutely love it. The customer service is exceptional and the product quality exceeds expectations. I would definitely recommend this to anyone looking for a reliable solution. The team has been incredibly responsive to my questions and the onboarding process was smooth. Overall, this has been one of my best purchases this year.`,
+          source: 'Twitter',
+          sentiment: 'positive',
+          sentimentScore: 0.8,
+          confidence: 0.92,
+          platform: 'Social Media',
+          publishedAt: '2 hours ago',
+          suggestedResponse: "Thank you so much for your wonderful review! We're thrilled to hear about your positive experience with our product and team. Your feedback means the world to us and motivates us to continue delivering exceptional service."
         },
         {
+          id: `${keyword}-2`,
           keyword,
-          title: `${keyword} on Social Media`,
-          link: `https://twitter.com/search?q=${encodeURIComponent(keyword)}`,
-          snippet: `Social media conversations and mentions about ${keyword}...`,
-          source: 'Twitter'
+          title: `${keyword} disappointed me - not what I expected`,
+          snippet: `Unfortunately, my experience with ${keyword} hasn't been great. The product didn't meet my expectations...`,
+          fullContent: `Unfortunately, my experience with ${keyword} hasn't been great. The product didn't meet my expectations and I've had several issues with the setup process. Customer support took too long to respond and when they did, the solution didn't work. I'm considering switching to a competitor if things don't improve soon. Really hoped this would work better.`,
+          source: 'Reddit',
+          sentiment: 'negative',
+          sentimentScore: -0.7,
+          confidence: 0.88,
+          platform: 'Forum',
+          publishedAt: '5 hours ago',
+          suggestedResponse: "We sincerely apologize for your disappointing experience. This is not the level of service we strive for. Please reach out to our customer success team directly so we can make this right and address your concerns promptly."
         },
         {
+          id: `${keyword}-3`,
           keyword,
-          title: `${keyword} News Articles`,
-          link: `https://news.google.com/search?q=${encodeURIComponent(keyword)}`,
-          snippet: `Latest news articles and press coverage about ${keyword}...`,
-          source: 'Google News'
+          title: `Neutral review: ${keyword} is okay, nothing special`,
+          snippet: `I've tried ${keyword} and it's decent. Not amazing, not terrible, just average...`,
+          fullContent: `I've tried ${keyword} and it's decent. Not amazing, not terrible, just average. It does what it's supposed to do but there are probably better options out there. The price is fair for what you get. Would I buy it again? Maybe, if there were no other choices. It's fine for basic needs but lacks some advanced features I was hoping for.`,
+          source: 'Google Reviews',
+          sentiment: 'neutral',
+          sentimentScore: 0.1,
+          confidence: 0.85,
+          platform: 'Review Site',
+          publishedAt: '1 day ago',
+          suggestedResponse: "Thank you for taking the time to share your honest feedback. We appreciate all reviews as they help us improve. We'd love to learn more about the advanced features you were looking for - please feel free to reach out with suggestions."
         },
         {
+          id: `${keyword}-4`,
           keyword,
-          title: `${keyword} Reddit Discussions`,
-          link: `https://www.reddit.com/search/?q=${encodeURIComponent(keyword)}`,
-          snippet: `Community discussions and opinions about ${keyword}...`,
-          source: 'Reddit'
+          title: `Breaking: ${keyword} announces new partnership`,
+          snippet: `${keyword} has just announced a strategic partnership that could change the industry...`,
+          fullContent: `${keyword} has just announced a strategic partnership that could change the industry landscape. This collaboration brings together two leading companies to deliver innovative solutions. Industry experts are calling this a game-changing move that could benefit customers significantly. The partnership is expected to launch new features and improved services by next quarter.`,
+          source: 'TechCrunch',
+          sentiment: 'positive',
+          sentimentScore: 0.6,
+          confidence: 0.90,
+          platform: 'News',
+          publishedAt: '3 hours ago',
+          suggestedResponse: "Thank you for covering our partnership announcement! We're excited about this collaboration and the value it will bring to our customers. Stay tuned for more updates on the innovative solutions we'll be launching together."
         }
       ];
       
-      setTrendResults(prev => [...prev.filter(r => r.keyword !== keyword), ...mockResults]);
+      setSearchResults(prev => [...prev.filter(r => r.keyword !== keyword), ...mockResults]);
     } catch (error) {
-      console.error('Error searching trend results:', error);
+      console.error('Error searching brand mentions:', error);
     } finally {
       setIsSearching(false);
     }
   };
 
-  const generateAIResponse = async (mention: BrandMention) => {
+  const generateAIResponse = async (result: SearchResult) => {
     setIsGeneratingResponse(true);
-    setSelectedMention(mention);
+    setSelectedResult(result);
     
     try {
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      
-      const responses = {
-        negative: "Thank you for your feedback! We appreciate you taking the time to share your experience. We'd love to learn more about how we can improve. Please reach out to our customer service team at your convenience.",
-        positive: "Thank you so much for your kind words! We're thrilled to hear about your positive experience. Your feedback means the world to us and motivates our team to continue delivering excellent service.",
-        neutral: "Thank you for taking the time to share your thoughts with us. We appreciate all feedback as it helps us improve our services. If you have any specific suggestions, we'd love to hear them."
-      };
-      
-      setAiResponse(responses[mention.sentiment as keyof typeof responses] || responses.neutral);
+      await new Promise(resolve => setTimeout(resolve, 1500));
+      setAiResponse(result.suggestedResponse || '');
     } catch (error) {
       console.error('Error generating response:', error);
       toast({
@@ -217,7 +255,17 @@ const Reputation = () => {
     }
   };
 
-  const getSentimentIcon = (sentiment: string | null) => {
+  const toggleExpanded = (resultId: string) => {
+    const newExpanded = new Set(expandedResults);
+    if (newExpanded.has(resultId)) {
+      newExpanded.delete(resultId);
+    } else {
+      newExpanded.add(resultId);
+    }
+    setExpandedResults(newExpanded);
+  };
+
+  const getSentimentIcon = (sentiment: string) => {
     switch (sentiment) {
       case 'positive': return <TrendingUp className="h-4 w-4 text-green-600" />;
       case 'negative': return <TrendingDown className="h-4 w-4 text-red-600" />;
@@ -225,7 +273,7 @@ const Reputation = () => {
     }
   };
 
-  const getSentimentColor = (sentiment: string | null) => {
+  const getSentimentColor = (sentiment: string) => {
     switch (sentiment) {
       case 'positive': return 'bg-green-100 text-green-800';
       case 'negative': return 'bg-red-100 text-red-800';
@@ -248,9 +296,10 @@ const Reputation = () => {
 
   const uniqueKeywords = [...new Set(trendsData.map(item => item.keyword))];
 
-  const filteredMentions = mentions.filter(mention => 
-    mention.brand_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    mention.mention_text.toLowerCase().includes(searchTerm.toLowerCase())
+  const filteredResults = searchResults.filter(result => 
+    result.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    result.snippet.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    result.keyword.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   if (isLoading) {
@@ -278,9 +327,9 @@ const Reputation = () => {
         <div className="mb-8">
           <h2 className="text-3xl font-bold text-gray-900 mb-2 flex items-center space-x-3">
             <Shield className="h-8 w-8 text-teal-600" />
-            <span>Brand Monitoring</span>
+            <span>Brand Monitoring & Sentiment Analysis</span>
           </h2>
-          <p className="text-gray-600">Monitor your brand across the web with comprehensive tracking and AI-powered insights</p>
+          <p className="text-gray-600">Monitor your brand across the web with AI-powered sentiment analysis and automated response suggestions</p>
         </div>
 
         <div className="space-y-6">
@@ -309,7 +358,7 @@ const Reputation = () => {
                 </Button>
               </div>
               <p className="text-sm text-gray-600 mb-4">
-                Keywords are monitored across social media, news, forums, and search trends
+                Keywords are monitored across social media, news, forums, and review sites with AI sentiment analysis
               </p>
               <div className="flex flex-wrap gap-2">
                 {monitoredTerms.map((term) => (
@@ -352,58 +401,18 @@ const Reputation = () => {
             </Card>
           )}
 
-          {/* Search Results */}
-          {trendResults.length > 0 && (
-            <Card className="border-0 shadow-lg bg-white/80 backdrop-blur-sm">
-              <CardHeader>
-                <CardTitle className="flex items-center space-x-2">
-                  <Search className="h-6 w-6 text-purple-600" />
-                  <span>Latest Search Results</span>
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  {trendResults.map((result, index) => (
-                    <div key={index} className="p-4 border rounded-lg hover:bg-gray-50 transition-colors">
-                      <div className="flex justify-between items-start mb-2">
-                        <div>
-                          <Badge variant="secondary" className="mb-2">{result.keyword}</Badge>
-                          <h3 className="font-semibold text-lg">{result.title}</h3>
-                        </div>
-                        <Badge variant="outline">{result.source}</Badge>
-                      </div>
-                      <p className="text-gray-600 mb-3">{result.snippet}</p>
-                      <Button variant="outline" size="sm" asChild>
-                        <a href={result.link} target="_blank" rel="noopener noreferrer">
-                          <ExternalLink className="h-4 w-4 mr-2" />
-                          View Results
-                        </a>
-                      </Button>
-                    </div>
-                  ))}
-                  {isSearching && (
-                    <div className="text-center py-8">
-                      <RefreshCw className="h-8 w-8 animate-spin mx-auto mb-2 text-blue-500" />
-                      <p className="text-gray-600">Searching for latest results...</p>
-                    </div>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
-          )}
-
-          {/* Brand Mentions */}
+          {/* Brand Mentions with Integrated Sentiment Analysis */}
           <Card className="border-0 shadow-lg bg-white/80 backdrop-blur-sm">
             <CardHeader>
               <CardTitle className="flex items-center space-x-2">
                 <MessageSquare className="h-6 w-6 text-orange-600" />
-                <span>Brand Mentions & Sentiment Analysis</span>
+                <span>Brand Mentions & AI Analysis</span>
               </CardTitle>
               <div className="flex items-center space-x-4 mt-4">
                 <div className="flex-1 relative">
                   <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
                   <Input
-                    placeholder="Search mentions..."
+                    placeholder="Search mentions and content..."
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                     className="pl-10"
@@ -415,63 +424,95 @@ const Reputation = () => {
               </div>
             </CardHeader>
             <CardContent>
-              {filteredMentions.length === 0 ? (
+              {filteredResults.length === 0 ? (
                 <div className="text-center py-16">
                   <MessageSquare className="h-16 w-16 text-gray-400 mx-auto mb-4" />
-                  <h3 className="text-xl font-semibold text-gray-900 mb-2">No mentions found</h3>
-                  <p className="text-gray-600">Brand mentions will appear here when detected</p>
+                  <h3 className="text-xl font-semibold text-gray-900 mb-2">No brand mentions found</h3>
+                  <p className="text-gray-600">Add keywords above to start monitoring brand mentions</p>
+                  {isSearching && (
+                    <div className="mt-4">
+                      <RefreshCw className="h-8 w-8 animate-spin mx-auto mb-2 text-blue-500" />
+                      <p className="text-gray-600">Searching for brand mentions...</p>
+                    </div>
+                  )}
                 </div>
               ) : (
                 <div className="space-y-4">
-                  {filteredMentions.map((mention) => (
-                    <div key={mention.id} className="p-4 border rounded-lg hover:bg-gray-50 transition-colors">
+                  {filteredResults.map((result) => (
+                    <div key={result.id} className="p-4 border rounded-lg hover:bg-gray-50 transition-colors">
                       <div className="flex justify-between items-start mb-3">
-                        <div>
-                          <h3 className="font-semibold text-lg mb-2">{mention.brand_name}</h3>
-                          <div className="flex items-center space-x-2">
-                            <Badge variant="secondary">{mention.platform}</Badge>
-                            {mention.sentiment && (
-                              <Badge className={getSentimentColor(mention.sentiment)}>
-                                <div className="flex items-center space-x-1">
-                                  {getSentimentIcon(mention.sentiment)}
-                                  <span className="capitalize">{mention.sentiment}</span>
-                                </div>
-                              </Badge>
-                            )}
-                            {mention.sentiment === 'negative' && (
+                        <div className="flex-1">
+                          <div className="flex items-center space-x-2 mb-2">
+                            <Badge variant="secondary">{result.keyword}</Badge>
+                            <Badge variant="outline">{result.platform}</Badge>
+                            <Badge className={getSentimentColor(result.sentiment)}>
+                              <div className="flex items-center space-x-1">
+                                {getSentimentIcon(result.sentiment)}
+                                <span className="capitalize">{result.sentiment}</span>
+                                <span className="text-xs">({(result.confidence * 100).toFixed(0)}%)</span>
+                              </div>
+                            </Badge>
+                            {result.sentiment === 'negative' && (
                               <Badge className="bg-orange-100 text-orange-800">
                                 <AlertTriangle className="h-3 w-3 mr-1" />
-                                Needs Response
+                                Action Needed
                               </Badge>
                             )}
                           </div>
+                          <h3 className="font-semibold text-lg mb-2">{result.title}</h3>
                         </div>
                         <div className="text-right text-sm text-gray-500">
-                          <p>{new Date(mention.mentioned_at).toLocaleDateString()}</p>
-                          <p>{new Date(mention.mentioned_at).toLocaleTimeString()}</p>
+                          <p>{result.publishedAt}</p>
+                          <p className="text-xs">Score: {result.sentimentScore > 0 ? '+' : ''}{result.sentimentScore.toFixed(2)}</p>
                         </div>
                       </div>
                       
-                      <p className="text-gray-700 mb-4">{mention.mention_text}</p>
+                      <p className="text-gray-700 mb-4">
+                        {expandedResults.has(result.id) ? result.fullContent : result.snippet}
+                      </p>
                       
-                      <div className="flex items-center space-x-2">
-                        {mention.url && (
-                          <Button variant="outline" size="sm" asChild>
-                            <a href={mention.url} target="_blank" rel="noopener noreferrer">
-                              <ExternalLink className="h-4 w-4 mr-2" />
-                              View Source
-                            </a>
-                          </Button>
-                        )}
+                      <div className="flex items-center space-x-2 mb-3">
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          onClick={() => toggleExpanded(result.id)}
+                        >
+                          {expandedResults.has(result.id) ? (
+                            <>
+                              <ChevronUp className="h-4 w-4 mr-2" />
+                              Show Less
+                            </>
+                          ) : (
+                            <>
+                              <ChevronDown className="h-4 w-4 mr-2" />
+                              Read More
+                            </>
+                          )}
+                        </Button>
                         <Button 
                           size="sm" 
-                          onClick={() => generateAIResponse(mention)}
+                          onClick={() => generateAIResponse(result)}
                           className="bg-gradient-to-r from-purple-500 to-blue-500 hover:from-purple-600 hover:to-blue-600"
                         >
                           <Brain className="h-4 w-4 mr-2" />
                           Generate Response
                         </Button>
                       </div>
+
+                      {/* AI Suggested Response */}
+                      {result.suggestedResponse && (
+                        <div className="bg-blue-50 p-3 rounded border-l-4 border-blue-400">
+                          <h5 className="font-semibold text-sm mb-2 flex items-center">
+                            <Brain className="h-4 w-4 mr-2 text-blue-600" />
+                            AI Suggested Response
+                          </h5>
+                          <p className="text-sm text-gray-700 mb-2">{result.suggestedResponse}</p>
+                          <Button size="sm" className="bg-gradient-to-r from-green-500 to-teal-500">
+                            <Send className="h-4 w-4 mr-2" />
+                            Use Response
+                          </Button>
+                        </div>
+                      )}
                     </div>
                   ))}
                 </div>
@@ -479,13 +520,13 @@ const Reputation = () => {
             </CardContent>
           </Card>
 
-          {/* AI Response Generator */}
-          {selectedMention && (
+          {/* AI Response Generator Modal-like Section */}
+          {selectedResult && aiResponse && (
             <Card className="border-0 shadow-lg bg-white/80 backdrop-blur-sm">
               <CardHeader>
                 <CardTitle className="flex items-center space-x-2">
                   <Brain className="h-6 w-6 text-purple-600" />
-                  <span>AI Response Generator</span>
+                  <span>Customize AI Response</span>
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -494,11 +535,14 @@ const Reputation = () => {
                     <Brain className="h-8 w-8 animate-pulse text-purple-500" />
                     <span className="text-gray-600">Generating personalized response...</span>
                   </div>
-                ) : aiResponse ? (
+                ) : (
                   <div className="space-y-4">
                     <div className="p-3 bg-gray-50 rounded">
                       <p className="text-sm text-gray-600 mb-2">Responding to:</p>
-                      <p className="font-medium">{selectedMention.mention_text}</p>
+                      <p className="font-medium">{selectedResult.title}</p>
+                      <Badge className={getSentimentColor(selectedResult.sentiment)} size="sm">
+                        {selectedResult.sentiment}
+                      </Badge>
                     </div>
                     <Textarea 
                       value={aiResponse} 
@@ -511,13 +555,16 @@ const Reputation = () => {
                         <Send className="h-4 w-4 mr-2" />
                         Send Response
                       </Button>
-                      <Button variant="outline" onClick={() => generateAIResponse(selectedMention)}>
+                      <Button variant="outline" onClick={() => generateAIResponse(selectedResult)}>
                         <RefreshCw className="h-4 w-4 mr-2" />
                         Regenerate
                       </Button>
+                      <Button variant="outline" onClick={() => setSelectedResult(null)}>
+                        Close
+                      </Button>
                     </div>
                   </div>
-                ) : null}
+                )}
               </CardContent>
             </Card>
           )}
