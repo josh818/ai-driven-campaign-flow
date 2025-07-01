@@ -34,73 +34,151 @@ serve(async (req) => {
     
     const contentTypes = ['organic_post', 'paid_ad'];
     
-    // Updated media types to include email
-    const mediaTypes = aiSettings?.contentType === 'all' ? ['copy', 'image', 'video', 'email'] : 
-                      aiSettings?.contentType === 'email' ? ['email'] :
-                      aiSettings?.contentType ? [aiSettings.contentType] : ['copy', 'image'];
-
     const generatedContent: GeneratedContent[] = [];
+
+    console.log(`Starting content generation for platforms: ${platforms.join(', ')}`);
 
     // Process requests with longer delays to avoid rate limits
     for (const platform of platforms) {
       for (const contentType of contentTypes) {
-        for (const mediaType of mediaTypes) {
-          // Skip image/video generation for email platform
-          if (platform === 'email' && (mediaType === 'image' || mediaType === 'video')) {
-            continue;
+        // For social media platforms, generate copy, image, and video
+        if (platform !== 'email') {
+          // Generate copy first
+          if (aiSettings?.contentType === 'all' || aiSettings?.contentType === 'copy' || !aiSettings?.contentType) {
+            console.log(`Generating copy for ${platform} ${contentType}`);
+            try {
+              const copyContent = await generateCopyContent(platform, contentType, campaignData, aiSettings);
+              
+              await saveGeneratedContent(
+                campaignId,
+                platform,
+                contentType,
+                'copy',
+                copyContent,
+                null,
+                `Copy for ${platform} ${contentType}`
+              );
+
+              generatedContent.push({
+                platform,
+                content_type: contentType,
+                media_type: 'copy',
+                content: copyContent.substring(0, 150) + (copyContent.length > 150 ? '...' : ''),
+                has_media: false,
+                media_url: undefined
+              });
+
+              // Delay between requests
+              await new Promise(resolve => setTimeout(resolve, 2000));
+            } catch (error) {
+              console.error(`Error generating copy for ${platform} ${contentType}:`, error);
+            }
           }
-          
-          // Skip non-email content for email media type
-          if (mediaType === 'email' && platform !== 'email') {
-            continue;
+
+          // Generate image
+          if (aiSettings?.contentType === 'all' || aiSettings?.contentType === 'image' || !aiSettings?.contentType) {
+            console.log(`Generating image for ${platform} ${contentType}`);
+            try {
+              const imageResult = await generateImageContent(platform, contentType, campaignData, aiSettings);
+              
+              await saveGeneratedContent(
+                campaignId,
+                platform,
+                contentType,
+                'image',
+                imageResult.content,
+                imageResult.mediaUrl,
+                `Image for ${platform} ${contentType}`
+              );
+
+              generatedContent.push({
+                platform,
+                content_type: contentType,
+                media_type: 'image',
+                content: imageResult.content.substring(0, 150) + (imageResult.content.length > 150 ? '...' : ''),
+                has_media: true,
+                media_url: imageResult.mediaUrl
+              });
+
+              // Delay between requests
+              await new Promise(resolve => setTimeout(resolve, 2000));
+            } catch (error) {
+              console.error(`Error generating image for ${platform} ${contentType}:`, error);
+            }
           }
 
-          let content = '';
-          let mediaUrl = '';
-          let prompt = '';
+          // Generate video
+          if (aiSettings?.contentType === 'all' || aiSettings?.contentType === 'video') {
+            console.log(`Generating video for ${platform} ${contentType}`);
+            try {
+              const videoResult = await generateVideoContent(platform, contentType, campaignData, aiSettings);
+              
+              await saveGeneratedContent(
+                campaignId,
+                platform,
+                contentType,
+                'video',
+                videoResult.content,
+                videoResult.mediaUrl,
+                `Video script for ${platform} ${contentType}`
+              );
 
-          console.log(`Generating ${mediaType} for ${platform} ${contentType}`);
+              generatedContent.push({
+                platform,
+                content_type: contentType,
+                media_type: 'video',
+                content: videoResult.content.substring(0, 150) + (videoResult.content.length > 150 ? '...' : ''),
+                has_media: true,
+                media_url: videoResult.mediaUrl
+              });
 
-          if (mediaType === 'copy' || mediaType === 'email') {
-            content = await generateCopyContent(platform, contentType, campaignData, aiSettings);
-            prompt = `${mediaType === 'email' ? 'Email' : 'Copy'} for ${platform} ${contentType}`;
-          } else if (mediaType === 'image') {
-            const result = await generateImageContent(platform, contentType, campaignData, aiSettings);
-            content = result.content;
-            mediaUrl = result.mediaUrl;
-            prompt = `Image for ${platform} ${contentType}`;
-          } else if (mediaType === 'video') {
-            const result = await generateVideoContent(platform, contentType, campaignData, aiSettings);
-            content = result.content;
-            mediaUrl = result.mediaUrl;
-            prompt = `15-second video script for ${platform} ${contentType}`;
+              // Delay between requests
+              await new Promise(resolve => setTimeout(resolve, 2000));
+            } catch (error) {
+              console.error(`Error generating video for ${platform} ${contentType}:`, error);
+            }
           }
+        } else {
+          // For email platform, generate email content with image
+          if (aiSettings?.contentType === 'email' || aiSettings?.contentType === 'all') {
+            console.log(`Generating email content`);
+            try {
+              // Generate email copy
+              const emailContent = await generateCopyContent('email', contentType, campaignData, aiSettings);
+              
+              // Generate email image
+              const emailImageResult = await generateImageContent('email', contentType, campaignData, aiSettings);
+              
+              await saveGeneratedContent(
+                campaignId,
+                'email',
+                contentType,
+                'email',
+                emailContent,
+                emailImageResult.mediaUrl,
+                `Email with image for ${contentType}`
+              );
 
-          // Store generated content in database
-          await saveGeneratedContent(
-            campaignId,
-            platform,
-            contentType,
-            mediaType,
-            content,
-            mediaUrl || null,
-            prompt
-          );
+              generatedContent.push({
+                platform: 'email',
+                content_type: contentType,
+                media_type: 'email',
+                content: emailContent.substring(0, 150) + (emailContent.length > 150 ? '...' : ''),
+                has_media: true,
+                media_url: emailImageResult.mediaUrl
+              });
 
-          generatedContent.push({
-            platform,
-            content_type: contentType,
-            media_type: mediaType,
-            content: content.substring(0, 150) + (content.length > 150 ? '...' : ''),
-            has_media: !!mediaUrl,
-            media_url: mediaUrl
-          });
-
-          // Increased delay between requests to avoid rate limits
-          await new Promise(resolve => setTimeout(resolve, 1500));
+              // Delay between requests
+              await new Promise(resolve => setTimeout(resolve, 2000));
+            } catch (error) {
+              console.error(`Error generating email content:`, error);
+            }
+          }
         }
       }
     }
+
+    console.log(`Generated ${generatedContent.length} content pieces`);
 
     return new Response(JSON.stringify({ 
       success: true, 

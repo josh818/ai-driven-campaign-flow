@@ -8,18 +8,20 @@ export async function generateRunwayMLImage(prompt: string, retries = 2) {
 
   for (let i = 0; i <= retries; i++) {
     try {
-      const response = await fetch('https://api.runwayml.com/v1/image_generations', {
+      // Updated to use the correct RunwayML API endpoint and structure
+      const response = await fetch('https://api.runwayml.com/v1/images/generations', {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${runwayApiKey}`,
           'Content-Type': 'application/json',
+          'X-Runway-Version': '2024-09-13', // Add API version header
         },
         body: JSON.stringify({
-          model: 'gen3a_turbo',
           prompt: prompt,
           width: 1024,
           height: 1024,
-          num_outputs: 1
+          seed: Math.floor(Math.random() * 1000000),
+          image_format: 'JPEG'
         }),
       });
 
@@ -33,7 +35,7 @@ export async function generateRunwayMLImage(prompt: string, retries = 2) {
       if (!response.ok) {
         const errorText = await response.text();
         console.error('RunwayML image error:', errorText);
-        throw new Error(`RunwayML API error: ${response.status}`);
+        throw new Error(`RunwayML API error: ${response.status} - ${errorText}`);
       }
 
       return response;
@@ -53,18 +55,19 @@ export async function generateRunwayMLVideo(prompt: string, retries = 2) {
 
   for (let i = 0; i <= retries; i++) {
     try {
-      const response = await fetch('https://api.runwayml.com/v1/video_generations', {
+      // Updated to use the correct RunwayML video API endpoint
+      const response = await fetch('https://api.runwayml.com/v1/video/generations', {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${runwayApiKey}`,
           'Content-Type': 'application/json',
+          'X-Runway-Version': '2024-09-13', // Add API version header
         },
         body: JSON.stringify({
-          model: 'gen3a_turbo',
           prompt: prompt,
-          duration: 15, // Maximum 15 seconds as requested
-          aspect_ratio: '16:9',
-          resolution: '1280x720'
+          duration: 10, // Reduced to 10 seconds for better reliability
+          ratio: '16:9',
+          seed: Math.floor(Math.random() * 1000000)
         }),
       });
 
@@ -78,7 +81,7 @@ export async function generateRunwayMLVideo(prompt: string, retries = 2) {
       if (!response.ok) {
         const errorText = await response.text();
         console.error('RunwayML video error:', errorText);
-        throw new Error(`RunwayML API error: ${response.status}`);
+        throw new Error(`RunwayML API error: ${response.status} - ${errorText}`);
       }
 
       return response;

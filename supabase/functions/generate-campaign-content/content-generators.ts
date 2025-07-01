@@ -32,7 +32,8 @@ export async function generateCopyContent(
                  - Create a longer-form email (300-500 words)
                  - Include subject line, greeting, body paragraphs, and clear call-to-action
                  - Structure with headers and proper email formatting
-                 - Focus on the campaign description: ${campaignData.description}` : ''}
+                 - Focus on the campaign description: ${campaignData.description}
+                 - Include placeholder for image: [IMAGE PLACEHOLDER - Campaign visual will be inserted here]` : ''}
                  
                  PLATFORM GUIDELINES:
                  ${platform === 'linkedin' ? 'Professional and business-focused' : 
@@ -86,6 +87,8 @@ ${toneStyle}
 
 We're excited to share our latest campaign: ${campaignData.title}
 
+[IMAGE PLACEHOLDER - Campaign visual will be inserted here]
+
 ${campaignData.description || 'Experience the difference with our premium solution.'}
 
 This campaign is specifically designed for ${campaignData.target_audience || 'our valued customers'}, focusing on ${campaignData.campaign_goals?.join(' and ') || 'delivering exceptional value'}.
@@ -125,29 +128,7 @@ export async function generateImageContent(
   const tone = aiSettings?.tone || 'professional';
   
   // Create a detailed, specific prompt for RunwayML that follows the campaign description
-  const imagePrompt = `Create a ${tone} marketing image for ${campaignData.brand_name} campaign "${campaignData.title}". 
-                     
-                     SPECIFIC REQUIREMENTS:
-                     - Campaign focus: ${campaignData.description || 'Premium brand experience'}
-                     - Brand: ${campaignData.brand_name}
-                     - Target audience: ${campaignData.target_audience || 'general audience'}
-                     - Goals: ${campaignData.campaign_goals?.join(', ') || 'brand awareness'}
-                     
-                     VISUAL STYLE: ${tone === 'professional' ? 'Clean, corporate, modern business aesthetic with blue and teal colors' : 
-                                    tone === 'casual' ? 'Friendly, approachable, lifestyle-focused with warm colors' :
-                                    tone === 'enthusiastic' ? 'Energetic, vibrant, dynamic with bright colors and movement' :
-                                    tone === 'humorous' ? 'Playful, fun, entertaining with colorful and lighthearted elements' :
-                                    'Modern, professional, sleek design with blue and teal brand colors'}
-                     
-                     TECHNICAL SPECS:
-                     - High-quality, photorealistic
-                     - ${platform === 'instagram' ? 'Square format (1:1 ratio)' : 'Horizontal format (16:9 ratio)'}
-                     - Social media optimized
-                     - Include brand elements if possible
-                     
-                     KEYWORDS TO INCORPORATE VISUALLY: ${aiSettings?.keywords || 'quality, innovation, premium'}
-                     
-                     MUST REFLECT: ${campaignData.description || 'Premium brand experience'}`;
+  const imagePrompt = `Create a ${tone} marketing image for ${campaignData.brand_name} campaign "${campaignData.title}". Campaign focus: ${campaignData.description || 'Premium brand experience'}. Target audience: ${campaignData.target_audience || 'general audience'}. Visual style: ${tone === 'professional' ? 'Clean, corporate, modern business aesthetic' : tone === 'casual' ? 'Friendly, approachable, lifestyle-focused' : tone === 'enthusiastic' ? 'Energetic, vibrant, dynamic' : tone === 'humorous' ? 'Playful, fun, entertaining' : 'Modern, professional, sleek design'}. High-quality, ${platform === 'instagram' ? 'square format' : 'horizontal format'}, social media optimized. Keywords: ${aiSettings?.keywords || 'quality, innovation'}`;
 
   try {
     console.log('Generating image with RunwayML, prompt:', imagePrompt);
@@ -157,19 +138,22 @@ export async function generateImageContent(
       const imageData = await imageResponse.json();
       console.log('RunwayML image response:', imageData);
       
-      if (imageData.data && imageData.data[0] && imageData.data[0].url) {
-        return {
-          content: `Professional ${tone} image for ${campaignData.brand_name} "${campaignData.title}" campaign showcasing: ${campaignData.description}`,
-          mediaUrl: imageData.data[0].url
-        };
+      // Handle different possible response structures from RunwayML
+      let imageUrl = '';
+      if (imageData.data && imageData.data.length > 0 && imageData.data[0].url) {
+        imageUrl = imageData.data[0].url;
       } else if (imageData.url) {
-        return {
-          content: `Professional ${tone} image for ${campaignData.brand_name} "${campaignData.title}" campaign showcasing: ${campaignData.description}`,
-          mediaUrl: imageData.url
-        };
+        imageUrl = imageData.url;
+      } else if (imageData.image && imageData.image.url) {
+        imageUrl = imageData.image.url;
       } else {
         throw new Error('Invalid RunwayML image response structure');
       }
+
+      return {
+        content: `Professional ${tone} image for ${campaignData.brand_name} "${campaignData.title}" campaign showcasing: ${campaignData.description}`,
+        mediaUrl: imageUrl
+      };
     } else {
       const errorText = await imageResponse?.text();
       console.error('RunwayML image generation failed:', errorText);
@@ -211,29 +195,8 @@ export async function generateVideoContent(
 ): Promise<{ content: string; mediaUrl: string }> {
   const tone = aiSettings?.tone || 'professional';
   
-  // Create specific video prompt for RunwayML (max 15 seconds)
-  const videoPrompt = `Create a 15-second ${tone} marketing video for ${campaignData.brand_name} campaign "${campaignData.title}".
-                     
-                     CAMPAIGN SPECIFICS:
-                     - Brand: ${campaignData.brand_name}
-                     - Focus: ${campaignData.description || 'Premium brand experience'}
-                     - Target: ${campaignData.target_audience || 'general audience'}
-                     - Goals: ${campaignData.campaign_goals?.join(', ') || 'brand awareness'}
-                     
-                     VIDEO STYLE: ${tone === 'professional' ? 'Corporate, clean, business-focused with blue/teal brand colors' : 
-                                   tone === 'casual' ? 'Friendly, lifestyle, approachable with warm natural lighting' :
-                                   tone === 'enthusiastic' ? 'Energetic, dynamic, exciting with fast-paced movement' :
-                                   tone === 'humorous' ? 'Playful, entertaining, fun with bright colors' :
-                                   'Modern, engaging, professional with contemporary design'}
-                     
-                     TECHNICAL REQUIREMENTS:
-                     - Duration: exactly 15 seconds maximum
-                     - Aspect ratio: 16:9 (1280x720)
-                     - High-definition quality
-                     - Social media optimized
-                     
-                     CONTENT FOCUS: ${campaignData.description || 'Premium brand experience'}
-                     KEYWORDS: ${aiSettings?.keywords || 'quality, innovation'}`;
+  // Create specific video prompt for RunwayML (10 seconds for better reliability)
+  const videoPrompt = `Create a 10-second ${tone} marketing video for ${campaignData.brand_name} campaign "${campaignData.title}". Campaign focus: ${campaignData.description || 'Premium brand experience'}. Target: ${campaignData.target_audience || 'general audience'}. Video style: ${tone === 'professional' ? 'Corporate, clean, business-focused' : tone === 'casual' ? 'Friendly, lifestyle, approachable' : tone === 'enthusiastic' ? 'Energetic, dynamic, exciting' : tone === 'humorous' ? 'Playful, entertaining, fun' : 'Modern, engaging, professional'}. Duration: 10 seconds, aspect ratio: 16:9, high-definition. Keywords: ${aiSettings?.keywords || 'quality, innovation'}`;
 
   try {
     console.log('Generating video with RunwayML, prompt:', videoPrompt);
@@ -244,35 +207,19 @@ export async function generateVideoContent(
       console.log('RunwayML video response:', videoData);
       
       // Generate script as well
-      const scriptPrompt = `Create a 15-second video script for ${campaignData.brand_name}'s "${campaignData.title}" campaign.
-                         
-                         CAMPAIGN FOCUS (SCRIPT MUST REFLECT):
-                         - Brand: ${campaignData.brand_name}
-                         - Campaign: ${campaignData.title}
-                         - Description: ${campaignData.description || 'Premium brand experience'}
-                         - Target: ${campaignData.target_audience || 'general audience'}
-                         
-                         TONE REQUIREMENT: Script must be ${tone}
-                         
-                         15-SECOND STRUCTURE:
-                         - 0-5s: Hook (attention grabber)
-                         - 5-12s: Core message (campaign benefits)
-                         - 12-15s: Call-to-action
-                         
-                         Platform: ${platform} ${contentType}
-                         Keywords: ${aiSettings?.keywords || 'quality, innovation'}`;
+      const scriptPrompt = `Create a 10-second video script for ${campaignData.brand_name}'s "${campaignData.title}" campaign. Campaign focus: ${campaignData.description || 'Premium brand experience'}. Target: ${campaignData.target_audience || 'general audience'}. Tone: ${tone}. 10-second structure: Hook (0-3s) → Core message (3-8s) → Call-to-action (8-10s). Platform: ${platform} ${contentType}. Keywords: ${aiSettings?.keywords || 'quality, innovation'}`;
 
       const scriptResponse = await makeOpenAIRequest('https://api.openai.com/v1/chat/completions', {
         model: 'gpt-4o-mini',
         messages: [
-          { role: 'system', content: `You are a video scriptwriter specializing in 15-second social media content. Create ${tone} scripts.` },
+          { role: 'system', content: `You are a video scriptwriter specializing in 10-second social media content. Create ${tone} scripts.` },
           { role: 'user', content: scriptPrompt }
         ],
         temperature: 0.7,
         max_tokens: 400,
       });
 
-      let scriptContent = `[15-Second ${tone} Video for ${campaignData.brand_name}]\n\n`;
+      let scriptContent = `[10-Second ${tone} Video for ${campaignData.brand_name}]\n\n`;
       
       if (scriptResponse && scriptResponse.ok) {
         const scriptData = await scriptResponse.json();
@@ -283,16 +230,18 @@ export async function generateVideoContent(
 
       // Handle different possible response structures from RunwayML
       let videoUrl = '';
-      if (videoData.data && videoData.data[0] && videoData.data[0].url) {
+      if (videoData.data && videoData.data.length > 0 && videoData.data[0].url) {
         videoUrl = videoData.data[0].url;
       } else if (videoData.url) {
         videoUrl = videoData.url;
+      } else if (videoData.video && videoData.video.url) {
+        videoUrl = videoData.video.url;
       } else {
         throw new Error('Invalid RunwayML video response structure');
       }
 
       return {
-        content: scriptContent + `\n\n🎬 15-second video generated with RunwayML for ${platform} ${contentType}`,
+        content: scriptContent + `\n\n🎬 10-second video generated with RunwayML for ${platform} ${contentType}`,
         mediaUrl: videoUrl
       };
     } else {
@@ -311,27 +260,27 @@ export async function generateVideoContent(
                          'engaging and professional';
     
     return {
-      content: `[15-Second ${tone} Video Script for ${campaignData.brand_name}]
+      content: `[10-Second ${tone} Video Script for ${campaignData.brand_name}]
 
 🎬 CAMPAIGN: ${campaignData.title}
 🏢 BRAND: ${campaignData.brand_name}
 🎯 TONE: ${tone} (${toneDirection})
 📱 PLATFORM: ${platform}
-⏱️ DURATION: 15 seconds maximum
+⏱️ DURATION: 10 seconds
 
 📋 SCRIPT BREAKDOWN:
 
-🎣 HOOK (0-5s): 
+🎣 HOOK (0-3s): 
 "${tone === 'casual' ? 'Hey! Check this out...' : 
     tone === 'enthusiastic' ? 'This is AMAZING!' :
     tone === 'humorous' ? 'You won\'t believe this...' :
     'Introducing something special...'}"
 
-💡 CORE MESSAGE (5-12s):
+💡 CORE MESSAGE (3-8s):
 "${campaignData.description || 'Experience the difference with our premium solution'}"
 Target: ${campaignData.target_audience || 'Perfect for everyone'}
 
-📞 CTA (12-15s): 
+📞 CTA (8-10s): 
 "${contentType === 'paid_ad' ? 'Get yours now!' : 'Learn more today!'}"
 
 🎵 AUDIO: ${toneDirection} background music
