@@ -195,8 +195,8 @@ export async function generateVideoContent(
 ): Promise<{ content: string; mediaUrl: string }> {
   const tone = aiSettings?.tone || 'professional';
   
-  // Create specific video prompt for RunwayML (10 seconds for better reliability)
-  const videoPrompt = `Create a 10-second ${tone} marketing video for ${campaignData.brand_name} campaign "${campaignData.title}". Campaign focus: ${campaignData.description || 'Premium brand experience'}. Target: ${campaignData.target_audience || 'general audience'}. Video style: ${tone === 'professional' ? 'Corporate, clean, business-focused' : tone === 'casual' ? 'Friendly, lifestyle, approachable' : tone === 'enthusiastic' ? 'Energetic, dynamic, exciting' : tone === 'humorous' ? 'Playful, entertaining, fun' : 'Modern, engaging, professional'}. Duration: 10 seconds, aspect ratio: 16:9, high-definition. Keywords: ${aiSettings?.keywords || 'quality, innovation'}`;
+  // Create specific video prompt for RunwayML (5 seconds as requested)
+  const videoPrompt = `Create a 5-second ${tone} marketing video for ${campaignData.brand_name} campaign "${campaignData.title}". Campaign focus: ${campaignData.description || 'Premium brand experience'}. Target: ${campaignData.target_audience || 'general audience'}. Video style: ${tone === 'professional' ? 'Corporate, clean, business-focused' : tone === 'casual' ? 'Friendly, lifestyle, approachable' : tone === 'enthusiastic' ? 'Energetic, dynamic, exciting' : tone === 'humorous' ? 'Playful, entertaining, fun' : 'Modern, engaging, professional'}. Duration: 5 seconds, aspect ratio: 16:9, high-definition. Keywords: ${aiSettings?.keywords || 'quality, innovation'}`;
 
   try {
     console.log('Generating video with RunwayML, prompt:', videoPrompt);
@@ -207,19 +207,19 @@ export async function generateVideoContent(
       console.log('RunwayML video response:', videoData);
       
       // Generate script as well
-      const scriptPrompt = `Create a 10-second video script for ${campaignData.brand_name}'s "${campaignData.title}" campaign. Campaign focus: ${campaignData.description || 'Premium brand experience'}. Target: ${campaignData.target_audience || 'general audience'}. Tone: ${tone}. 10-second structure: Hook (0-3s) → Core message (3-8s) → Call-to-action (8-10s). Platform: ${platform} ${contentType}. Keywords: ${aiSettings?.keywords || 'quality, innovation'}`;
+      const scriptPrompt = `Create a 5-second video script for ${campaignData.brand_name}'s "${campaignData.title}" campaign. Campaign focus: ${campaignData.description || 'Premium brand experience'}. Target: ${campaignData.target_audience || 'general audience'}. Tone: ${tone}. 5-second structure: Hook (0-2s) → Core message (2-4s) → Call-to-action (4-5s). Platform: ${platform} ${contentType}. Keywords: ${aiSettings?.keywords || 'quality, innovation'}`;
 
       const scriptResponse = await makeOpenAIRequest('https://api.openai.com/v1/chat/completions', {
         model: 'gpt-4o-mini',
         messages: [
-          { role: 'system', content: `You are a video scriptwriter specializing in 10-second social media content. Create ${tone} scripts.` },
+          { role: 'system', content: `You are a video scriptwriter specializing in 5-second social media content. Create ${tone} scripts.` },
           { role: 'user', content: scriptPrompt }
         ],
         temperature: 0.7,
         max_tokens: 400,
       });
 
-      let scriptContent = `[10-Second ${tone} Video for ${campaignData.brand_name}]\n\n`;
+      let scriptContent = `[5-Second ${tone} Video for ${campaignData.brand_name}]\n\n`;
       
       if (scriptResponse && scriptResponse.ok) {
         const scriptData = await scriptResponse.json();
@@ -241,7 +241,7 @@ export async function generateVideoContent(
       }
 
       return {
-        content: scriptContent + `\n\n🎬 10-second video generated with RunwayML for ${platform} ${contentType}`,
+        content: scriptContent + `\n\n🎬 5-second video generated with RunwayML for ${platform} ${contentType}`,
         mediaUrl: videoUrl
       };
     } else {
@@ -260,27 +260,27 @@ export async function generateVideoContent(
                          'engaging and professional';
     
     return {
-      content: `[10-Second ${tone} Video Script for ${campaignData.brand_name}]
+      content: `[5-Second ${tone} Video Script for ${campaignData.brand_name}]
 
 🎬 CAMPAIGN: ${campaignData.title}
 🏢 BRAND: ${campaignData.brand_name}
 🎯 TONE: ${tone} (${toneDirection})
 📱 PLATFORM: ${platform}
-⏱️ DURATION: 10 seconds
+⏱️ DURATION: 5 seconds
 
 📋 SCRIPT BREAKDOWN:
 
-🎣 HOOK (0-3s): 
+🎣 HOOK (0-2s): 
 "${tone === 'casual' ? 'Hey! Check this out...' : 
     tone === 'enthusiastic' ? 'This is AMAZING!' :
     tone === 'humorous' ? 'You won\'t believe this...' :
     'Introducing something special...'}"
 
-💡 CORE MESSAGE (3-8s):
+💡 CORE MESSAGE (2-4s):
 "${campaignData.description || 'Experience the difference with our premium solution'}"
 Target: ${campaignData.target_audience || 'Perfect for everyone'}
 
-📞 CTA (8-10s): 
+📞 CTA (4-5s): 
 "${contentType === 'paid_ad' ? 'Get yours now!' : 'Learn more today!'}"
 
 🎵 AUDIO: ${toneDirection} background music

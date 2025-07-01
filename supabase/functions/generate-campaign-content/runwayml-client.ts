@@ -65,7 +65,7 @@ export async function generateRunwayMLVideo(prompt: string, retries = 2) {
         },
         body: JSON.stringify({
           prompt: prompt,
-          duration: 10, // Reduced to 10 seconds for better reliability
+          duration: 5, // Reduced to 5 seconds as requested
           ratio: '16:9',
           seed: Math.floor(Math.random() * 1000000)
         }),
