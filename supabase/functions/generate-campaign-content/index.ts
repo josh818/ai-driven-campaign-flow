@@ -1,198 +1,135 @@
 
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { CampaignData, AISettings, GeneratedContent } from './types.ts';
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.50.2';
+import { CampaignData, GeneratedContent, AISettings } from './types.ts';
 import { generateCopyContent, generateImageContent, generateVideoContent } from './content-generators.ts';
-import { saveGeneratedContent } from './database.ts';
+import { saveCampaignContent } from './database.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Access-Control-Allow-Methods': 'POST, OPTIONS',
 };
 
 serve(async (req) => {
+  // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders });
+    return new Response('ok', { headers: corsHeaders });
   }
 
   try {
-    const openAIApiKey = Deno.env.get('OPENAI_API_KEY');
-    if (!openAIApiKey) {
-      throw new Error('OpenAI API key not configured');
+    console.log('Starting campaign content generation request');
+    
+    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
+    const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+    const supabase = createClient(supabaseUrl, supabaseKey);
+
+    const requestBody = await req.json();
+    console.log('Request body received:', JSON.stringify(requestBody, null, 2));
+
+    const { 
+      campaignData, 
+      contentRequests, 
+      aiSettings 
+    }: {
+      campaignData: CampaignData;
+      contentRequests: Array<{
+        platform: string;
+        contentType: string;
+        mediaType: string;
+      }>;
+      aiSettings: AISettings;
+    } = requestBody;
+
+    if (!campaignData || !contentRequests) {
+      throw new Error('Missing required campaign data or content requests');
     }
 
-    const { campaignId, campaignData, aiSettings }: {
-      campaignId: string | null;
-      campaignData: CampaignData;
-      aiSettings: AISettings;
-    } = await req.json();
+    console.log(`Processing ${contentRequests.length} content requests for campaign: ${campaignData.title}`);
 
-    // Handle email as both content type and platform
-    const platforms = aiSettings?.platform ? [aiSettings.platform] : 
-                     aiSettings?.contentType === 'email' ? ['email'] :
-                     ['facebook', 'instagram', 'linkedin', 'twitter'];
-    
-    const contentTypes = ['organic_post', 'paid_ad'];
-    
     const generatedContent: GeneratedContent[] = [];
 
-    console.log(`Starting content generation for platforms: ${platforms.join(', ')}`);
+    for (const request of contentRequests) {
+      try {
+        console.log(`Generating ${request.mediaType} content for ${request.platform} - ${request.contentType}`);
+        
+        let content: { content: string; mediaUrl?: string } = { content: '' };
 
-    // Process requests with longer delays to avoid rate limits
-    for (const platform of platforms) {
-      for (const contentType of contentTypes) {
-        // For social media platforms, generate copy, image, and video
-        if (platform !== 'email') {
-          // Generate copy first
-          if (aiSettings?.contentType === 'all' || aiSettings?.contentType === 'copy' || !aiSettings?.contentType) {
-            console.log(`Generating copy for ${platform} ${contentType}`);
-            try {
-              const copyContent = await generateCopyContent(platform, contentType, campaignData, aiSettings);
-              
-              await saveGeneratedContent(
-                campaignId,
-                platform,
-                contentType,
-                'copy',
-                copyContent,
-                null,
-                `Copy for ${platform} ${contentType}`
-              );
-
-              generatedContent.push({
-                platform,
-                content_type: contentType,
-                media_type: 'copy',
-                content: copyContent.substring(0, 150) + (copyContent.length > 150 ? '...' : ''),
-                has_media: false,
-                media_url: undefined
-              });
-
-              // Delay between requests
-              await new Promise(resolve => setTimeout(resolve, 2000));
-            } catch (error) {
-              console.error(`Error generating copy for ${platform} ${contentType}:`, error);
-            }
-          }
-
-          // Generate image
-          if (aiSettings?.contentType === 'all' || aiSettings?.contentType === 'image' || !aiSettings?.contentType) {
-            console.log(`Generating image for ${platform} ${contentType}`);
-            try {
-              const imageResult = await generateImageContent(platform, contentType, campaignData, aiSettings);
-              
-              await saveGeneratedContent(
-                campaignId,
-                platform,
-                contentType,
-                'image',
-                imageResult.content,
-                imageResult.mediaUrl,
-                `Image for ${platform} ${contentType}`
-              );
-
-              generatedContent.push({
-                platform,
-                content_type: contentType,
-                media_type: 'image',
-                content: imageResult.content.substring(0, 150) + (imageResult.content.length > 150 ? '...' : ''),
-                has_media: true,
-                media_url: imageResult.mediaUrl
-              });
-
-              // Delay between requests
-              await new Promise(resolve => setTimeout(resolve, 2000));
-            } catch (error) {
-              console.error(`Error generating image for ${platform} ${contentType}:`, error);
-            }
-          }
-
-          // Generate video
-          if (aiSettings?.contentType === 'all' || aiSettings?.contentType === 'video') {
-            console.log(`Generating video for ${platform} ${contentType}`);
-            try {
-              const videoResult = await generateVideoContent(platform, contentType, campaignData, aiSettings);
-              
-              await saveGeneratedContent(
-                campaignId,
-                platform,
-                contentType,
-                'video',
-                videoResult.content,
-                videoResult.mediaUrl,
-                `Video script for ${platform} ${contentType}`
-              );
-
-              generatedContent.push({
-                platform,
-                content_type: contentType,
-                media_type: 'video',
-                content: videoResult.content.substring(0, 150) + (videoResult.content.length > 150 ? '...' : ''),
-                has_media: true,
-                media_url: videoResult.mediaUrl
-              });
-
-              // Delay between requests
-              await new Promise(resolve => setTimeout(resolve, 2000));
-            } catch (error) {
-              console.error(`Error generating video for ${platform} ${contentType}:`, error);
-            }
-          }
-        } else {
-          // For email platform, generate email content with image
-          if (aiSettings?.contentType === 'email' || aiSettings?.contentType === 'all') {
-            console.log(`Generating email content`);
-            try {
-              // Generate email copy
-              const emailContent = await generateCopyContent('email', contentType, campaignData, aiSettings);
-              
-              // Generate email image
-              const emailImageResult = await generateImageContent('email', contentType, campaignData, aiSettings);
-              
-              await saveGeneratedContent(
-                campaignId,
-                'email',
-                contentType,
-                'email',
-                emailContent,
-                emailImageResult.mediaUrl,
-                `Email with image for ${contentType}`
-              );
-
-              generatedContent.push({
-                platform: 'email',
-                content_type: contentType,
-                media_type: 'email',
-                content: emailContent.substring(0, 150) + (emailContent.length > 150 ? '...' : ''),
-                has_media: true,
-                media_url: emailImageResult.mediaUrl
-              });
-
-              // Delay between requests
-              await new Promise(resolve => setTimeout(resolve, 2000));
-            } catch (error) {
-              console.error(`Error generating email content:`, error);
-            }
-          }
+        switch (request.mediaType) {
+          case 'text':
+          case 'copy':
+            content = { content: await generateCopyContent(request.platform, request.contentType, campaignData, aiSettings) };
+            break;
+          case 'image':
+            content = await generateImageContent(request.platform, request.contentType, campaignData, aiSettings);
+            break;
+          case 'video':
+            content = await generateVideoContent(request.platform, request.contentType, campaignData, aiSettings);
+            break;
+          default:
+            console.warn(`Unknown media type: ${request.mediaType}, defaulting to text`);
+            content = { content: await generateCopyContent(request.platform, request.contentType, campaignData, aiSettings) };
         }
+
+        const generatedItem: GeneratedContent = {
+          platform: request.platform,
+          contentType: request.contentType,
+          mediaType: request.mediaType,
+          content: content.content,
+          mediaUrl: content.mediaUrl || null,
+          status: 'generated'
+        };
+
+        generatedContent.push(generatedItem);
+        
+        // Save to database
+        await saveCampaignContent(supabase, campaignData.id, generatedItem);
+        
+        console.log(`Successfully generated and saved ${request.mediaType} content for ${request.platform}`);
+      } catch (error) {
+        console.error(`Error generating content for ${request.platform} ${request.mediaType}:`, error);
+        
+        // Add error entry but continue with other requests
+        const errorItem: GeneratedContent = {
+          platform: request.platform,
+          contentType: request.contentType,
+          mediaType: request.mediaType,
+          content: `Error generating content: ${error.message}`,
+          mediaUrl: null,
+          status: 'error'
+        };
+        generatedContent.push(errorItem);
       }
     }
 
-    console.log(`Generated ${generatedContent.length} content pieces`);
+    console.log(`Campaign content generation completed. Generated ${generatedContent.length} items.`);
 
-    return new Response(JSON.stringify({ 
-      success: true, 
-      generatedCount: generatedContent.length,
-      preview: generatedContent 
-    }), {
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-    });
+    return new Response(
+      JSON.stringify({ 
+        success: true, 
+        generatedContent,
+        message: `Generated ${generatedContent.length} pieces of content` 
+      }),
+      {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        status: 200,
+      }
+    );
 
   } catch (error) {
-    console.error('Error in generate-campaign-content function:', error);
-    return new Response(JSON.stringify({ error: error.message }), {
-      status: 500,
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-    });
+    console.error('Campaign content generation error:', error);
+    
+    return new Response(
+      JSON.stringify({ 
+        success: false, 
+        error: error.message,
+        details: error.stack 
+      }),
+      {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        status: 500,
+      }
+    );
   }
 });

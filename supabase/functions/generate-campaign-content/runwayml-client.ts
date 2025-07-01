@@ -1,29 +1,34 @@
 
-// RunwayML API client for image and video generation
+// RunwayML API client for image and video generation with improved error handling
 export async function generateRunwayMLImage(prompt: string, retries = 2) {
   const runwayApiKey = Deno.env.get('RUNWAYML_API_KEY');
   if (!runwayApiKey) {
     throw new Error('RunwayML API key not configured');
   }
 
+  console.log('Starting RunwayML image generation with prompt:', prompt);
+
   for (let i = 0; i <= retries; i++) {
     try {
-      // Updated to use the correct RunwayML API endpoint and structure
+      // Use the correct RunwayML API endpoint for image generation
       const response = await fetch('https://api.runwayml.com/v1/images/generations', {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${runwayApiKey}`,
           'Content-Type': 'application/json',
-          'X-Runway-Version': '2024-09-13', // Add API version header
+          'User-Agent': 'Supabase-Edge-Function/1.0',
         },
         body: JSON.stringify({
           prompt: prompt,
           width: 1024,
           height: 1024,
+          guidance_scale: 7,
+          num_inference_steps: 25,
           seed: Math.floor(Math.random() * 1000000),
-          image_format: 'JPEG'
         }),
       });
+
+      console.log('RunwayML image response status:', response.status);
 
       if (response.status === 429 && i < retries) {
         const waitTime = Math.pow(2, i) * 3000;
@@ -34,14 +39,16 @@ export async function generateRunwayMLImage(prompt: string, retries = 2) {
 
       if (!response.ok) {
         const errorText = await response.text();
-        console.error('RunwayML image error:', errorText);
+        console.error('RunwayML image error response:', errorText);
         throw new Error(`RunwayML API error: ${response.status} - ${errorText}`);
       }
 
-      return response;
+      const data = await response.json();
+      console.log('RunwayML image generation successful');
+      return { ok: true, json: () => Promise.resolve(data) };
     } catch (error) {
+      console.error(`RunwayML image request failed (attempt ${i + 1}):`, error);
       if (i === retries) throw error;
-      console.log(`RunwayML image request failed, retrying... (${i + 1}/${retries})`);
       await new Promise(resolve => setTimeout(resolve, 3000));
     }
   }
@@ -53,23 +60,28 @@ export async function generateRunwayMLVideo(prompt: string, retries = 2) {
     throw new Error('RunwayML API key not configured');
   }
 
+  console.log('Starting RunwayML video generation with prompt:', prompt);
+
   for (let i = 0; i <= retries; i++) {
     try {
-      // Updated to use the correct RunwayML video API endpoint
+      // Use the correct RunwayML API endpoint for video generation
       const response = await fetch('https://api.runwayml.com/v1/video/generations', {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${runwayApiKey}`,
           'Content-Type': 'application/json',
-          'X-Runway-Version': '2024-09-13', // Add API version header
+          'User-Agent': 'Supabase-Edge-Function/1.0',
         },
         body: JSON.stringify({
           prompt: prompt,
-          duration: 5, // Reduced to 5 seconds as requested
-          ratio: '16:9',
+          duration: 5, // 5 seconds as requested
+          aspect_ratio: '16:9',
+          resolution: 'hd',
           seed: Math.floor(Math.random() * 1000000)
         }),
       });
+
+      console.log('RunwayML video response status:', response.status);
 
       if (response.status === 429 && i < retries) {
         const waitTime = Math.pow(2, i) * 3000;
@@ -80,14 +92,16 @@ export async function generateRunwayMLVideo(prompt: string, retries = 2) {
 
       if (!response.ok) {
         const errorText = await response.text();
-        console.error('RunwayML video error:', errorText);
+        console.error('RunwayML video error response:', errorText);
         throw new Error(`RunwayML API error: ${response.status} - ${errorText}`);
       }
 
-      return response;
+      const data = await response.json();
+      console.log('RunwayML video generation successful');
+      return { ok: true, json: () => Promise.resolve(data) };
     } catch (error) {
+      console.error(`RunwayML video request failed (attempt ${i + 1}):`, error);
       if (i === retries) throw error;
-      console.log(`RunwayML video request failed, retrying... (${i + 1}/${retries})`);
       await new Promise(resolve => setTimeout(resolve, 3000));
     }
   }
