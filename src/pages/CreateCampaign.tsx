@@ -197,7 +197,15 @@ const CreateCampaign = () => {
           description: "Please fill in all required fields.",
           variant: "destructive"
         });
+        setIsLoading(false);
         return;
+      }
+
+      // First generate content if content type is specified
+      if (aiFormData.contentType) {
+        setIsGeneratingContent(true);
+        await handleGenerateContent();
+        setIsGeneratingContent(false);
       }
 
       // Fix timestamp issue by only including dates if they have values
@@ -268,6 +276,7 @@ const CreateCampaign = () => {
       });
     } finally {
       setIsLoading(false);
+      setIsGeneratingContent(false);
     }
   };
 
@@ -351,10 +360,12 @@ const CreateCampaign = () => {
                 isGenerating={isGeneratingContent}
               />
 
-              <BudgetScheduleForm
-                formData={formData}
-                onChange={handleInputChange}
-              />
+              {formData.campaign_type === 'paid_ad' && (
+                <BudgetScheduleForm
+                  formData={formData}
+                  onChange={handleInputChange}
+                />
+              )}
             </CardContent>
           </Card>
 
@@ -374,7 +385,7 @@ const CreateCampaign = () => {
             ) : (
               <>
                 <Wand2 className="mr-2 h-4 w-4" />
-                Create Campaign & Save Professional Content
+                Generate, Create & Save Campaign
               </>
             )}
           </Button>

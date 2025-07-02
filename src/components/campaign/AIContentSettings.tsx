@@ -108,24 +108,6 @@ const AIContentSettings = ({
         />
       </div>
 
-      <Button 
-        type="button"
-        onClick={onGenerate}
-        disabled={isGenerating}
-        className="w-full mt-4 bg-gradient-to-r from-blue-600 to-teal-600 hover:from-blue-700 hover:to-teal-700"
-      >
-        {isGenerating ? (
-          <>
-            <Wand2 className="mr-2 h-4 w-4 animate-spin" />
-            Generating Content...
-          </>
-        ) : (
-          <>
-            <Wand2 className="mr-2 h-4 w-4" />
-            Generate Content
-          </>
-        )}
-      </Button>
     </div>
   );
 };
