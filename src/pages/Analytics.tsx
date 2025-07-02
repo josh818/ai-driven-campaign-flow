@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
@@ -8,7 +7,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line, PieChart, Pie, Cell, Legend } from 'recharts';
 import { TrendingUp, Users, Eye, MousePointer, DollarSign } from 'lucide-react';
 import Header from '@/components/Header';
-import BrandMonitoring from '@/components/BrandMonitoring';
+import BrandMentionsList from '@/components/reputation/BrandMentionsList';
 
 interface Campaign {
   id: string;
@@ -293,7 +292,13 @@ const Analytics = () => {
           </TabsContent>
 
           <TabsContent value="brand-monitoring">
-            <BrandMonitoring />
+            <BrandMentionsList
+              searchResults={[]}
+              searchTerm=""
+              onSearchTermChange={() => {}}
+              onRefresh={() => {}}
+              onGenerateAIResponse={() => {}}
+            />
           </TabsContent>
         </Tabs>
       </div>

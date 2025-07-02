@@ -1,10 +1,11 @@
+
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import Header from '@/components/Header';
 import ContentPreviews from '@/components/ContentPreviews';
 import SuggestedCampaigns from '@/components/SuggestedCampaigns';
-import BrandMonitoring from '@/components/BrandMonitoring';
+import BrandMentionsList from '@/components/reputation/BrandMentionsList';
 import HeroSection from '@/components/dashboard/HeroSection';
 import StatsGrid from '@/components/dashboard/StatsGrid';
 import QuickActionsGrid from '@/components/dashboard/QuickActionsGrid';
@@ -123,7 +124,13 @@ const Index = () => {
             </CardHeader>
             <CardContent className="pt-1 pb-3">
               <div className="max-h-32 overflow-hidden">
-                <BrandMonitoring />
+                <BrandMentionsList
+                  searchResults={[]}
+                  searchTerm=""
+                  onSearchTermChange={() => {}}
+                  onRefresh={() => {}}
+                  onGenerateAIResponse={() => {}}
+                />
               </div>
             </CardContent>
           </Card>
