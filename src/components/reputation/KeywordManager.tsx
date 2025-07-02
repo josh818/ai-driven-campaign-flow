@@ -7,7 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
-import { Plus, RefreshCw } from 'lucide-react';
+import { Plus, RefreshCw, X } from 'lucide-react';
 
 type MonitoredTerm = {
   id: string;
@@ -73,6 +73,31 @@ const KeywordManager = ({ monitoredTerms, onKeywordAdded, onSearchBrandMentions 
     }
   };
 
+  const removeKeyword = async (termId: string, termName: string) => {
+    try {
+      const { error } = await supabase
+        .from('monitored_terms')
+        .delete()
+        .eq('id', termId);
+
+      if (error) throw error;
+
+      onKeywordAdded(); // Refresh the list
+      
+      toast({
+        title: "Success",
+        description: `Removed "${termName}" from monitoring`
+      });
+    } catch (error) {
+      console.error('Error removing keyword:', error);
+      toast({
+        title: "Error",
+        description: "Failed to remove keyword",
+        variant: "destructive"
+      });
+    }
+  };
+
   return (
     <Card className="border-0 shadow-lg bg-white/80 backdrop-blur-sm">
       <CardHeader>
@@ -102,8 +127,16 @@ const KeywordManager = ({ monitoredTerms, onKeywordAdded, onSearchBrandMentions 
         </p>
         <div className="flex flex-wrap gap-2">
           {monitoredTerms.map((term) => (
-            <Badge key={term.id} variant="secondary" className="px-3 py-1">
-              {term.term}
+            <Badge key={term.id} variant="secondary" className="px-3 py-1 flex items-center gap-2">
+              <span>{term.term}</span>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-4 w-4 p-0 hover:bg-red-100"
+                onClick={() => removeKeyword(term.id, term.term)}
+              >
+                <X className="h-3 w-3 text-red-600" />
+              </Button>
             </Badge>
           ))}
         </div>

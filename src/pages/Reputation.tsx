@@ -86,6 +86,27 @@ const Reputation = () => {
       setMentions(mentionsResult.data || []);
       setMonitoredTerms(termsResult.data || []);
       setTrendsData(trendsResult.data || []);
+
+      // Convert existing brand mentions to search results format for display
+      const existingResults: SearchResult[] = mentionsResult.data?.map(mention => ({
+        id: mention.id,
+        keyword: mention.brand_name,
+        title: `${mention.brand_name} mentioned on ${mention.platform}`,
+        snippet: mention.mention_text.length > 100 
+          ? `${mention.mention_text.substring(0, 100)}...` 
+          : mention.mention_text,
+        fullContent: mention.mention_text,
+        source: mention.source_domain || mention.platform,
+        sentiment: (mention.sentiment as 'positive' | 'negative' | 'neutral') || 'neutral',
+        sentimentScore: mention.sentiment_score || 0,
+        confidence: mention.confidence_score || 0,
+        platform: mention.platform,
+        publishedAt: new Date(mention.mentioned_at).toLocaleDateString(),
+        url: mention.url || undefined,
+        suggestedResponse: generateSuggestedResponse(mention.sentiment, mention.mention_text)
+      })) || [];
+
+      setSearchResults(existingResults);
     } catch (error) {
       console.error('Error fetching data:', error);
       toast({
@@ -101,61 +122,55 @@ const Reputation = () => {
   const searchBrandMentions = async (keyword: string) => {
     setIsSearching(true);
     try {
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      // Fetch real brand mentions from the database
+      const { data: brandMentions, error } = await supabase
+        .from('brand_mentions')
+        .select('*')
+        .ilike('brand_name', `%${keyword}%`)
+        .order('mentioned_at', { ascending: false })
+        .limit(10);
+
+      if (error) throw error;
+
+      // Convert database records to SearchResult format
+      const realResults: SearchResult[] = brandMentions?.map(mention => ({
+        id: mention.id,
+        keyword,
+        title: `${mention.brand_name} mentioned on ${mention.platform}`,
+        snippet: mention.mention_text.length > 100 
+          ? `${mention.mention_text.substring(0, 100)}...` 
+          : mention.mention_text,
+        fullContent: mention.mention_text,
+        source: mention.source_domain || mention.platform,
+        sentiment: (mention.sentiment as 'positive' | 'negative' | 'neutral') || 'neutral',
+        sentimentScore: mention.sentiment_score || 0,
+        confidence: mention.confidence_score || 0,
+        platform: mention.platform,
+        publishedAt: new Date(mention.mentioned_at).toLocaleDateString(),
+        url: mention.url || undefined,
+        suggestedResponse: generateSuggestedResponse(mention.sentiment, mention.mention_text)
+      })) || [];
       
-      const mockResults: SearchResult[] = [
-        {
-          id: `${keyword}-1`,
-          keyword,
-          title: `Great experience with ${keyword} - highly recommend!`,
-          snippet: `I've been using ${keyword} for months now and absolutely love it. The customer service is exceptional...`,
-          fullContent: `I've been using ${keyword} for months now and absolutely love it. The customer service is exceptional and the product quality exceeds expectations. I would definitely recommend this to anyone looking for a reliable solution. The team has been incredibly responsive to my questions and the onboarding process was smooth. Overall, this has been one of my best purchases this year.`,
-          source: 'Twitter',
-          sentiment: 'positive',
-          sentimentScore: 0.8,
-          confidence: 0.92,
-          platform: 'Social Media',
-          publishedAt: '2 hours ago',
-          url: `https://twitter.com/search?q=${encodeURIComponent(keyword)}`,
-          suggestedResponse: "Thank you so much for your wonderful review! We're thrilled to hear about your positive experience with our product and team. Your feedback means the world to us and motivates us to continue delivering exceptional service."
-        },
-        {
-          id: `${keyword}-2`,
-          keyword,
-          title: `${keyword} disappointed me - not what I expected`,
-          snippet: `Unfortunately, my experience with ${keyword} hasn't been great. The product didn't meet my expectations...`,
-          fullContent: `Unfortunately, my experience with ${keyword} hasn't been great. The product didn't meet my expectations and I've had several issues with the setup process. Customer support took too long to respond and when they did, the solution didn't work. I'm considering switching to a competitor if things don't improve soon. Really hoped this would work better.`,
-          source: 'Reddit',
-          sentiment: 'negative',
-          sentimentScore: -0.7,
-          confidence: 0.88,
-          platform: 'Forum',
-          publishedAt: '5 hours ago',
-          url: `https://reddit.com/search?q=${encodeURIComponent(keyword)}`,
-          suggestedResponse: "We sincerely apologize for your disappointing experience. This is not the level of service we strive for. Please reach out to our customer success team directly so we can make this right and address your concerns promptly."
-        },
-        {
-          id: `${keyword}-3`,
-          keyword,
-          title: `Neutral review: ${keyword} is okay, nothing special`,
-          snippet: `I've tried ${keyword} and it's decent. Not amazing, not terrible, just average...`,
-          fullContent: `I've tried ${keyword} and it's decent. Not amazing, not terrible, just average. It does what it's supposed to do but there are probably better options out there. The price is fair for what you get. Would I buy it again? Maybe, if there were no other choices. It's fine for basic needs but lacks some advanced features I was hoping for.`,
-          source: 'Google Reviews',
-          sentiment: 'neutral',
-          sentimentScore: 0.1,
-          confidence: 0.85,
-          platform: 'Review Site',
-          publishedAt: '1 day ago',
-          url: `https://www.google.com/search?q=${encodeURIComponent(keyword)}+reviews`,
-          suggestedResponse: "Thank you for taking the time to share your honest feedback. We appreciate all reviews as they help us improve. We'd love to learn more about the advanced features you were looking for - please feel free to reach out with suggestions."
-        }
-      ];
-      
-      setSearchResults(prev => [...prev.filter(r => r.keyword !== keyword), ...mockResults]);
+      setSearchResults(prev => [...prev.filter(r => r.keyword !== keyword), ...realResults]);
     } catch (error) {
       console.error('Error searching brand mentions:', error);
+      toast({
+        title: "Error",
+        description: "Failed to fetch brand mentions",
+        variant: "destructive"
+      });
     } finally {
       setIsSearching(false);
+    }
+  };
+
+  const generateSuggestedResponse = (sentiment: string | null, mentionText: string): string => {
+    if (sentiment === 'positive') {
+      return "Thank you so much for your wonderful feedback! We're thrilled to hear about your positive experience. Your support means the world to us and motivates us to continue delivering exceptional service.";
+    } else if (sentiment === 'negative') {
+      return "We sincerely apologize for your disappointing experience. This is not the level of service we strive for. Please reach out to our customer success team directly so we can make this right and address your concerns promptly.";
+    } else {
+      return "Thank you for taking the time to share your feedback. We appreciate all reviews as they help us improve. We'd love to learn more about your experience - please feel free to reach out with any suggestions.";
     }
   };
 
