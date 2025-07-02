@@ -134,13 +134,14 @@ const AIContentSettings = ({
             <span>Primary Platform *</span>
           </Label>
           <Select 
-            value={aiFormData.platform} 
+            value={aiFormData.platform || 'all'} 
             onValueChange={(value) => onAIFormChange('platform', value)}
           >
             <SelectTrigger>
               <SelectValue placeholder="Select target platform" />
             </SelectTrigger>
             <SelectContent>
+              <SelectItem value="all">🌐 All Platforms</SelectItem>
               <SelectItem value="facebook">📘 Facebook</SelectItem>
               <SelectItem value="instagram">📸 Instagram</SelectItem>
               <SelectItem value="linkedin">💼 LinkedIn</SelectItem>

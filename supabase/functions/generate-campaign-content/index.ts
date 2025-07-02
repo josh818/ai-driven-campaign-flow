@@ -40,13 +40,19 @@ serve(async (req) => {
       
       // Convert AI settings to content requests
       contentRequests = [];
-      const platforms = [aiSettings.platform || 'social'];
+      const platforms = aiSettings.platform === 'all' 
+        ? ['facebook', 'instagram', 'linkedin', 'twitter', 'email']
+        : [aiSettings.platform || 'social'];
       const contentTypes = aiSettings.contentType === 'all' 
         ? ['copy', 'image', 'video', 'email'] 
         : [aiSettings.contentType];
       
       for (const platform of platforms) {
         for (const contentType of contentTypes) {
+          // For email platform, only generate copy content (with visual placeholders)
+          if (platform === 'email' && contentType !== 'copy' && contentType !== 'email') {
+            continue;
+          }
           let mediaType = contentType;
           if (contentType === 'copy') mediaType = 'text';
           contentRequests.push({

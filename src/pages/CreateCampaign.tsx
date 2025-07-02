@@ -44,7 +44,7 @@ const CreateCampaign = () => {
   // AI content generation data
   const [aiFormData, setAiFormData] = useState({
     contentType: '',
-    platform: '',
+    platform: 'all',
     tone: '',
     keywords: '',
     campaignType: 'organic',

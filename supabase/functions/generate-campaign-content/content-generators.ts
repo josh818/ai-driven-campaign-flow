@@ -28,12 +28,12 @@ export async function generateCopyContent(
                  - Informative: Educational, fact-based, clear explanations
                  - Humorous: Light-hearted, funny, entertaining
                  
-                 ${isEmail ? `EMAIL REQUIREMENTS:
-                 - Create a longer-form email (300-500 words)
-                 - Include subject line, greeting, body paragraphs, and clear call-to-action
-                 - Structure with headers and proper email formatting
-                 - Focus on the campaign description: ${campaignData.description}
-                 - Include placeholder for image: [IMAGE PLACEHOLDER - Campaign visual will be inserted here]` : ''}
+                  ${isEmail ? `EMAIL REQUIREMENTS:
+                  - Create a longer-form email (300-500 words)
+                  - Include subject line, greeting, body paragraphs, and clear call-to-action
+                  - Structure with headers and proper email formatting
+                  - Focus on the campaign description: ${campaignData.description}
+                  - Include placeholder for visual content: [VISUAL CONTENT - Professional image/video will be included]` : ''}
                  
                  PLATFORM GUIDELINES:
                  ${platform === 'linkedin' ? 'Professional and business-focused' : 
@@ -87,7 +87,7 @@ ${toneStyle}
 
 We're excited to share our latest campaign: ${campaignData.title}
 
-[IMAGE PLACEHOLDER - Campaign visual will be inserted here]
+[VISUAL CONTENT - Professional image and video content will be included]
 
 ${campaignData.description || 'Experience the difference with our premium solution.'}
 
