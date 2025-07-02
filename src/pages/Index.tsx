@@ -10,6 +10,7 @@ import HeroSection from '@/components/dashboard/HeroSection';
 import StatsGrid from '@/components/dashboard/StatsGrid';
 import QuickActionsGrid from '@/components/dashboard/QuickActionsGrid';
 import ActivityInsights from '@/components/dashboard/ActivityInsights';
+import MyCampaignsSection from '@/components/dashboard/MyCampaignsSection';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Shield } from 'lucide-react';
 
@@ -111,7 +112,7 @@ const Index = () => {
           <SuggestedCampaigns />
         </div>
 
-        <div className="mb-8">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
           <Card className="border-0 shadow-lg bg-white/80 backdrop-blur-sm">
             <CardHeader className="pb-1">
               <CardTitle className="text-lg flex items-center space-x-2">
@@ -134,6 +135,8 @@ const Index = () => {
               </div>
             </CardContent>
           </Card>
+          
+          <MyCampaignsSection />
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 mb-8">

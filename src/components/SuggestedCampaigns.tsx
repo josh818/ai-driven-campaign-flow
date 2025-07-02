@@ -23,6 +23,7 @@ const SuggestedCampaigns = () => {
   const { user } = useAuth();
   const [suggestedCampaigns, setSuggestedCampaigns] = useState<SuggestedCampaign[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [showAll, setShowAll] = useState(false);
 
   useEffect(() => {
     if (user) {
@@ -106,7 +107,7 @@ const SuggestedCampaigns = () => {
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {suggestedCampaigns.map((campaign) => (
+            {(showAll ? suggestedCampaigns : suggestedCampaigns.slice(0, 3)).map((campaign) => (
               <div
                 key={campaign.id}
                 className="border rounded-lg p-4 hover:shadow-md transition-shadow bg-gradient-to-br from-white to-gray-50"
@@ -158,6 +159,18 @@ const SuggestedCampaigns = () => {
                 </div>
               </div>
             ))}
+          </div>
+        )}
+        
+        {suggestedCampaigns.length > 3 && (
+          <div className="text-center mt-4">
+            <Button 
+              variant="outline" 
+              onClick={() => setShowAll(!showAll)}
+              size="sm"
+            >
+              {showAll ? 'Show Less' : `Show All ${suggestedCampaigns.length} Campaigns`}
+            </Button>
           </div>
         )}
         

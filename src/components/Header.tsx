@@ -71,9 +71,9 @@ const Header = () => {
                 <ArrowLeft className="h-4 w-4" />
               </Button>
             )}
-            <div className="p-2 bg-gradient-to-br from-blue-500 to-teal-500 rounded-xl flex items-center justify-center">
+            <Link to="/dashboard" className="p-2 bg-gradient-to-br from-blue-500 to-teal-500 rounded-xl flex items-center justify-center">
               <span className="text-white font-bold text-lg">BB</span>
-            </div>
+            </Link>
             {location.pathname !== '/dashboard' && (
               <Button variant="ghost" size="sm" asChild>
                 <Link to="/dashboard">
@@ -86,9 +86,9 @@ const Header = () => {
 
           <div className="flex items-center space-x-4">
             <Button variant="ghost" size="sm" asChild>
-              <Link to="/create-campaign">
+              <Link to="/campaigns">
                 <PlusCircle className="h-4 w-4 mr-2" />
-                Create Campaign
+                My Campaigns
               </Link>
             </Button>
 

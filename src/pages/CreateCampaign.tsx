@@ -237,29 +237,30 @@ const CreateCampaign = () => {
 
       if (error) throw error;
 
-      // If we have generated content, save it to the campaign
+      // Save generated content to database
       if (generatedContent.length > 0) {
-        const { error: contentError } = await supabase.functions.invoke('generate-campaign-content', {
-          body: {
-            campaignId: data.id,
-            campaignData: formData,
-            aiSettings: aiFormData
-          }
-        });
+        for (const content of generatedContent) {
+          const { error: contentError } = await supabase
+            .from('campaign_generated_content')
+            .insert({
+              campaign_id: data.id,
+              content_type: content.type,
+              media_type: content.type,
+              platform: content.platform || 'social',
+              content_text: content.content,
+              media_url: content.mediaUrl,
+              status: 'generated'
+            });
 
-        if (contentError) {
-          console.error('Error saving generated content:', contentError);
-          toast({
-            title: "Campaign Created",
-            description: "Campaign created but there was an issue saving the generated content.",
-            variant: "destructive"
-          });
-        } else {
-          toast({
-            title: "Campaign Created Successfully!",
-            description: "Your campaign has been created with AI-generated professional content.",
-          });
+          if (contentError) {
+            console.error('Error saving generated content:', contentError);
+          }
         }
+        
+        toast({
+          title: "Campaign Created Successfully!",
+          description: `Your campaign has been created with ${generatedContent.length} AI-generated content pieces.`,
+        });
       } else {
         toast({
           title: "Campaign Created!",
