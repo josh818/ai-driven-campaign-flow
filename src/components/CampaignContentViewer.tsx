@@ -88,6 +88,36 @@ const CampaignContentViewer = ({ campaignId }: CampaignContentViewerProps) => {
     }
   };
 
+  const handlePushLive = async (item: GeneratedContent) => {
+    try {
+      // Here you would integrate with your social media APIs
+      // For now, we'll show a placeholder implementation
+      toast({
+        title: "Publishing Content",
+        description: `Publishing ${item.media_type} content to ${item.platform}...`,
+      });
+
+      // Example: This is where you'd call your social media APIs
+      // await publishToSocialMedia(item.platform, item.content_text, item.media_url);
+      
+      // For now, we'll simulate success
+      setTimeout(() => {
+        toast({
+          title: "Content Published!",
+          description: `Successfully published to ${item.platform}`,
+        });
+      }, 2000);
+
+    } catch (error) {
+      console.error('Error publishing content:', error);
+      toast({
+        title: "Publishing Failed",
+        description: "Failed to publish content. Please try again.",
+        variant: "destructive"
+      });
+    }
+  };
+
   const groupedContent = content.reduce((acc, item) => {
     const key = `${item.content_type}_${item.platform}`;
     if (!acc[key]) {
@@ -183,9 +213,27 @@ const CampaignContentViewer = ({ campaignId }: CampaignContentViewerProps) => {
                           <strong>Generated from prompt:</strong> {item.generated_prompt}
                         </div>
                       )}
+                      <div className="flex space-x-2 pt-4 border-t">
+                        <Button 
+                          onClick={() => handlePushLive(item)}
+                          className="flex-1 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
+                        >
+                          <Share2 className="h-4 w-4 mr-2" />
+                          Push Live to {item.platform}
+                        </Button>
+                      </div>
                     </div>
                   </DialogContent>
                 </Dialog>
+                <Button 
+                  onClick={() => handlePushLive(item)}
+                  variant="default"
+                  size="sm"
+                  className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
+                >
+                  <Share2 className="h-4 w-4 mr-2" />
+                  Push Live
+                </Button>
               </div>
             </CardContent>
           </Card>

@@ -202,14 +202,7 @@ const CreateCampaign = () => {
         return;
       }
 
-      // First generate content if content type is specified
-      if (aiFormData.contentType) {
-        setIsGeneratingContent(true);
-        await handleGenerateContent();
-        setIsGeneratingContent(false);
-      }
-
-      // Fix timestamp issue by only including dates if they have values
+      // Create campaign first
       const campaignData: any = {
         user_id: user!.id,
         title,
@@ -218,7 +211,7 @@ const CreateCampaign = () => {
         target_audience,
         campaign_goals,
         budget: budget ? parseFloat(budget) : null,
-        status: 'draft'
+        status: 'active'
       };
 
       // Only add dates if they are not empty strings
@@ -229,7 +222,7 @@ const CreateCampaign = () => {
         campaignData.end_date = end_date;
       }
 
-      const { data, error } = await supabase
+      const { data: campaign, error } = await supabase
         .from('campaigns')
         .insert(campaignData)
         .select()
@@ -237,30 +230,65 @@ const CreateCampaign = () => {
 
       if (error) throw error;
 
-      // Save generated content to database
-      if (generatedContent.length > 0) {
-        for (const content of generatedContent) {
-          const { error: contentError } = await supabase
-            .from('campaign_generated_content')
-            .insert({
-              campaign_id: data.id,
-              content_type: content.type,
-              media_type: content.type,
-              platform: content.platform || 'social',
-              content_text: content.content,
-              media_url: content.mediaUrl,
-              status: 'generated'
-            });
-
-          if (contentError) {
-            console.error('Error saving generated content:', contentError);
-          }
-        }
+      // Generate content after campaign is created
+      if (aiFormData.contentType && aiFormData.contentType !== '') {
+        setIsGeneratingContent(true);
         
-        toast({
-          title: "Campaign Created Successfully!",
-          description: `Your campaign has been created with ${generatedContent.length} AI-generated content pieces.`,
-        });
+        try {
+          const { data, error: genError } = await supabase.functions.invoke('generate-campaign-content', {
+            body: {
+              campaignData: {
+                id: campaign.id,
+                title: campaign.title,
+                brand_name: campaign.brand_name,
+                description: campaign.description,
+                target_audience: campaign.target_audience,
+                campaign_goals: campaign.campaign_goals
+              },
+              contentRequests: [
+                {
+                  platform: aiFormData.platform || 'social',
+                  contentType: 'copy',
+                  mediaType: 'text'
+                },
+                {
+                  platform: aiFormData.platform || 'social',
+                  contentType: 'image',
+                  mediaType: 'image'
+                },
+                {
+                  platform: aiFormData.platform || 'social',
+                  contentType: 'video',
+                  mediaType: 'video'
+                }
+              ],
+              aiSettings: {
+                ...aiFormData,
+                contentType: aiFormData.contentType || 'all'
+              }
+            }
+          });
+
+          if (genError) {
+            console.error('Content generation error:', genError);
+          } else {
+            console.log('Content generated successfully:', data);
+          }
+          
+          toast({
+            title: "Campaign Created Successfully!",
+            description: "Your campaign has been created with AI-generated content.",
+          });
+        } catch (contentError) {
+          console.error('Error generating content:', contentError);
+          toast({
+            title: "Campaign Created",
+            description: "Campaign created, but content generation failed. You can generate content later.",
+            variant: "destructive"
+          });
+        } finally {
+          setIsGeneratingContent(false);
+        }
       } else {
         toast({
           title: "Campaign Created!",
@@ -268,7 +296,7 @@ const CreateCampaign = () => {
         });
       }
 
-      navigate('/campaigns');
+      navigate(`/campaigns/${campaign.id}`);
     } catch (error: any) {
       console.error("Error creating campaign:", error);
       toast({
