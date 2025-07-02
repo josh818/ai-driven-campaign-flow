@@ -1,7 +1,7 @@
 
 import { CampaignData, AISettings } from './types.ts';
 import { makeOpenAIRequest } from './openai-client.ts';
-import { generateRunwayMLImage, generateRunwayMLVideo } from './runwayml-client.ts';
+import { generateGeminiImage, generateOpenAIImage } from './gemini-client.ts';
 
 export async function generateCopyContent(
   platform: string,
@@ -127,54 +127,58 @@ export async function generateImageContent(
 ): Promise<{ content: string; mediaUrl: string }> {
   const tone = aiSettings?.tone || 'professional';
   
-  // Create a detailed, specific prompt for RunwayML that follows the campaign description
-  const imagePrompt = `Create a high-quality marketing image for "${campaignData.title}" by ${campaignData.brand_name}. 
-  
-  CAMPAIGN DESCRIPTION (MUST FOLLOW CLOSELY): ${campaignData.description || 'Premium brand experience'}
-  
-  Visual requirements:
-  - Style: ${tone === 'professional' ? 'Clean, corporate, modern business aesthetic with professional lighting' : tone === 'casual' ? 'Friendly, approachable, lifestyle-focused with warm natural lighting' : tone === 'enthusiastic' ? 'Energetic, vibrant, dynamic with bold colors and movement' : tone === 'humorous' ? 'Playful, fun, entertaining with bright cheerful elements' : 'Modern, sleek design with premium feel'}
-  - Target audience: ${campaignData.target_audience || 'general audience'}
-  - Platform: ${platform} optimized ${platform === 'instagram' ? 'square 1:1 ratio' : 'horizontal 16:9 ratio'}
-  - Brand: ${campaignData.brand_name} branding elements
-  - Keywords to incorporate visually: ${aiSettings?.keywords || 'quality, innovation'}
-  - Content type: ${contentType} marketing material
-  
-  The image MUST visually represent: "${campaignData.description}"
-  
-  High resolution, professional photography style, commercial quality, ${tone} mood and lighting.`;
+  // Create a detailed, specific prompt for AI image generation that follows the campaign description
+  const imagePrompt = `Professional marketing photograph for "${campaignData.title}" campaign by ${campaignData.brand_name}. 
+
+CAMPAIGN FOCUS: ${campaignData.description || 'Premium brand experience'}
+
+Visual Style: ${tone === 'professional' ? 'Clean corporate aesthetic, modern office setting, business professionals, sharp lighting, minimalist design' : tone === 'casual' ? 'Lifestyle photography, natural environments, everyday people, warm soft lighting, approachable feel' : tone === 'enthusiastic' ? 'High energy, vibrant colors, dynamic action, excited people, bright dramatic lighting' : tone === 'humorous' ? 'Playful scene, bright cheerful colors, smiling people, fun interactions, uplifting atmosphere' : 'Premium modern design, sleek surfaces, sophisticated styling'}
+
+Target: ${campaignData.target_audience || 'general audience'}
+Platform: ${platform} ${platform === 'instagram' ? 'square format' : 'landscape format'}
+Keywords: ${aiSettings?.keywords || 'quality, innovation'}
+Brand Elements: ${campaignData.brand_name} style
+Content: ${contentType} marketing visual
+
+High-resolution commercial photography, professional lighting, compelling composition that represents: "${campaignData.description}"`;
 
   try {
-    console.log('Generating image with RunwayML, prompt:', imagePrompt);
-    const imageResponse = await generateRunwayMLImage(imagePrompt);
+    console.log('Generating image with Gemini AI, prompt:', imagePrompt);
+    
+    // Try Gemini first, fallback to OpenAI
+    let imageResponse;
+    try {
+      imageResponse = await generateGeminiImage(imagePrompt);
+    } catch (geminiError) {
+      console.log('Gemini failed, trying OpenAI:', geminiError);
+      imageResponse = await generateOpenAIImage(imagePrompt);
+    }
 
     if (imageResponse && imageResponse.ok) {
       const imageData = await imageResponse.json();
-      console.log('RunwayML image response:', imageData);
+      console.log('AI image generation successful:', imageData);
       
-      // Handle different possible response structures from RunwayML
+      // Handle different possible response structures
       let imageUrl = '';
-      if (imageData.data && imageData.data.length > 0 && imageData.data[0].url) {
-        imageUrl = imageData.data[0].url;
-      } else if (imageData.url) {
+      if (imageData.url) {
         imageUrl = imageData.url;
-      } else if (imageData.image && imageData.image.url) {
-        imageUrl = imageData.image.url;
+      } else if (imageData.data && imageData.data[0] && imageData.data[0].url) {
+        imageUrl = imageData.data[0].url;
+      } else if (imageData.candidates && imageData.candidates[0] && imageData.candidates[0].image) {
+        imageUrl = imageData.candidates[0].image;
       } else {
-        throw new Error('Invalid RunwayML image response structure');
+        throw new Error('Invalid AI image response structure');
       }
 
       return {
-        content: `Professional ${tone} image for ${campaignData.brand_name} "${campaignData.title}" campaign showcasing: ${campaignData.description}`,
+        content: `AI-generated ${tone} image for ${campaignData.brand_name} "${campaignData.title}" campaign: ${campaignData.description}`,
         mediaUrl: imageUrl
       };
     } else {
-      const errorText = await imageResponse?.text();
-      console.error('RunwayML image generation failed:', errorText);
-      throw new Error(`RunwayML Image API error: ${imageResponse?.status}`);
+      throw new Error(`AI Image generation failed: ${imageResponse?.status}`);
     }
   } catch (imageError) {
-    console.error('RunwayML image generation error:', imageError);
+    console.error('AI image generation error:', imageError);
     
     // Use varied, campaign-relevant stock images as fallback
     const businessImages = [
@@ -209,78 +213,90 @@ export async function generateVideoContent(
 ): Promise<{ content: string; mediaUrl: string }> {
   const tone = aiSettings?.tone || 'professional';
   
-  // Create specific video prompt for RunwayML (5 seconds as requested)
-  const videoPrompt = `Create a 5-second high-quality marketing video for "${campaignData.title}" by ${campaignData.brand_name}.
-  
-  CAMPAIGN DESCRIPTION (MUST FOLLOW CLOSELY): ${campaignData.description || 'Premium brand experience'}
-  
-  Video requirements:
-  - Duration: exactly 5 seconds
-  - Style: ${tone === 'professional' ? 'Corporate, clean, business-focused with smooth camera movements' : tone === 'casual' ? 'Friendly, lifestyle, approachable with natural movements' : tone === 'enthusiastic' ? 'Energetic, dynamic, exciting with quick cuts and vibrant colors' : tone === 'humorous' ? 'Playful, entertaining, fun with unexpected elements' : 'Modern, engaging, professional with cinematic quality'}
-  - Target audience: ${campaignData.target_audience || 'general audience'}
-  - Platform: ${platform} optimized
-  - Aspect ratio: 16:9 HD
-  - Brand: ${campaignData.brand_name} elements
-  - Content type: ${contentType} video
-  - Keywords: ${aiSettings?.keywords || 'quality, innovation'}
-  
-  The video MUST visually demonstrate: "${campaignData.description}"
-  
-  Cinematic quality, professional lighting, ${tone} pacing and energy.`;
+  // Create a 5-second video concept for the campaign
+  const videoPrompt = `5-second marketing video concept for "${campaignData.title}" by ${campaignData.brand_name}.
+
+CAMPAIGN: ${campaignData.description || 'Premium brand experience'}
+
+Video Style: ${tone === 'professional' ? 'Corporate presentation, smooth camera work, office/business setting, clean transitions' : tone === 'casual' ? 'Lifestyle video, handheld feel, everyday settings, natural lighting' : tone === 'enthusiastic' ? 'High-energy montage, quick cuts, vibrant scenes, upbeat pacing' : tone === 'humorous' ? 'Comedy sketch style, playful scenarios, bright colorful setting' : 'Cinematic commercial, professional grade, dramatic lighting'}
+
+Duration: Exactly 5 seconds
+Platform: ${platform} social media
+Target: ${campaignData.target_audience || 'general audience'}
+Format: 16:9 horizontal video
+Keywords: ${aiSettings?.keywords || 'quality, innovation'}
+
+The video must showcase: "${campaignData.description}"`;
 
   try {
-    console.log('Generating video with RunwayML, prompt:', videoPrompt);
-    const videoResponse = await generateRunwayMLVideo(videoPrompt);
-
-    if (videoResponse && videoResponse.ok) {
-      const videoData = await videoResponse.json();
-      console.log('RunwayML video response:', videoData);
+    console.log('Generating video concept for:', videoPrompt);
+    
+    // For now, we'll generate a detailed video script since Gemini video API requires special access
+    // and create a placeholder video URL
       
-      // Generate script as well
-      const scriptPrompt = `Create a 5-second video script for ${campaignData.brand_name}'s "${campaignData.title}" campaign. Campaign focus: ${campaignData.description || 'Premium brand experience'}. Target: ${campaignData.target_audience || 'general audience'}. Tone: ${tone}. 5-second structure: Hook (0-2s) → Core message (2-4s) → Call-to-action (4-5s). Platform: ${platform} ${contentType}. Keywords: ${aiSettings?.keywords || 'quality, innovation'}`;
+    // Generate detailed video script using OpenAI
+    const scriptPrompt = `Create a detailed 5-second video production script for ${campaignData.brand_name}'s "${campaignData.title}" campaign.
 
-      const scriptResponse = await makeOpenAIRequest('https://api.openai.com/v1/chat/completions', {
-        model: 'gpt-4o-mini',
-        messages: [
-          { role: 'system', content: `You are a video scriptwriter specializing in 5-second social media content. Create ${tone} scripts.` },
-          { role: 'user', content: scriptPrompt }
-        ],
-        temperature: 0.7,
-        max_tokens: 400,
-      });
+Campaign Description: ${campaignData.description || 'Premium brand experience'}
+Target Audience: ${campaignData.target_audience || 'general audience'}
+Tone: ${tone}
+Platform: ${platform}
+Content Type: ${contentType}
+Keywords: ${aiSettings?.keywords || 'quality, innovation'}
 
-      let scriptContent = `[5-Second ${tone} Video for ${campaignData.brand_name}]\n\n`;
-      
-      if (scriptResponse && scriptResponse.ok) {
-        const scriptData = await scriptResponse.json();
-        if (scriptData.choices && scriptData.choices[0] && scriptData.choices[0].message) {
-          scriptContent += scriptData.choices[0].message.content;
-        }
+Script Structure (5 seconds total):
+- Hook/Opening (0-2 seconds): Eye-catching visual that stops scrolling
+- Core Message (2-4 seconds): Main campaign message and value proposition  
+- Call-to-Action (4-5 seconds): Clear next step or engagement prompt
+
+Include shot descriptions, camera movements, text overlays, music/sound suggestions, and visual elements that represent the campaign description.`;
+
+    const scriptResponse = await makeOpenAIRequest('https://api.openai.com/v1/chat/completions', {
+      model: 'gpt-4o-mini',
+      messages: [
+        { role: 'system', content: `You are an expert video scriptwriter specializing in short-form social media content. Create detailed, actionable ${tone} video scripts with specific visual directions.` },
+        { role: 'user', content: scriptPrompt }
+      ],
+      temperature: 0.8,
+      max_tokens: 600,
+    });
+
+    let scriptContent = `🎬 5-SECOND VIDEO SCRIPT: "${campaignData.title}"\n\n`;
+    
+    if (scriptResponse && scriptResponse.ok) {
+      const scriptData = await scriptResponse.json();
+      if (scriptData.choices && scriptData.choices[0] && scriptData.choices[0].message) {
+        scriptContent += scriptData.choices[0].message.content;
       }
-
-      // Handle different possible response structures from RunwayML
-      let videoUrl = '';
-      if (videoData.data && videoData.data.length > 0 && videoData.data[0].url) {
-        videoUrl = videoData.data[0].url;
-      } else if (videoData.url) {
-        videoUrl = videoData.url;
-      } else if (videoData.video && videoData.video.url) {
-        videoUrl = videoData.video.url;
-      } else {
-        throw new Error('Invalid RunwayML video response structure');
-      }
-
-      return {
-        content: scriptContent + `\n\n🎬 5-second video generated with RunwayML for ${platform} ${contentType}`,
-        mediaUrl: videoUrl
-      };
     } else {
-      const errorText = await videoResponse?.text();
-      console.error('RunwayML video generation failed:', errorText);
-      throw new Error(`RunwayML Video API error: ${videoResponse?.status}`);
+      // Fallback script structure
+      scriptContent += `BRAND: ${campaignData.brand_name}
+CAMPAIGN: ${campaignData.title}
+TONE: ${tone}
+
+SCRIPT BREAKDOWN:
+⏰ 0-2s: ${tone === 'enthusiastic' ? 'Quick zoom on product with energetic music' : tone === 'professional' ? 'Clean product shot with corporate music' : 'Lifestyle scene showing product in use'}
+⏰ 2-4s: "${campaignData.description || 'Experience the difference'}"
+⏰ 4-5s: "${contentType === 'paid_ad' ? 'Shop now!' : 'Learn more'}"
+
+VISUAL STYLE: ${tone} mood, professional lighting, ${platform} optimized
+KEYWORDS: ${aiSettings?.keywords || 'quality, innovation'}`;
     }
+
+    // Use a short 5-second video placeholder that's appropriate for social media
+    const socialVideoPlaceholders = [
+      'https://sample-videos.com/zip/10/mp4/SampleVideo_360x240_1mb.mp4',
+      'https://filesamples.com/samples/video/mp4/SampleVideo_360x240_5mb.mp4'
+    ];
+    
+    const selectedVideo = socialVideoPlaceholders[Math.floor(Math.random() * socialVideoPlaceholders.length)];
+
+    return {
+      content: scriptContent + `\n\n✨ Ready for production on ${platform} as ${contentType}`,
+      mediaUrl: selectedVideo
+    };
   } catch (videoError) {
-    console.error('RunwayML video generation error:', videoError);
+    console.error('Video script generation error:', videoError);
     
     const toneDirection = tone === 'casual' ? 'friendly and conversational' :
                          tone === 'enthusiastic' ? 'high-energy and exciting' :
