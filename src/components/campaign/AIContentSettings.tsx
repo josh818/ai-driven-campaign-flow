@@ -14,6 +14,7 @@ interface AIContentSettingsProps {
     platform: string;
     tone: string;
     keywords: string;
+    campaignType?: string;
   };
   onInputChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   onAIFormChange: (field: string, value: string) => void;
@@ -59,6 +60,20 @@ const AIContentSettings = ({
               <SelectItem value="video">Video</SelectItem>
               <SelectItem value="email">Email</SelectItem>
               <SelectItem value="all">All Types</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="campaignType">Campaign Type</Label>
+          <Select value={aiFormData.campaignType || 'organic'} onValueChange={(value) => onAIFormChange('campaignType', value)}>
+            <SelectTrigger>
+              <SelectValue placeholder="Select campaign type" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="organic">Organic Content</SelectItem>
+              <SelectItem value="paid_ad">Paid Advertisement</SelectItem>
+              <SelectItem value="promoted">Promoted Post</SelectItem>
             </SelectContent>
           </Select>
         </div>

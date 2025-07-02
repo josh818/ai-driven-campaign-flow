@@ -44,7 +44,8 @@ const CreateCampaign = () => {
     contentType: '',
     platform: '',
     tone: '',
-    keywords: ''
+    keywords: '',
+    campaignType: 'organic'
   });
 
   const handleGenerateContent = async () => {
@@ -60,44 +61,53 @@ const CreateCampaign = () => {
     setIsGeneratingContent(true);
     
     try {
-      // Call the actual Supabase Edge Function
+      // Call the actual Supabase Edge Function with improved data structure
       const { data, error } = await supabase.functions.invoke('generate-campaign-content', {
         body: {
-          campaignId: null, // Will be created later
-          campaignData: formData,
-          aiSettings: aiFormData
+          campaignData: {
+            id: null, // Will be created later
+            title: formData.title,
+            brand_name: formData.brand_name,
+            description: formData.description,
+            target_audience: formData.target_audience,
+            campaign_goals: formData.campaign_goals
+          },
+          aiSettings: {
+            ...aiFormData,
+            contentType: aiFormData.contentType || 'all'
+          }
         }
       });
 
       if (error) throw error;
 
       // Convert the response to our expected format
-      const mockContent: GeneratedContent[] = [];
+      const newContent: GeneratedContent[] = [];
       
-      if (data.preview && Array.isArray(data.preview)) {
-        data.preview.forEach((item: any) => {
-          if (item.media_type === 'copy') {
-            mockContent.push({
+      if (data.generatedContent && Array.isArray(data.generatedContent)) {
+        data.generatedContent.forEach((item: any) => {
+          if (item.mediaType === 'text' || item.mediaType === 'copy') {
+            newContent.push({
               type: 'copy',
               content: item.content || 'Generated copy content',
               platform: item.platform
             });
-          } else if (item.media_type === 'image') {
-            mockContent.push({
+          } else if (item.mediaType === 'image') {
+            newContent.push({
               type: 'image',
               content: item.content || 'Generated professional image',
               platform: item.platform,
-              mediaUrl: item.media_url || 'https://images.unsplash.com/photo-1649972904349-6e44c42644a7?w=800&h=600&fit=crop'
+              mediaUrl: item.mediaUrl || 'https://images.unsplash.com/photo-1649972904349-6e44c42644a7?w=800&h=600&fit=crop'
             });
-          } else if (item.media_type === 'video') {
-            mockContent.push({
+          } else if (item.mediaType === 'video') {
+            newContent.push({
               type: 'video',
               content: item.content || 'Generated video concept and script',
               platform: item.platform,
-              mediaUrl: item.media_url || undefined
+              mediaUrl: item.mediaUrl || undefined
             });
-          } else if (item.media_type === 'email') {
-            mockContent.push({
+          } else if (item.mediaType === 'email') {
+            newContent.push({
               type: 'email',
               content: item.content || 'Generated email content',
               platform: 'email'
@@ -106,11 +116,11 @@ const CreateCampaign = () => {
         });
       }
 
-      setGeneratedContent(mockContent);
+      setGeneratedContent(newContent);
       
       toast({
         title: "Content Generated Successfully",
-        description: `Generated ${data.generatedCount || mockContent.length} professional content pieces using AI!`,
+        description: `Generated ${newContent.length} professional content pieces using AI!`,
       });
       
     } catch (error: any) {

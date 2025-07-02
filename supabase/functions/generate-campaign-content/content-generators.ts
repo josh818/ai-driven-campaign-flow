@@ -45,7 +45,7 @@ export async function generateCopyContent(
                  
                  Keywords to naturally include: ${aiSettings?.keywords || 'quality, innovation'}
                  
-                 ${contentType === 'paid_ad' ? 'Include a compelling offer and clear call-to-action.' : 'Focus on engagement and brand storytelling.'}
+                 ${contentType === 'paid_ad' || aiSettings?.campaignType === 'paid_ad' ? 'Include a compelling offer and clear call-to-action for paid advertising.' : 'Focus on engagement and brand storytelling.'}
                  
                  IMPORTANT: The content must directly relate to the campaign description: "${campaignData.description}"`;
 
@@ -128,7 +128,21 @@ export async function generateImageContent(
   const tone = aiSettings?.tone || 'professional';
   
   // Create a detailed, specific prompt for RunwayML that follows the campaign description
-  const imagePrompt = `Create a ${tone} marketing image for ${campaignData.brand_name} campaign "${campaignData.title}". Campaign focus: ${campaignData.description || 'Premium brand experience'}. Target audience: ${campaignData.target_audience || 'general audience'}. Visual style: ${tone === 'professional' ? 'Clean, corporate, modern business aesthetic' : tone === 'casual' ? 'Friendly, approachable, lifestyle-focused' : tone === 'enthusiastic' ? 'Energetic, vibrant, dynamic' : tone === 'humorous' ? 'Playful, fun, entertaining' : 'Modern, professional, sleek design'}. High-quality, ${platform === 'instagram' ? 'square format' : 'horizontal format'}, social media optimized. Keywords: ${aiSettings?.keywords || 'quality, innovation'}`;
+  const imagePrompt = `Create a high-quality marketing image for "${campaignData.title}" by ${campaignData.brand_name}. 
+  
+  CAMPAIGN DESCRIPTION (MUST FOLLOW CLOSELY): ${campaignData.description || 'Premium brand experience'}
+  
+  Visual requirements:
+  - Style: ${tone === 'professional' ? 'Clean, corporate, modern business aesthetic with professional lighting' : tone === 'casual' ? 'Friendly, approachable, lifestyle-focused with warm natural lighting' : tone === 'enthusiastic' ? 'Energetic, vibrant, dynamic with bold colors and movement' : tone === 'humorous' ? 'Playful, fun, entertaining with bright cheerful elements' : 'Modern, sleek design with premium feel'}
+  - Target audience: ${campaignData.target_audience || 'general audience'}
+  - Platform: ${platform} optimized ${platform === 'instagram' ? 'square 1:1 ratio' : 'horizontal 16:9 ratio'}
+  - Brand: ${campaignData.brand_name} branding elements
+  - Keywords to incorporate visually: ${aiSettings?.keywords || 'quality, innovation'}
+  - Content type: ${contentType} marketing material
+  
+  The image MUST visually represent: "${campaignData.description}"
+  
+  High resolution, professional photography style, commercial quality, ${tone} mood and lighting.`;
 
   try {
     console.log('Generating image with RunwayML, prompt:', imagePrompt);
@@ -196,7 +210,23 @@ export async function generateVideoContent(
   const tone = aiSettings?.tone || 'professional';
   
   // Create specific video prompt for RunwayML (5 seconds as requested)
-  const videoPrompt = `Create a 5-second ${tone} marketing video for ${campaignData.brand_name} campaign "${campaignData.title}". Campaign focus: ${campaignData.description || 'Premium brand experience'}. Target: ${campaignData.target_audience || 'general audience'}. Video style: ${tone === 'professional' ? 'Corporate, clean, business-focused' : tone === 'casual' ? 'Friendly, lifestyle, approachable' : tone === 'enthusiastic' ? 'Energetic, dynamic, exciting' : tone === 'humorous' ? 'Playful, entertaining, fun' : 'Modern, engaging, professional'}. Duration: 5 seconds, aspect ratio: 16:9, high-definition. Keywords: ${aiSettings?.keywords || 'quality, innovation'}`;
+  const videoPrompt = `Create a 5-second high-quality marketing video for "${campaignData.title}" by ${campaignData.brand_name}.
+  
+  CAMPAIGN DESCRIPTION (MUST FOLLOW CLOSELY): ${campaignData.description || 'Premium brand experience'}
+  
+  Video requirements:
+  - Duration: exactly 5 seconds
+  - Style: ${tone === 'professional' ? 'Corporate, clean, business-focused with smooth camera movements' : tone === 'casual' ? 'Friendly, lifestyle, approachable with natural movements' : tone === 'enthusiastic' ? 'Energetic, dynamic, exciting with quick cuts and vibrant colors' : tone === 'humorous' ? 'Playful, entertaining, fun with unexpected elements' : 'Modern, engaging, professional with cinematic quality'}
+  - Target audience: ${campaignData.target_audience || 'general audience'}
+  - Platform: ${platform} optimized
+  - Aspect ratio: 16:9 HD
+  - Brand: ${campaignData.brand_name} elements
+  - Content type: ${contentType} video
+  - Keywords: ${aiSettings?.keywords || 'quality, innovation'}
+  
+  The video MUST visually demonstrate: "${campaignData.description}"
+  
+  Cinematic quality, professional lighting, ${tone} pacing and energy.`;
 
   try {
     console.log('Generating video with RunwayML, prompt:', videoPrompt);

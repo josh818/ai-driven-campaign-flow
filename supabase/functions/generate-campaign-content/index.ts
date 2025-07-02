@@ -28,19 +28,40 @@ serve(async (req) => {
     const requestBody = await req.json();
     console.log('Request body received:', JSON.stringify(requestBody, null, 2));
 
-    const { 
-      campaignData, 
-      contentRequests, 
-      aiSettings 
-    }: {
-      campaignData: CampaignData;
-      contentRequests: Array<{
-        platform: string;
-        contentType: string;
-        mediaType: string;
-      }>;
-      aiSettings: AISettings;
-    } = requestBody;
+    // Handle both legacy format and new format
+    let campaignData: CampaignData;
+    let contentRequests: Array<{ platform: string; contentType: string; mediaType: string; }>;
+    let aiSettings: AISettings;
+
+    if (requestBody.campaignData && requestBody.aiSettings) {
+      // Legacy format from CreateCampaign page
+      campaignData = requestBody.campaignData;
+      aiSettings = requestBody.aiSettings;
+      
+      // Convert AI settings to content requests
+      contentRequests = [];
+      const platforms = [aiSettings.platform || 'social'];
+      const contentTypes = aiSettings.contentType === 'all' 
+        ? ['copy', 'image', 'video', 'email'] 
+        : [aiSettings.contentType];
+      
+      for (const platform of platforms) {
+        for (const contentType of contentTypes) {
+          let mediaType = contentType;
+          if (contentType === 'copy') mediaType = 'text';
+          contentRequests.push({
+            platform,
+            contentType,
+            mediaType
+          });
+        }
+      }
+    } else {
+      // New format
+      campaignData = requestBody.campaignData;
+      contentRequests = requestBody.contentRequests;
+      aiSettings = requestBody.aiSettings;
+    }
 
     if (!campaignData || !contentRequests) {
       throw new Error('Missing required campaign data or content requests');
