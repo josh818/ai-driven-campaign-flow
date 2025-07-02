@@ -47,7 +47,9 @@ const CreateCampaign = () => {
     platform: '',
     tone: '',
     keywords: '',
-    campaignType: 'organic'
+    campaignType: 'organic',
+    imagePrompt: '',
+    videoPrompt: ''
   });
 
   const handleGenerateContent = async () => {
@@ -63,7 +65,9 @@ const CreateCampaign = () => {
     setIsGeneratingContent(true);
     
     try {
-      // Call the actual Supabase Edge Function with improved data structure
+      console.log('Starting content generation with enhanced prompts...');
+      
+      // Call the actual Supabase Edge Function with optimized data structure
       const { data, error } = await supabase.functions.invoke('generate-campaign-content', {
         body: {
           campaignData: {
@@ -74,9 +78,33 @@ const CreateCampaign = () => {
             target_audience: formData.target_audience,
             campaign_goals: formData.campaign_goals
           },
+          contentRequests: [
+            {
+              platform: aiFormData.platform || 'social',
+              contentType: 'copy',
+              mediaType: 'text'
+            },
+            {
+              platform: aiFormData.platform || 'social',
+              contentType: 'image',
+              mediaType: 'image'
+            },
+            {
+              platform: aiFormData.platform || 'social',
+              contentType: 'video',
+              mediaType: 'video'
+            },
+            {
+              platform: 'email',
+              contentType: 'email',
+              mediaType: 'text'
+            }
+          ],
           aiSettings: {
             ...aiFormData,
-            contentType: aiFormData.contentType || 'all'
+            contentType: aiFormData.contentType || 'all',
+            customImagePrompt: aiFormData.imagePrompt,
+            customVideoPrompt: aiFormData.videoPrompt
           }
         }
       });
@@ -260,25 +288,36 @@ const CreateCampaign = () => {
                   platform: aiFormData.platform || 'social',
                   contentType: 'video',
                   mediaType: 'video'
+                },
+                {
+                  platform: 'email',
+                  contentType: 'email',
+                  mediaType: 'text'
                 }
               ],
               aiSettings: {
                 ...aiFormData,
-                contentType: aiFormData.contentType || 'all'
+                contentType: aiFormData.contentType || 'all',
+                customImagePrompt: aiFormData.imagePrompt,
+                customVideoPrompt: aiFormData.videoPrompt
               }
             }
           });
 
           if (genError) {
             console.error('Content generation error:', genError);
+            toast({
+              title: "Campaign Created",
+              description: "Campaign created, but content generation had issues. You can generate content later.",
+              variant: "destructive"
+            });
           } else {
             console.log('Content generated successfully:', data);
+            toast({
+              title: "Campaign Created Successfully!",
+              description: "Your campaign has been created with AI-generated content including copy, images, and videos.",
+            });
           }
-          
-          toast({
-            title: "Campaign Created Successfully!",
-            description: "Your campaign has been created with AI-generated content.",
-          });
         } catch (contentError) {
           console.error('Error generating content:', contentError);
           toast({
