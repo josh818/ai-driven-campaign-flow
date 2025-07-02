@@ -35,6 +35,7 @@ const CreateCampaign = () => {
     target_audience: '',
     campaign_goals: [] as string[],
     budget: '',
+    budget_type: 'campaign_budget',
     start_date: '',
     end_date: '',
     campaign_type: 'organic'
@@ -308,6 +309,13 @@ const CreateCampaign = () => {
     }));
   };
 
+  const handleBudgetTypeChange = (value: string) => {
+    setFormData(prev => ({
+      ...prev,
+      budget_type: value
+    }));
+  };
+
   const handleAIFormChange = (field: string, value: string) => {
     setAiFormData(prev => ({
       ...prev,
@@ -364,6 +372,7 @@ const CreateCampaign = () => {
                 <BudgetScheduleForm
                   formData={formData}
                   onChange={handleInputChange}
+                  onBudgetTypeChange={handleBudgetTypeChange}
                 />
               )}
             </CardContent>

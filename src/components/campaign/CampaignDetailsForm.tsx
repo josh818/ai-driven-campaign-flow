@@ -47,17 +47,22 @@ const CampaignDetailsForm = ({ formData, onChange, onGoalsChange, onCampaignType
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="campaign_type">Campaign Type</Label>
+        <Label htmlFor="campaign_type">Campaign Type *</Label>
         <Select value={formData.campaign_type || 'organic'} onValueChange={onCampaignTypeChange}>
-          <SelectTrigger>
+          <SelectTrigger className="w-full">
             <SelectValue placeholder="Select campaign type" />
           </SelectTrigger>
-          <SelectContent>
+          <SelectContent className="bg-white border border-gray-200 shadow-lg z-50">
             <SelectItem value="organic">Organic Content</SelectItem>
             <SelectItem value="paid_ad">Paid Advertisement</SelectItem>
             <SelectItem value="promoted">Promoted Post</SelectItem>
           </SelectContent>
         </Select>
+        <p className="text-sm text-gray-500">
+          {formData.campaign_type === 'paid_ad' ? '📊 Budget and scheduling options will appear below' : 
+           formData.campaign_type === 'promoted' ? '🚀 Promoted content settings' : 
+           '🌱 No budget required for organic content'}
+        </p>
       </div>
 
       <div className="space-y-2">
