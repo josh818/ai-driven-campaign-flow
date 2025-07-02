@@ -9,7 +9,7 @@ export async function generateGeminiImage(prompt: string, retries = 2) {
 
   for (let i = 0; i <= retries; i++) {
     try {
-      // Use Gemini's Imagen API for high-quality image generation
+      // Use Gemini's latest API endpoint for image generation
       const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/imagen-3.0-generate-001:generateImage?key=${geminiApiKey}`, {
         method: 'POST',
         headers: {
@@ -27,7 +27,7 @@ export async function generateGeminiImage(prompt: string, retries = 2) {
           ],
           generationConfig: {
             aspectRatio: "1:1",
-            negativePrompt: "blurry, low quality, distorted, watermark, text overlay",
+            negativePrompt: "blurry, low quality, distorted, watermark, text overlay, duplicate, old video",
             seed: Math.floor(Math.random() * 1000000),
             guidanceScale: 7.0,
             outputMimeType: "image/png"
@@ -79,7 +79,7 @@ export async function generateGeminiVideo(prompt: string, retries = 2) {
 
   for (let i = 0; i <= retries; i++) {
     try {
-      // Use Gemini's Veo API for 5-second video generation
+      // Use Gemini's latest video API for 10-second video generation
       const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/veo-001:generateVideo?key=${geminiApiKey}`, {
         method: 'POST',
         headers: {
@@ -87,7 +87,7 @@ export async function generateGeminiVideo(prompt: string, retries = 2) {
         },
         body: JSON.stringify({
           prompt: {
-            text: `${prompt} Duration: exactly 5 seconds. High quality commercial video.`
+            text: `${prompt} Duration: exactly 10 seconds or less. High quality commercial video, modern, professional.`
           },
           safetySettings: [
             {
@@ -96,12 +96,12 @@ export async function generateGeminiVideo(prompt: string, retries = 2) {
             }
           ],
           generationConfig: {
-            duration: "5s",
+            duration: "10s",
             aspectRatio: "16:9",
             resolution: "720p",
             frameRate: 24,
             seed: Math.floor(Math.random() * 1000000),
-            negativePrompt: "shaky camera, poor lighting, low quality, watermark",
+            negativePrompt: "shaky camera, poor lighting, low quality, watermark, long video, old footage",
             outputMimeType: "video/mp4"
           }
         }),

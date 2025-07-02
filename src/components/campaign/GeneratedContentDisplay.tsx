@@ -9,6 +9,8 @@ interface GeneratedContent {
   content: string;
   platform?: string;
   mediaUrl?: string;
+  contentType?: string;
+  mediaType?: string;
 }
 
 interface GeneratedContentDisplayProps {
@@ -63,18 +65,56 @@ const GeneratedContentDisplay = ({ content }: GeneratedContentDisplayProps) => {
 
   if (content.length === 0) return null;
 
-  // Group content by category
-  const organicSocialPosts = content.filter(item => 
-    item.type === 'copy' && item.platform && ['facebook', 'instagram', 'twitter', 'linkedin'].includes(item.platform)
-  );
+  // Group and combine content by platform for integrated posts
+  const platformGroups = content.reduce((groups, item) => {
+    const platform = item.platform || 'general';
+    
+    if (platform === 'email') {
+      if (!groups.email) groups.email = [];
+      groups.email.push(item);
+    } else if (['facebook', 'instagram', 'twitter', 'linkedin'].includes(platform)) {
+      if (!groups.social) groups.social = {};
+      if (!groups.social[platform]) groups.social[platform] = [];
+      groups.social[platform].push(item);
+    }
+    
+    return groups;
+  }, {} as any);
+
+  // Create integrated posts for each social platform
+  const organicSocialPosts = [];
+  if (platformGroups.social) {
+    Object.entries(platformGroups.social).forEach(([platform, items]: [string, any[]]) => {
+      const copyItem = items.find(item => item.mediaType === 'text' || item.type === 'copy');
+      const imageItems = items.filter(item => item.mediaType === 'image' || item.type === 'image');
+      const videoItems = items.filter(item => item.mediaType === 'video' || item.type === 'video');
+      
+      // Create post with copy + image
+      if (copyItem && imageItems.length > 0) {
+        organicSocialPosts.push({
+          ...copyItem,
+          mediaUrl: imageItems[0].mediaUrl,
+          mediaType: 'image'
+        });
+      }
+      
+      // Create post with copy + video  
+      if (copyItem && videoItems.length > 0) {
+        organicSocialPosts.push({
+          ...copyItem,
+          mediaUrl: videoItems[0].mediaUrl,
+          mediaType: 'video'
+        });
+      }
+      
+      // If only copy exists, add it anyway
+      if (copyItem && imageItems.length === 0 && videoItems.length === 0) {
+        organicSocialPosts.push(copyItem);
+      }
+    });
+  }
   
-  const paidSocialAds = content.filter(item => 
-    (item.type === 'image' || item.type === 'video') && item.platform && ['facebook', 'instagram', 'twitter', 'linkedin'].includes(item.platform)
-  );
-  
-  const emailContent = content.filter(item => 
-    item.type === 'email' || item.platform === 'email'
-  );
+  const emailContent = platformGroups.email || [];
 
   const renderSocialMediaPost = (item: GeneratedContent, index: number) => {
     const platform = item.platform?.toLowerCase();
@@ -195,7 +235,7 @@ const GeneratedContentDisplay = ({ content }: GeneratedContentDisplayProps) => {
           {/* Media */}
           {item.mediaUrl && (
             <div className="px-0">
-              {item.type === 'video' ? (
+              {item.mediaType === 'video' ? (
                 <div className="relative bg-black rounded-lg overflow-hidden">
                   <video 
                     controls 
@@ -346,17 +386,6 @@ const GeneratedContentDisplay = ({ content }: GeneratedContentDisplayProps) => {
         </div>
       )}
 
-      {/* Paid Social Ads Section */}
-      {paidSocialAds.length > 0 && (
-        <div className="space-y-4">
-          <h4 className="text-lg font-semibold text-purple-600 border-b border-purple-200 pb-2">
-            🎯 Paid Social Ads
-          </h4>
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {paidSocialAds.map((item, index) => renderSocialMediaPost(item, index))}
-          </div>
-        </div>
-      )}
     </div>
   );
 };

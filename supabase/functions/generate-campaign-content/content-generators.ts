@@ -213,20 +213,21 @@ export async function generateVideoContent(
 ): Promise<{ content: string; mediaUrl: string }> {
   const tone = aiSettings?.tone || 'professional';
   
-  // Create a 5-second video concept for the campaign
-  const videoPrompt = `5-second marketing video concept for "${campaignData.title}" by ${campaignData.brand_name}.
+  // Create a 10-second video concept for the campaign
+  const videoPrompt = `10-second professional marketing video for "${campaignData.title}" by ${campaignData.brand_name}.
 
-CAMPAIGN: ${campaignData.description || 'Premium brand experience'}
+CAMPAIGN FOCUS: ${campaignData.description || 'Premium brand experience'}
 
-Video Style: ${tone === 'professional' ? 'Corporate presentation, smooth camera work, office/business setting, clean transitions' : tone === 'casual' ? 'Lifestyle video, handheld feel, everyday settings, natural lighting' : tone === 'enthusiastic' ? 'High-energy montage, quick cuts, vibrant scenes, upbeat pacing' : tone === 'humorous' ? 'Comedy sketch style, playful scenarios, bright colorful setting' : 'Cinematic commercial, professional grade, dramatic lighting'}
+Visual Style: ${tone === 'professional' ? 'Corporate presentation, smooth camera work, office/business setting, clean transitions, product focus' : tone === 'casual' ? 'Lifestyle video, natural feel, everyday settings, warm lighting, people-focused' : tone === 'enthusiastic' ? 'High-energy montage, dynamic cuts, vibrant scenes, upbeat pacing' : tone === 'humorous' ? 'Comedy sketch style, playful scenarios, bright colorful setting' : 'Cinematic commercial, professional grade, dramatic lighting'}
 
-Duration: Exactly 5 seconds
-Platform: ${platform} social media
-Target: ${campaignData.target_audience || 'general audience'}
-Format: 16:9 horizontal video
-Keywords: ${aiSettings?.keywords || 'quality, innovation'}
+Duration: Maximum 10 seconds
+Platform: ${platform} social media optimized
+Target Audience: ${campaignData.target_audience || 'general audience'}
+Video Format: 16:9 horizontal, high quality
+Content Focus: ${campaignData.description}
+Keywords to highlight: ${aiSettings?.keywords || 'quality, innovation'}
 
-The video must showcase: "${campaignData.description}"`;
+${aiSettings?.videoPrompt ? `Custom Direction: ${aiSettings.videoPrompt}` : ''}`;
 
   try {
     console.log('Generating video concept for:', videoPrompt);
@@ -234,8 +235,36 @@ The video must showcase: "${campaignData.description}"`;
     // For now, we'll generate a detailed video script since Gemini video API requires special access
     // and create a placeholder video URL
       
-    // Generate detailed video script using OpenAI
-    const scriptPrompt = `Create a detailed 5-second video production script for ${campaignData.brand_name}'s "${campaignData.title}" campaign.
+    // Try Gemini for video generation first
+    try {
+      console.log('Attempting Gemini video generation...');
+      const { generateGeminiVideo } = await import('./gemini-client.ts');
+      const geminiVideoResponse = await generateGeminiVideo(videoPrompt);
+      
+      if (geminiVideoResponse && geminiVideoResponse.ok) {
+        const videoData = await geminiVideoResponse.json();
+        console.log('Gemini video generation successful:', videoData);
+        
+        let videoUrl = '';
+        if (videoData.url) {
+          videoUrl = videoData.url;
+        } else if (videoData.candidates && videoData.candidates[0] && videoData.candidates[0].video) {
+          videoUrl = videoData.candidates[0].video;
+        }
+        
+        if (videoUrl) {
+          return {
+            content: `🎬 10-SECOND AI VIDEO: "${campaignData.title}" - ${campaignData.description} (Generated with Gemini)`,
+            mediaUrl: videoUrl
+          };
+        }
+      }
+    } catch (geminiError) {
+      console.log('Gemini video generation failed, creating script instead:', geminiError);
+    }
+      
+    // Generate detailed video script as fallback using OpenAI
+    const scriptPrompt = `Create a detailed 10-second video production script for ${campaignData.brand_name}'s "${campaignData.title}" campaign.
 
 Campaign Description: ${campaignData.description || 'Premium brand experience'}
 Target Audience: ${campaignData.target_audience || 'general audience'}
@@ -243,11 +272,12 @@ Tone: ${tone}
 Platform: ${platform}
 Content Type: ${contentType}
 Keywords: ${aiSettings?.keywords || 'quality, innovation'}
+${aiSettings?.videoPrompt ? `Custom Direction: ${aiSettings.videoPrompt}` : ''}
 
-Script Structure (5 seconds total):
-- Hook/Opening (0-2 seconds): Eye-catching visual that stops scrolling
-- Core Message (2-4 seconds): Main campaign message and value proposition  
-- Call-to-Action (4-5 seconds): Clear next step or engagement prompt
+Script Structure (10 seconds total):
+- Hook/Opening (0-3 seconds): Eye-catching visual that stops scrolling
+- Core Message (3-7 seconds): Main campaign message and value proposition  
+- Call-to-Action (7-10 seconds): Clear next step or engagement prompt
 
 Include shot descriptions, camera movements, text overlays, music/sound suggestions, and visual elements that represent the campaign description.`;
 
@@ -261,7 +291,7 @@ Include shot descriptions, camera movements, text overlays, music/sound suggesti
       max_tokens: 600,
     });
 
-    let scriptContent = `🎬 5-SECOND VIDEO SCRIPT: "${campaignData.title}"\n\n`;
+    let scriptContent = `🎬 10-SECOND VIDEO SCRIPT: "${campaignData.title}"\n\n`;
     
     if (scriptResponse && scriptResponse.ok) {
       const scriptData = await scriptResponse.json();
@@ -275,18 +305,19 @@ CAMPAIGN: ${campaignData.title}
 TONE: ${tone}
 
 SCRIPT BREAKDOWN:
-⏰ 0-2s: ${tone === 'enthusiastic' ? 'Quick zoom on product with energetic music' : tone === 'professional' ? 'Clean product shot with corporate music' : 'Lifestyle scene showing product in use'}
-⏰ 2-4s: "${campaignData.description || 'Experience the difference'}"
-⏰ 4-5s: "${contentType === 'paid_ad' ? 'Shop now!' : 'Learn more'}"
+⏰ 0-3s: ${tone === 'enthusiastic' ? 'Quick zoom on product with energetic music' : tone === 'professional' ? 'Clean product shot with corporate music' : 'Lifestyle scene showing product in use'}
+⏰ 3-7s: "${campaignData.description || 'Experience the difference'}"
+⏰ 7-10s: "${contentType === 'paid_ad' ? 'Shop now!' : 'Learn more'}"
 
 VISUAL STYLE: ${tone} mood, professional lighting, ${platform} optimized
-KEYWORDS: ${aiSettings?.keywords || 'quality, innovation'}`;
+KEYWORDS: ${aiSettings?.keywords || 'quality, innovation'}
+${aiSettings?.videoPrompt ? `CUSTOM DIRECTION: ${aiSettings.videoPrompt}` : ''}`;
     }
 
-    // Use a short 5-second video placeholder that's appropriate for social media
+    // Use a short 10-second video placeholder that's appropriate for social media
     const socialVideoPlaceholders = [
-      'https://sample-videos.com/zip/10/mp4/SampleVideo_360x240_1mb.mp4',
-      'https://filesamples.com/samples/video/mp4/SampleVideo_360x240_5mb.mp4'
+      'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4',
+      'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerEscapes.mp4'
     ];
     
     const selectedVideo = socialVideoPlaceholders[Math.floor(Math.random() * socialVideoPlaceholders.length)];
@@ -312,27 +343,28 @@ KEYWORDS: ${aiSettings?.keywords || 'quality, innovation'}`;
 🏢 BRAND: ${campaignData.brand_name}
 🎯 TONE: ${tone} (${toneDirection})
 📱 PLATFORM: ${platform}
-⏱️ DURATION: 5 seconds
+⏱️ DURATION: 10 seconds maximum
 
 📋 SCRIPT BREAKDOWN:
 
-🎣 HOOK (0-2s): 
+🎣 HOOK (0-3s): 
 "${tone === 'casual' ? 'Hey! Check this out...' : 
     tone === 'enthusiastic' ? 'This is AMAZING!' :
     tone === 'humorous' ? 'You won\'t believe this...' :
     'Introducing something special...'}"
 
-💡 CORE MESSAGE (2-4s):
+💡 CORE MESSAGE (3-7s):
 "${campaignData.description || 'Experience the difference with our premium solution'}"
 Target: ${campaignData.target_audience || 'Perfect for everyone'}
 
-📞 CTA (4-5s): 
+📞 CTA (7-10s): 
 "${contentType === 'paid_ad' ? 'Get yours now!' : 'Learn more today!'}"
 
 🎵 AUDIO: ${toneDirection} background music
 📝 KEYWORDS: ${aiSettings?.keywords || 'quality, innovation'}
+${aiSettings?.videoPrompt ? `🎨 CUSTOM: ${aiSettings.videoPrompt}` : ''}
 ✨ Platform optimized for ${platform}`,
-      mediaUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4'
+      mediaUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerFun.mp4'
     };
   }
 }

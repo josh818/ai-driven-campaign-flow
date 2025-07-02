@@ -204,20 +204,14 @@ const AIContentSettings = ({
         </p>
       </div>
 
-      {/* Advanced Settings */}
+      {/* Advanced Settings - Now Always Visible */}
       <div className="space-y-4 mb-6">
-        <Button
-          type="button"
-          variant="outline"
-          onClick={() => setShowAdvanced(!showAdvanced)}
-          className="w-full flex items-center justify-center space-x-2"
-        >
-          {showAdvanced ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
-          <span>{showAdvanced ? 'Hide' : 'Show'} Advanced Prompting</span>
-        </Button>
+        <div className="flex items-center space-x-2 mb-4">
+          <Wand2 className="h-5 w-5 text-purple-600" />
+          <h5 className="text-lg font-semibold">Custom AI Prompts</h5>
+        </div>
 
-        {showAdvanced && (
-          <div className="space-y-4 p-4 border rounded-lg bg-gray-50">
+        <div className="space-y-4 p-4 border rounded-lg bg-gradient-to-r from-blue-50 to-purple-50">
             <div className="space-y-3">
               <Label htmlFor="imagePrompt" className="flex items-center space-x-2">
                 <Image className="h-4 w-4" />
@@ -254,7 +248,6 @@ const AIContentSettings = ({
               </p>
             </div>
           </div>
-        )}
       </div>
 
       {/* Pro Tips */}
