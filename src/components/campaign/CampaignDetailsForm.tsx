@@ -2,6 +2,7 @@
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 interface CampaignDetailsFormProps {
   formData: {
@@ -9,12 +10,14 @@ interface CampaignDetailsFormProps {
     title: string;
     description: string;
     campaign_goals: string[];
+    campaign_type?: string;
   };
   onChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
   onGoalsChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  onCampaignTypeChange: (value: string) => void;
 }
 
-const CampaignDetailsForm = ({ formData, onChange, onGoalsChange }: CampaignDetailsFormProps) => {
+const CampaignDetailsForm = ({ formData, onChange, onGoalsChange, onCampaignTypeChange }: CampaignDetailsFormProps) => {
   return (
     <div className="space-y-4">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -41,6 +44,20 @@ const CampaignDetailsForm = ({ formData, onChange, onGoalsChange }: CampaignDeta
             required
           />
         </div>
+      </div>
+
+      <div className="space-y-2">
+        <Label htmlFor="campaign_type">Campaign Type</Label>
+        <Select value={formData.campaign_type || 'organic'} onValueChange={onCampaignTypeChange}>
+          <SelectTrigger>
+            <SelectValue placeholder="Select campaign type" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="organic">Organic Content</SelectItem>
+            <SelectItem value="paid_ad">Paid Advertisement</SelectItem>
+            <SelectItem value="promoted">Promoted Post</SelectItem>
+          </SelectContent>
+        </Select>
       </div>
 
       <div className="space-y-2">

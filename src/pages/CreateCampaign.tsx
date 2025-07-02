@@ -36,7 +36,8 @@ const CreateCampaign = () => {
     campaign_goals: [] as string[],
     budget: '',
     start_date: '',
-    end_date: ''
+    end_date: '',
+    campaign_type: 'organic'
   });
 
   // AI content generation data
@@ -286,6 +287,18 @@ const CreateCampaign = () => {
     }));
   };
 
+  const handleCampaignTypeChange = (value: string) => {
+    setFormData(prev => ({
+      ...prev,
+      campaign_type: value
+    }));
+    // Also update aiFormData to keep them in sync
+    setAiFormData(prev => ({
+      ...prev,
+      campaignType: value
+    }));
+  };
+
   const handleAIFormChange = (field: string, value: string) => {
     setAiFormData(prev => ({
       ...prev,
@@ -326,6 +339,7 @@ const CreateCampaign = () => {
                 formData={formData}
                 onChange={handleInputChange}
                 onGoalsChange={handleGoalsChange}
+                onCampaignTypeChange={handleCampaignTypeChange}
               />
 
               <AIContentSettings
