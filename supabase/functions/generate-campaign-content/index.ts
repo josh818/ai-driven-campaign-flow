@@ -110,8 +110,10 @@ serve(async (req) => {
 
         generatedContent.push(generatedItem);
         
-        // Save to database
-        await saveCampaignContent(supabase, campaignData.id, generatedItem);
+        // Save to database only if we have a valid campaign ID
+        if (campaignData.id) {
+          await saveCampaignContent(supabase, campaignData.id, generatedItem);
+        }
         
         console.log(`Successfully generated and saved ${request.mediaType} content for ${request.platform}`);
       } catch (error) {

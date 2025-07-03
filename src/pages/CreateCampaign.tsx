@@ -16,6 +16,7 @@ import ContentCreationSteps from '@/components/campaign/ContentCreationSteps';
 import EnhancedEmailPreview from '@/components/campaign/EnhancedEmailPreview';
 import EnhancedSocialPreview from '@/components/campaign/EnhancedSocialPreview';
 import PaidAdSettings from '@/components/campaign/PaidAdSettings';
+import ContentGenerationModal from '@/components/campaign/ContentGenerationModal';
 
 interface GeneratedContent {
   type: 'copy' | 'image' | 'video' | 'email';
@@ -31,6 +32,12 @@ const CreateCampaign = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [isGeneratingContent, setIsGeneratingContent] = useState(false);
   const [generatedContent, setGeneratedContent] = useState<GeneratedContent[]>([]);
+  const [generationProgress, setGenerationProgress] = useState({
+    current: 0,
+    total: 0,
+    step: '',
+    errors: [] as string[]
+  });
   
   // Campaign form data
   const [formData, setFormData] = useState({
@@ -158,8 +165,31 @@ const CreateCampaign = () => {
 
     setIsGeneratingContent(true);
     
+    // Calculate total expected content pieces
+    const expectedPieces = (() => {
+      let total = 0;
+      contentSettings.platforms.forEach(platform => {
+        contentSettings.contentTypes.forEach(type => {
+          if (platform === 'email' && type !== 'copy' && type !== 'email') return;
+          total++;
+        });
+      });
+      return total;
+    })();
+    
+    setGenerationProgress({
+      current: 0,
+      total: expectedPieces,
+      step: 'Initializing AI content generation...',
+      errors: []
+    });
     try {
       console.log('Starting content generation with enhanced prompts...');
+      
+      setGenerationProgress(prev => ({
+        ...prev,
+        step: 'Sending requests to AI content generators...'
+      }));
       
       // Call the actual Supabase Edge Function with optimized data structure
       const { data, error } = await supabase.functions.invoke('generate-campaign-content', {
@@ -228,6 +258,11 @@ const CreateCampaign = () => {
       // Convert the response to our expected format
       const newContent: GeneratedContent[] = [];
       
+      setGenerationProgress(prev => ({
+        ...prev,
+        step: 'Processing generated content...'
+      }));
+      
       if (data.generatedContent && Array.isArray(data.generatedContent)) {
         data.generatedContent.forEach((item: any) => {
           if (item.mediaType === 'text' || item.mediaType === 'copy') {
@@ -262,6 +297,12 @@ const CreateCampaign = () => {
 
       setGeneratedContent(newContent);
       
+      setGenerationProgress(prev => ({
+        ...prev,
+        current: newContent.length,
+        step: 'Content generation completed!'
+      }));
+      
       toast({
         title: "Content Generated Successfully",
         description: `Generated ${newContent.length} professional content pieces using AI!`,
@@ -269,6 +310,10 @@ const CreateCampaign = () => {
       
     } catch (error: any) {
       console.error('Error generating content:', error);
+      setGenerationProgress(prev => ({
+        ...prev,
+        errors: [...prev.errors, error.message || 'Unknown error occurred']
+      }));
       toast({
         title: "Generation Failed",
         description: error.message || "Failed to generate content. Please try again.",
@@ -332,6 +377,11 @@ const CreateCampaign = () => {
       }
       
       setGeneratedContent(mockContent);
+      setGenerationProgress(prev => ({
+        ...prev,
+        current: mockContent.length,
+        step: 'Fallback content generated'
+      }));
     } finally {
       setIsGeneratingContent(false);
     }
@@ -465,7 +515,11 @@ const CreateCampaign = () => {
             variant: "destructive"
           });
         } finally {
-          setIsGeneratingContent(false);
+      setIsGeneratingContent(false);
+      // Keep modal open for a moment to show completion
+      setTimeout(() => {
+        setGenerationProgress({ current: 0, total: 0, step: '', errors: [] });
+      }, 2000);
         }
       } else {
         toast({
@@ -615,6 +669,15 @@ const CreateCampaign = () => {
             )}
           </Button>
         </form>
+
+        <ContentGenerationModal
+          isOpen={isGeneratingContent}
+          progress={(generationProgress.current / Math.max(generationProgress.total, 1)) * 100}
+          currentStep={generationProgress.step}
+          totalSteps={generationProgress.total}
+          completedSteps={generationProgress.current}
+          errors={generationProgress.errors}
+        />
       </div>
     </div>
   );
