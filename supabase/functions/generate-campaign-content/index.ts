@@ -99,9 +99,12 @@ serve(async (req) => {
             content = { content: await generateCopyContent(request.platform, request.contentType, campaignData, aiSettings) };
         }
 
+        // Ensure content_type is never null for database
+        const contentType = request.contentType || request.mediaType || 'social_post';
+        
         const generatedItem: GeneratedContent = {
           platform: request.platform,
-          contentType: request.contentType,
+          contentType: contentType,
           mediaType: request.mediaType,
           content: content.content,
           mediaUrl: content.mediaUrl || null,

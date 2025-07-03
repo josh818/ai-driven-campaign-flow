@@ -12,6 +12,9 @@ export async function generateCopyContent(
   const tone = aiSettings?.tone || 'professional';
   const isEmail = platform === 'email';
   
+  // Use Gemini API first, fallback to OpenAI
+  const geminiApiKey = Deno.env.get('GEMINI_API_KEY');
+  
   const prompt = `Create ${contentType} ${isEmail ? 'email' : 'copy'} for ${platform} for the campaign "${campaignData.title}" by ${campaignData.brand_name}.
                  
                  CAMPAIGN DETAILS TO FOLLOW CLOSELY:
@@ -50,8 +53,40 @@ export async function generateCopyContent(
                  IMPORTANT: The content must directly relate to the campaign description: "${campaignData.description}"`;
 
   try {
+    // Try Gemini first
+    if (geminiApiKey) {
+      console.log('Trying Gemini for copy generation...');
+      const geminiResponse = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${geminiApiKey}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          contents: [{
+            parts: [{
+              text: `You are an expert marketing copywriter. Create ${tone} content that directly relates to the campaign description provided. Always match the requested tone exactly.\n\n${prompt}`
+            }]
+          }],
+          generationConfig: {
+            temperature: tone === 'casual' ? 0.8 : tone === 'enthusiastic' ? 0.9 : 0.7,
+            maxOutputTokens: isEmail ? 800 : 500,
+          }
+        }),
+      });
+
+      if (geminiResponse.ok) {
+        const geminiData = await geminiResponse.json();
+        if (geminiData.candidates && geminiData.candidates[0] && geminiData.candidates[0].content) {
+          console.log('Gemini copy generation successful');
+          return geminiData.candidates[0].content.parts[0].text;
+        }
+      }
+    }
+
+    // Fallback to OpenAI
+    console.log('Using OpenAI for copy generation...');
     const response = await makeOpenAIRequest('https://api.openai.com/v1/chat/completions', {
-      model: 'gpt-4o-mini',
+      model: 'gpt-4.1-2025-04-14',
       messages: [
         { role: 'system', content: `You are an expert marketing copywriter. Create ${tone} content that directly relates to the campaign description provided. Always match the requested tone exactly.` },
         { role: 'user', content: prompt }
@@ -145,16 +180,51 @@ High-resolution commercial photography, professional lighting, compelling compos
   try {
     console.log('Generating image with Gemini AI, prompt:', imagePrompt);
     
-    // Try multiple APIs in sequence to find the best one
+    // Try Gemini first with better error handling
     let imageResponse;
     let apiUsed = '';
     
     try {
       console.log('Trying Gemini API for image generation...');
-      imageResponse = await generateGeminiImage(imagePrompt);
-      apiUsed = 'Gemini';
+      const geminiApiKey = Deno.env.get('GEMINI_API_KEY');
+      if (geminiApiKey) {
+        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/imagen-3.0-generate-001:generateImage?key=${geminiApiKey}`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            prompt: {
+              text: imagePrompt
+            },
+            safetySettings: [{
+              category: "HARM_CATEGORY_DANGEROUS_CONTENT",
+              threshold: "BLOCK_MEDIUM_AND_ABOVE"
+            }],
+            generationConfig: {
+              aspectRatio: "1:1",
+              negativePrompt: "blurry, low quality, distorted, watermark, text overlay",
+              seed: Math.floor(Math.random() * 1000000)
+            }
+          }),
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          if (data.candidates && data.candidates[0] && data.candidates[0].image) {
+            const imageData = data.candidates[0].image;
+            const imageUrl = imageData.startsWith('data:') ? imageData : `data:image/png;base64,${imageData}`;
+            imageResponse = { ok: true, json: () => Promise.resolve({ url: imageUrl }) };
+            apiUsed = 'Gemini';
+          }
+        }
+      }
     } catch (geminiError) {
       console.log('Gemini failed, trying OpenAI:', geminiError);
+    }
+
+    // Fallback to OpenAI if Gemini failed
+    if (!imageResponse) {
       try {
         const { generateOpenAIImage } = await import('./openai-client.ts');
         imageResponse = await generateOpenAIImage(imagePrompt);
@@ -245,10 +315,58 @@ ${aiSettings?.videoPrompt ? `Custom Direction: ${aiSettings.videoPrompt}` : ''}`
   try {
     console.log('Generating 5-second video for:', videoPrompt);
     
-    // Try multiple video APIs to find one that works
+    // Try Gemini Video API first with proper implementation
     let videoResponse;
     let apiUsed = '';
     
+    try {
+      console.log('Attempting Gemini video generation...');
+      const geminiApiKey = Deno.env.get('GEMINI_API_KEY');
+      if (geminiApiKey) {
+        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/veo-001:generateVideo?key=${geminiApiKey}`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            prompt: {
+              text: `${videoPrompt} Duration: exactly 5 seconds. High quality commercial video, modern, professional.`
+            },
+            safetySettings: [{
+              category: "HARM_CATEGORY_DANGEROUS_CONTENT", 
+              threshold: "BLOCK_MEDIUM_AND_ABOVE"
+            }],
+            generationConfig: {
+              duration: "5s",
+              aspectRatio: "16:9",
+              resolution: "720p",
+              frameRate: 24,
+              seed: Math.floor(Math.random() * 1000000),
+              negativePrompt: "shaky camera, poor lighting, low quality, watermark",
+              outputMimeType: "video/mp4"
+            }
+          }),
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          console.log('Gemini video generation successful:', data);
+          
+          if (data.candidates && data.candidates[0] && data.candidates[0].video) {
+            const videoData = data.candidates[0].video;
+            const videoUrl = videoData.startsWith('data:') ? videoData : `data:video/mp4;base64,${videoData}`;
+            return {
+              content: `🎬 5-SECOND AI VIDEO: "${campaignData.title}" - ${campaignData.description} (Generated with Gemini)`,
+              mediaUrl: videoUrl
+            };
+          }
+        }
+      }
+    } catch (geminiError) {
+      console.log('Gemini video failed, trying RunwayML:', geminiError);
+    }
+
+    // Fallback to RunwayML
     try {
       console.log('Attempting RunwayML video generation...');
       const { generateRunwayMLVideo } = await import('./runwayml-client.ts');
@@ -263,7 +381,7 @@ ${aiSettings?.videoPrompt ? `Custom Direction: ${aiSettings.videoPrompt}` : ''}`
         if (videoData.url) {
           videoUrl = videoData.url;
         } else if (videoData.imageURL) {
-          videoUrl = videoData.imageURL; // Some APIs return imageURL for video
+          videoUrl = videoData.imageURL;
         }
         
         if (videoUrl) {
@@ -274,35 +392,7 @@ ${aiSettings?.videoPrompt ? `Custom Direction: ${aiSettings.videoPrompt}` : ''}`
         }
       }
     } catch (runwayError) {
-      console.log('RunwayML video failed, trying Gemini:', runwayError);
-      
-      try {
-        console.log('Attempting Gemini video generation...');
-        const { generateGeminiVideo } = await import('./gemini-client.ts');
-        const geminiVideoResponse = await generateGeminiVideo(videoPrompt);
-        apiUsed = 'Gemini';
-        
-        if (geminiVideoResponse && geminiVideoResponse.ok) {
-          const videoData = await geminiVideoResponse.json();
-          console.log('Gemini video generation successful:', videoData);
-          
-          let videoUrl = '';
-          if (videoData.url) {
-            videoUrl = videoData.url;
-          } else if (videoData.candidates && videoData.candidates[0] && videoData.candidates[0].video) {
-            videoUrl = videoData.candidates[0].video;
-          }
-          
-          if (videoUrl) {
-            return {
-              content: `🎬 5-SECOND AI VIDEO: "${campaignData.title}" - ${campaignData.description} (Generated with ${apiUsed})`,
-              mediaUrl: videoUrl
-            };
-          }
-        }
-      } catch (geminiError) {
-        console.log('All video APIs failed, falling back to placeholder:', geminiError);
-      }
+      console.log('All video APIs failed, falling back to placeholder:', runwayError);
     }
       
     // Generate detailed video script as fallback using OpenAI
