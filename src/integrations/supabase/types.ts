@@ -39,12 +39,17 @@ export type Database = {
       brand_mentions: {
         Row: {
           brand_name: string
+          competitor_mention: boolean | null
           confidence_score: number | null
           created_at: string
+          engagement_potential: number | null
           id: string
+          mention_category: string | null
           mention_text: string
           mentioned_at: string
           platform: string
+          processed_by_ai: boolean | null
+          relevance_score: string | null
           sentiment: string | null
           sentiment_score: number | null
           site_priority: number | null
@@ -54,12 +59,17 @@ export type Database = {
         }
         Insert: {
           brand_name: string
+          competitor_mention?: boolean | null
           confidence_score?: number | null
           created_at?: string
+          engagement_potential?: number | null
           id?: string
+          mention_category?: string | null
           mention_text: string
           mentioned_at: string
           platform: string
+          processed_by_ai?: boolean | null
+          relevance_score?: string | null
           sentiment?: string | null
           sentiment_score?: number | null
           site_priority?: number | null
@@ -69,12 +79,17 @@ export type Database = {
         }
         Update: {
           brand_name?: string
+          competitor_mention?: boolean | null
           confidence_score?: number | null
           created_at?: string
+          engagement_potential?: number | null
           id?: string
+          mention_category?: string | null
           mention_text?: string
           mentioned_at?: string
           platform?: string
+          processed_by_ai?: boolean | null
+          relevance_score?: string | null
           sentiment?: string | null
           sentiment_score?: number | null
           site_priority?: number | null
@@ -339,6 +354,36 @@ export type Database = {
         }
         Relationships: []
       }
+      competitor_keywords: {
+        Row: {
+          competitor_name: string
+          created_at: string | null
+          id: string
+          is_active: boolean | null
+          keywords: string[]
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          competitor_name: string
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          keywords?: string[]
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          competitor_name?: string
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          keywords?: string[]
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       email_templates: {
         Row: {
           category: string | null
@@ -408,6 +453,47 @@ export type Database = {
         }
         Relationships: []
       }
+      mention_notifications: {
+        Row: {
+          created_at: string | null
+          id: string
+          mention_id: string
+          notification_type: string
+          sent_at: string | null
+          slack_channel: string | null
+          user_id: string
+          webhook_url: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          mention_id: string
+          notification_type?: string
+          sent_at?: string | null
+          slack_channel?: string | null
+          user_id: string
+          webhook_url?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          mention_id?: string
+          notification_type?: string
+          sent_at?: string | null
+          slack_channel?: string | null
+          user_id?: string
+          webhook_url?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "mention_notifications_mention_id_fkey"
+            columns: ["mention_id"]
+            isOneToOne: false
+            referencedRelation: "brand_mentions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       monitored_terms: {
         Row: {
           created_at: string
@@ -428,6 +514,39 @@ export type Database = {
           id?: string
           term?: string
           updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      platform_coverage: {
+        Row: {
+          created_at: string | null
+          id: string
+          is_enabled: boolean | null
+          last_scan_at: string | null
+          platform_name: string
+          scan_frequency_hours: number | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          is_enabled?: boolean | null
+          last_scan_at?: string | null
+          platform_name: string
+          scan_frequency_hours?: number | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          is_enabled?: boolean | null
+          last_scan_at?: string | null
+          platform_name?: string
+          scan_frequency_hours?: number | null
+          updated_at?: string | null
           user_id?: string
         }
         Relationships: []
