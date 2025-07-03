@@ -78,28 +78,40 @@ const CreateCampaign = () => {
             target_audience: formData.target_audience,
             campaign_goals: formData.campaign_goals
           },
-          contentRequests: [
-            {
-              platform: aiFormData.platform || 'social',
-              contentType: 'copy',
-              mediaType: 'text'
-            },
-            {
-              platform: aiFormData.platform || 'social',
-              contentType: 'image',
-              mediaType: 'image'
-            },
-            {
-              platform: aiFormData.platform || 'social',
-              contentType: 'video',
-              mediaType: 'video'
-            },
-            {
+          contentRequests: (() => {
+            const requests = [];
+            const selectedPlatforms = aiFormData.platform === 'all' 
+              ? ['facebook', 'instagram', 'linkedin', 'twitter']
+              : [aiFormData.platform || 'facebook'];
+            
+            // Generate content for each social platform
+            selectedPlatforms.forEach(platform => {
+              requests.push({
+                platform: platform,
+                contentType: 'copy',
+                mediaType: 'text'
+              });
+              requests.push({
+                platform: platform,
+                contentType: 'image',
+                mediaType: 'image'
+              });
+              requests.push({
+                platform: platform,
+                contentType: 'video',
+                mediaType: 'video'
+              });
+            });
+            
+            // Always add email
+            requests.push({
               platform: 'email',
               contentType: 'email',
               mediaType: 'text'
-            }
-          ],
+            });
+            
+            return requests;
+          })(),
           aiSettings: {
             ...aiFormData,
             contentType: aiFormData.contentType || 'all',
@@ -273,28 +285,40 @@ const CreateCampaign = () => {
                 target_audience: campaign.target_audience,
                 campaign_goals: campaign.campaign_goals
               },
-              contentRequests: [
-                {
-                  platform: aiFormData.platform || 'social',
-                  contentType: 'copy',
-                  mediaType: 'text'
-                },
-                {
-                  platform: aiFormData.platform || 'social',
-                  contentType: 'image',
-                  mediaType: 'image'
-                },
-                {
-                  platform: aiFormData.platform || 'social',
-                  contentType: 'video',
-                  mediaType: 'video'
-                },
-                {
+              contentRequests: (() => {
+                const requests = [];
+                const selectedPlatforms = aiFormData.platform === 'all' 
+                  ? ['facebook', 'instagram', 'linkedin', 'twitter']
+                  : [aiFormData.platform || 'facebook'];
+                
+                // Generate content for each social platform
+                selectedPlatforms.forEach(platform => {
+                  requests.push({
+                    platform: platform,
+                    contentType: 'copy',
+                    mediaType: 'text'
+                  });
+                  requests.push({
+                    platform: platform,
+                    contentType: 'image',
+                    mediaType: 'image'
+                  });
+                  requests.push({
+                    platform: platform,
+                    contentType: 'video',
+                    mediaType: 'video'
+                  });
+                });
+                
+                // Always add email
+                requests.push({
                   platform: 'email',
                   contentType: 'email',
                   mediaType: 'text'
-                }
-              ],
+                });
+                
+                return requests;
+              })(),
               aiSettings: {
                 ...aiFormData,
                 contentType: aiFormData.contentType || 'all',
