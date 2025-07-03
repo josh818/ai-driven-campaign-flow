@@ -86,8 +86,15 @@ const Header = () => {
 
           <div className="flex items-center space-x-4">
             <Button variant="ghost" size="sm" asChild>
-              <Link to="/campaigns">
+              <Link to="/content-studio">
                 <PlusCircle className="h-4 w-4 mr-2" />
+                Content Studio
+              </Link>
+            </Button>
+
+            <Button variant="ghost" size="sm" asChild>
+              <Link to="/campaigns">
+                <BarChart3 className="h-4 w-4 mr-2" />
                 My Campaigns
               </Link>
             </Button>

@@ -12,6 +12,7 @@ import Auth from "./pages/Auth";
 import Onboarding from "./pages/Onboarding";
 import AdminDashboard from "./pages/AdminDashboard";
 import CreateCampaign from "./pages/CreateCampaign";
+import ContentStudio from "./pages/ContentStudio";
 import Campaigns from "./pages/Campaigns";
 import CampaignDetails from "./pages/CampaignDetails";
 import Calendar from "./pages/Calendar";
@@ -63,6 +64,13 @@ const App = () => (
               <ProtectedRoute>
                 <OnboardingGuard>
                   <CreateCampaign />
+                </OnboardingGuard>
+              </ProtectedRoute>
+            } />
+            <Route path="/content-studio" element={
+              <ProtectedRoute>
+                <OnboardingGuard>
+                  <ContentStudio />
                 </OnboardingGuard>
               </ProtectedRoute>
             } />
