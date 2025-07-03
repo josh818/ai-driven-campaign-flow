@@ -59,7 +59,7 @@ const CreateCampaign = () => {
   // Advanced content settings
   const [contentSettings, setContentSettings] = useState({
     platforms: ['facebook', 'instagram'],
-    contentTypes: ['copy', 'image'],
+    contentTypes: ['copy', 'image', 'email'],
     scheduling: {
       autoSchedule: false,
       timeSlots: [] as string[],
@@ -90,10 +90,10 @@ const CreateCampaign = () => {
   });
 
   const handleGenerateContent = async () => {
-    if (!formData.brand_name || !formData.title || !aiFormData.contentType) {
+    if (!brandData.brand_name || !formData.title || contentSettings.platforms.length === 0 || contentSettings.contentTypes.length === 0) {
       toast({
         title: "Missing Information",
-        description: "Please fill in brand, campaign, and content type.",
+        description: "Please fill in brand name, campaign title, select platforms and content types.",
         variant: "destructive"
       });
       return;
@@ -117,44 +117,51 @@ const CreateCampaign = () => {
           },
           contentRequests: (() => {
             const requests = [];
-            const selectedPlatforms = aiFormData.platform === 'all' 
-              ? ['facebook', 'instagram', 'linkedin', 'twitter']
-              : [aiFormData.platform || 'facebook'];
             
-            // Generate content for each social platform
-            selectedPlatforms.forEach(platform => {
+            // Generate content for each selected platform
+            contentSettings.platforms.forEach(platform => {
+              if (contentSettings.contentTypes.includes('copy')) {
+                requests.push({
+                  platform: platform,
+                  contentType: 'copy',
+                  mediaType: 'text'
+                });
+              }
+              if (contentSettings.contentTypes.includes('image')) {
+                requests.push({
+                  platform: platform,
+                  contentType: 'image',
+                  mediaType: 'image'
+                });
+              }
+              if (contentSettings.contentTypes.includes('video')) {
+                requests.push({
+                  platform: platform,
+                  contentType: 'video',
+                  mediaType: 'video'
+                });
+              }
+            });
+            
+            // Add email if selected
+            if (contentSettings.contentTypes.includes('email')) {
               requests.push({
-                platform: platform,
-                contentType: 'copy',
+                platform: 'email',
+                contentType: 'email',
                 mediaType: 'text'
               });
-              requests.push({
-                platform: platform,
-                contentType: 'image',
-                mediaType: 'image'
-              });
-              requests.push({
-                platform: platform,
-                contentType: 'video',
-                mediaType: 'video'
-              });
-            });
-            
-            // Always add email
-            requests.push({
-              platform: 'email',
-              contentType: 'email',
-              mediaType: 'text'
-            });
+            }
             
             return requests;
           })(),
-          aiSettings: {
-            ...aiFormData,
-            contentType: aiFormData.contentType || 'all',
-            customImagePrompt: aiFormData.imagePrompt,
-            customVideoPrompt: aiFormData.videoPrompt
-          }
+              aiSettings: {
+                brandData: brandData,
+                contentSettings: contentSettings,
+                tone: aiFormData.tone || 'professional',
+                keywords: aiFormData.keywords || '',
+                customImagePrompt: aiFormData.imagePrompt,
+                customVideoPrompt: aiFormData.videoPrompt
+              }
         }
       });
 
@@ -210,49 +217,59 @@ const CreateCampaign = () => {
         variant: "destructive"
       });
       
-      // Enhanced fallback content based on AI settings
+      // Enhanced fallback content based on selected content types
       const mockContent: GeneratedContent[] = [];
       
-      if (aiFormData.contentType === 'copy' || aiFormData.contentType === 'all') {
+      if (contentSettings.contentTypes.includes('copy')) {
         const tonePrefix = aiFormData.tone === 'casual' ? 'Hey there! 😊' :
                           aiFormData.tone === 'enthusiastic' ? '🚀 Exciting news!' :
                           aiFormData.tone === 'humorous' ? '😄 Ready for this?' :
                           aiFormData.tone === 'informative' ? 'Here are the details:' :
                           'We are pleased to announce:';
         
-        mockContent.push({
-          type: 'copy',
-          content: `${tonePrefix} ${formData.brand_name} presents: ${formData.title}! ${formData.description || 'Experience something amazing.'} Perfect for ${formData.target_audience || 'everyone'}. ${aiFormData.keywords ? `#${aiFormData.keywords.split(',').join(' #')}` : ''} #Innovation #Quality`,
-          platform: aiFormData.platform || 'social'
+        contentSettings.platforms.forEach(platform => {
+          mockContent.push({
+            type: 'copy',
+            content: `${tonePrefix} ${brandData.brand_name || formData.brand_name} presents: ${formData.title}! ${formData.description || 'Experience something amazing.'} Perfect for ${formData.target_audience || 'everyone'}. ${aiFormData.keywords ? `#${aiFormData.keywords.split(',').join(' #')}` : ''} #Innovation #Quality`,
+            platform: platform
+          });
         });
       }
       
-      if (aiFormData.contentType === 'email' || aiFormData.contentType === 'all') {
+      if (contentSettings.contentTypes.includes('email')) {
         const emailTone = aiFormData.tone === 'casual' ? 'Hi there!' :
                          aiFormData.tone === 'enthusiastic' ? 'We\'re thrilled to share!' :
                          'We are pleased to inform you';
         
         mockContent.push({
           type: 'email',
-          content: `Subject: ${formData.title} - ${formData.brand_name}\n\n${emailTone}\n\nWe're excited to introduce our ${formData.title} campaign.\n\n${formData.description || 'This represents our commitment to excellence and innovation.'}\n\nDesigned specifically for ${formData.target_audience || 'our valued customers'}, this campaign focuses on delivering exceptional value.\n\nKey benefits:\n• ${formData.title} showcases our latest innovations\n• Tailored for ${formData.target_audience || 'your needs'}\n• ${formData.description || 'Premium quality you can trust'}\n\nThank you for being part of our community.\n\nBest regards,\nThe ${formData.brand_name} Team`,
+          content: `Subject: ${formData.title} - ${brandData.brand_name || formData.brand_name}\n\n${emailTone}\n\nWe're excited to introduce our ${formData.title} campaign.\n\n${formData.description || 'This represents our commitment to excellence and innovation.'}\n\nDesigned specifically for ${formData.target_audience || 'our valued customers'}, this campaign focuses on delivering exceptional value.\n\nKey benefits:\n• ${formData.title} showcases our latest innovations\n• Tailored for ${formData.target_audience || 'your needs'}\n• ${formData.description || 'Premium quality you can trust'}\n\nThank you for being part of our community.\n\nBest regards,\nThe ${brandData.brand_name || formData.brand_name} Team`,
           platform: 'email'
         });
       }
       
-      if (aiFormData.contentType === 'image' || aiFormData.contentType === 'all') {
-        mockContent.push({
-          type: 'image',
-          content: `${aiFormData.tone || 'Professional'} image for ${formData.brand_name} ${formData.title} campaign - ${formData.description}`,
-          platform: aiFormData.platform || 'social',
-          mediaUrl: `https://images.unsplash.com/photo-1649972904349-6e44c42644a7?w=800&h=600&fit=crop`
+      if (contentSettings.contentTypes.includes('image')) {
+        contentSettings.platforms.forEach(platform => {
+          if (platform !== 'email') {
+            mockContent.push({
+              type: 'image',
+              content: `${aiFormData.tone || 'Professional'} image for ${brandData.brand_name || formData.brand_name} ${formData.title} campaign - ${formData.description}`,
+              platform: platform,
+              mediaUrl: `https://images.unsplash.com/photo-1649972904349-6e44c42644a7?w=800&h=600&fit=crop`
+            });
+          }
         });
       }
       
-      if (aiFormData.contentType === 'video' || aiFormData.contentType === 'all') {
-        mockContent.push({
-          type: 'video',
-          content: `15-second ${aiFormData.tone || 'engaging'} video script for ${formData.brand_name} ${formData.title}: Hook (0-3s) → Core message about "${formData.description}" (3-12s) → Call-to-action (12-15s).`,
-          platform: aiFormData.platform || 'social'
+      if (contentSettings.contentTypes.includes('video')) {
+        contentSettings.platforms.forEach(platform => {
+          if (platform !== 'email') {
+            mockContent.push({
+              type: 'video',
+              content: `15-second ${aiFormData.tone || 'engaging'} video script for ${brandData.brand_name || formData.brand_name} ${formData.title}: Hook (0-3s) → Core message about "${formData.description}" (3-12s) → Call-to-action (12-15s).`,
+              platform: platform
+            });
+          }
         });
       }
       
@@ -308,7 +325,7 @@ const CreateCampaign = () => {
       if (error) throw error;
 
       // Generate content after campaign is created
-      if (aiFormData.contentType && aiFormData.contentType !== '') {
+      if (contentSettings.contentTypes.length > 0) {
         setIsGeneratingContent(true);
         
         try {
@@ -357,8 +374,10 @@ const CreateCampaign = () => {
                 return requests;
               })(),
               aiSettings: {
-                ...aiFormData,
-                contentType: aiFormData.contentType || 'all',
+                brandData: brandData,
+                contentSettings: contentSettings,
+                tone: aiFormData.tone || 'professional',
+                keywords: aiFormData.keywords || '',
                 customImagePrompt: aiFormData.imagePrompt,
                 customVideoPrompt: aiFormData.videoPrompt
               }
