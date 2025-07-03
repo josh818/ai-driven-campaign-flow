@@ -137,7 +137,7 @@ const CreateCampaign = () => {
   const handleGenerateContent = async () => {
     // Enhanced validation for paid ads
     if (formData.campaign_type === 'paid_ad') {
-      if (!brandData.brand_name || !formData.title || adSettings.platforms.length === 0 || !adSettings.campaignObjective) {
+      if (!formData.brand_name || !formData.title || adSettings.platforms.length === 0 || !adSettings.campaignObjective) {
         toast({
           title: "Missing Paid Ad Information",
           description: "Please fill in brand name, campaign title, select ad platforms, and campaign objective.",
@@ -146,7 +146,7 @@ const CreateCampaign = () => {
         return;
       }
     } else {
-      if (!brandData.brand_name || !formData.title || contentSettings.platforms.length === 0 || contentSettings.contentTypes.length === 0) {
+      if (!formData.brand_name || !formData.title || contentSettings.platforms.length === 0 || contentSettings.contentTypes.length === 0) {
         toast({
           title: "Missing Information",
           description: "Please fill in brand name, campaign title, select platforms and content types.",
