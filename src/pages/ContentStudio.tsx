@@ -32,7 +32,9 @@ const ContentStudio = () => {
     campaignDescription: '',
     brandName: '',
     targetAudience: '',
-    tone: 'professional'
+    tone: 'professional',
+    imagePrompt: '',
+    videoPrompt: ''
   });
 
   const [selectedPlatforms, setSelectedPlatforms] = useState<string[]>(['facebook']);
@@ -96,7 +98,9 @@ const ContentStudio = () => {
         body: {
           ...formData,
           platforms: selectedPlatforms,
-          contentTypes: selectedContentTypes
+          contentTypes: selectedContentTypes,
+          customImagePrompt: formData.imagePrompt,
+          customVideoPrompt: formData.videoPrompt
         }
       });
 
@@ -315,6 +319,32 @@ const ContentStudio = () => {
                       ))}
                     </SelectContent>
                   </Select>
+                </div>
+
+                <div>
+                  <Label>Custom Image Prompt</Label>
+                  <Textarea
+                    value={formData.imagePrompt}
+                    onChange={(e) => setFormData(prev => ({ ...prev, imagePrompt: e.target.value }))}
+                    placeholder="Describe the visual style, composition, lighting, colors, mood... e.g., modern office setting with natural lighting, professional people, vibrant colors"
+                    rows={3}
+                  />
+                  <p className="text-xs text-gray-500 mt-1">
+                    💡 Be specific about lighting, composition, colors, and mood for better image results
+                  </p>
+                </div>
+
+                <div>
+                  <Label>Custom Video Prompt</Label>
+                  <Textarea
+                    value={formData.videoPrompt}
+                    onChange={(e) => setFormData(prev => ({ ...prev, videoPrompt: e.target.value }))}
+                    placeholder="Describe the 5-second video concept... e.g., smooth camera movement, product showcase, dynamic transitions, close-up shots"
+                    rows={3}
+                  />
+                  <p className="text-xs text-gray-500 mt-1">
+                    🎬 Think cinematically - describe camera movements, pacing, and visual elements
+                  </p>
                 </div>
               </CardContent>
             </Card>
