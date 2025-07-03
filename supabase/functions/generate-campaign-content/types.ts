@@ -8,10 +8,15 @@ export interface CampaignData {
 }
 
 export interface AISettings {
+  brandData?: any;
+  contentSettings?: any;
+  adSettings?: any;
   platform?: string;
   contentType?: string;
   tone?: string;
   keywords?: string;
+  customImagePrompt?: string;
+  customVideoPrompt?: string;
 }
 
 export interface GeneratedContent {

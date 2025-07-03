@@ -15,6 +15,7 @@ import BrandSetupForm from '@/components/campaign/BrandSetupForm';
 import ContentCreationSteps from '@/components/campaign/ContentCreationSteps';
 import EnhancedEmailPreview from '@/components/campaign/EnhancedEmailPreview';
 import EnhancedSocialPreview from '@/components/campaign/EnhancedSocialPreview';
+import PaidAdSettings from '@/components/campaign/PaidAdSettings';
 
 interface GeneratedContent {
   type: 'copy' | 'image' | 'video' | 'email';
@@ -78,6 +79,50 @@ const CreateCampaign = () => {
     }
   });
 
+  // Paid ad settings
+  const [adSettings, setAdSettings] = useState({
+    platforms: [] as string[],
+    campaignObjective: '',
+    targetAudience: {
+      demographics: {
+        ageRange: [18, 45] as [number, number],
+        gender: 'all',
+        locations: [] as string[],
+        languages: ['English'] as string[]
+      },
+      interests: [] as string[],
+      behaviors: [] as string[],
+      customAudiences: [] as string[]
+    },
+    budgetStrategy: {
+      budgetType: 'daily',
+      totalBudget: 0,
+      dailyBudget: 0,
+      bidStrategy: 'lowest_cost',
+      maxCPC: 0
+    },
+    adPlacements: {
+      facebook: [] as string[],
+      instagram: [] as string[],
+      google: [] as string[],
+      youtube: [] as string[],
+      tiktok: [] as string[]
+    },
+    scheduling: {
+      startDate: '',
+      endDate: '',
+      dayParting: false,
+      timeZone: 'UTC',
+      scheduleSlots: [] as string[]
+    },
+    optimization: {
+      conversionGoal: '',
+      roasTarget: 0,
+      frequencyCap: 0,
+      autoOptimization: true
+    }
+  });
+
   // AI content generation data
   const [aiFormData, setAiFormData] = useState({
     contentType: '',
@@ -90,13 +135,25 @@ const CreateCampaign = () => {
   });
 
   const handleGenerateContent = async () => {
-    if (!brandData.brand_name || !formData.title || contentSettings.platforms.length === 0 || contentSettings.contentTypes.length === 0) {
-      toast({
-        title: "Missing Information",
-        description: "Please fill in brand name, campaign title, select platforms and content types.",
-        variant: "destructive"
-      });
-      return;
+    // Enhanced validation for paid ads
+    if (formData.campaign_type === 'paid_ad') {
+      if (!brandData.brand_name || !formData.title || adSettings.platforms.length === 0 || !adSettings.campaignObjective) {
+        toast({
+          title: "Missing Paid Ad Information",
+          description: "Please fill in brand name, campaign title, select ad platforms, and campaign objective.",
+          variant: "destructive"
+        });
+        return;
+      }
+    } else {
+      if (!brandData.brand_name || !formData.title || contentSettings.platforms.length === 0 || contentSettings.contentTypes.length === 0) {
+        toast({
+          title: "Missing Information",
+          description: "Please fill in brand name, campaign title, select platforms and content types.",
+          variant: "destructive"
+        });
+        return;
+      }
     }
 
     setIsGeneratingContent(true);
@@ -154,14 +211,15 @@ const CreateCampaign = () => {
             
             return requests;
           })(),
-              aiSettings: {
-                brandData: brandData,
-                contentSettings: contentSettings,
-                tone: aiFormData.tone || 'professional',
-                keywords: aiFormData.keywords || '',
-                customImagePrompt: aiFormData.imagePrompt,
-                customVideoPrompt: aiFormData.videoPrompt
-              }
+          aiSettings: {
+            brandData: brandData,
+            contentSettings: contentSettings,
+            adSettings: formData.campaign_type === 'paid_ad' ? adSettings : null,
+            tone: aiFormData.tone || 'professional',
+            keywords: aiFormData.keywords || '',
+            customImagePrompt: aiFormData.imagePrompt,
+            customVideoPrompt: aiFormData.videoPrompt
+          }
         }
       });
 
@@ -376,6 +434,7 @@ const CreateCampaign = () => {
               aiSettings: {
                 brandData: brandData,
                 contentSettings: contentSettings,
+                adSettings: formData.campaign_type === 'paid_ad' ? adSettings : null,
                 tone: aiFormData.tone || 'professional',
                 keywords: aiFormData.keywords || '',
                 customImagePrompt: aiFormData.imagePrompt,
@@ -520,11 +579,17 @@ const CreateCampaign = () => {
               />
 
               {formData.campaign_type === 'paid_ad' && (
-                <BudgetScheduleForm
-                  formData={formData}
-                  onChange={handleInputChange}
-                  onBudgetTypeChange={handleBudgetTypeChange}
-                />
+                <>
+                  <PaidAdSettings
+                    adSettings={adSettings}
+                    onChange={(field, value) => setAdSettings({ ...adSettings, [field]: value })}
+                  />
+                  <BudgetScheduleForm
+                    formData={formData}
+                    onChange={handleInputChange}
+                    onBudgetTypeChange={handleBudgetTypeChange}
+                  />
+                </>
               )}
             </CardContent>
           </Card>
