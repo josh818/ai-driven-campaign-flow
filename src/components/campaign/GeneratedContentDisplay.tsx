@@ -1,8 +1,21 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Copy, Download, Image, Video, FileText, Sparkles, Play, Mail, Facebook, Instagram, Twitter, Linkedin } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Textarea } from '@/components/ui/textarea';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Switch } from '@/components/ui/switch';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { 
+  Copy, Download, Image, Video, FileText, Sparkles, Play, Mail, 
+  Facebook, Instagram, Twitter, Linkedin, Edit3, Calendar, 
+  Share, Heart, MessageCircle, BarChart3, Send, Eye, Settings,
+  Palette, Type, Clock, Users, Target
+} from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { useState } from 'react';
 
 interface GeneratedContent {
   type: 'copy' | 'image' | 'video' | 'email';
@@ -17,8 +30,22 @@ interface GeneratedContentDisplayProps {
   content: GeneratedContent[];
 }
 
+interface ContentEditState {
+  isEditing: boolean;
+  editedContent: string;
+  selectedTemplate: string;
+  scheduledTime: string;
+  additionalSettings: {
+    autoHashtags: boolean;
+    audienceTargeting: boolean;
+    crossPosting: boolean;
+  };
+}
+
 const GeneratedContentDisplay = ({ content }: GeneratedContentDisplayProps) => {
   const { toast } = useToast();
+  const [editStates, setEditStates] = useState<{ [key: number]: ContentEditState }>({});
+  const [activeTab, setActiveTab] = useState('preview');
 
   const copyToClipboard = async (content: string) => {
     await navigator.clipboard.writeText(content);

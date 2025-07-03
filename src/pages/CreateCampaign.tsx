@@ -11,6 +11,10 @@ import CampaignDetailsForm from '@/components/campaign/CampaignDetailsForm';
 import AIContentSettings from '@/components/campaign/AIContentSettings';
 import BudgetScheduleForm from '@/components/campaign/BudgetScheduleForm';
 import GeneratedContentDisplay from '@/components/campaign/GeneratedContentDisplay';
+import BrandSetupForm from '@/components/campaign/BrandSetupForm';
+import ContentCreationSteps from '@/components/campaign/ContentCreationSteps';
+import EnhancedEmailPreview from '@/components/campaign/EnhancedEmailPreview';
+import EnhancedSocialPreview from '@/components/campaign/EnhancedSocialPreview';
 
 interface GeneratedContent {
   type: 'copy' | 'image' | 'video' | 'email';
@@ -39,6 +43,39 @@ const CreateCampaign = () => {
     start_date: '',
     end_date: '',
     campaign_type: 'organic'
+  });
+
+  // Brand setup data
+  const [brandData, setBrandData] = useState({
+    brand_name: '',
+    brand_voice: '',
+    brand_values: [] as string[],
+    target_demographics: '',
+    brand_colors: [] as string[],
+    competitors: [] as string[],
+    unique_selling_points: [] as string[]
+  });
+
+  // Advanced content settings
+  const [contentSettings, setContentSettings] = useState({
+    platforms: ['facebook', 'instagram'],
+    contentTypes: ['copy', 'image'],
+    scheduling: {
+      autoSchedule: false,
+      timeSlots: [] as string[],
+      frequency: 'daily'
+    },
+    visualStyle: {
+      template: 'modern',
+      colorScheme: 'brand',
+      fontSize: 16,
+      fontStyle: 'sans-serif'
+    },
+    optimization: {
+      audienceTargeting: true,
+      hashtagSuggestions: true,
+      bestTimePosting: true
+    }
   });
 
   // AI content generation data
@@ -444,6 +481,11 @@ const CreateCampaign = () => {
               <p className="text-sm text-gray-600">Create your campaign and generate professional AI-powered content by our 20+ year experts</p>
             </CardHeader>
             <CardContent className="space-y-6">
+              <BrandSetupForm
+                brandData={brandData}
+                onChange={(field, value) => setBrandData({ ...brandData, [field]: value })}
+              />
+
               <CampaignDetailsForm
                 formData={formData}
                 onChange={handleInputChange}
@@ -451,11 +493,9 @@ const CreateCampaign = () => {
                 onCampaignTypeChange={handleCampaignTypeChange}
               />
 
-              <AIContentSettings
-                formData={formData}
-                aiFormData={aiFormData}
-                onInputChange={handleInputChange}
-                onAIFormChange={handleAIFormChange}
+              <ContentCreationSteps
+                contentSettings={contentSettings}
+                onChange={(field, value) => setContentSettings({ ...contentSettings, [field]: value })}
                 onGenerate={handleGenerateContent}
                 isGenerating={isGeneratingContent}
               />
