@@ -234,7 +234,7 @@ const Reputation = () => {
         <div className="mb-8">
           <h2 className="text-3xl font-bold text-gray-900 mb-2 flex items-center space-x-3">
             <Shield className="h-8 w-8 text-teal-600" />
-            <span>AI Social Listening for B2B</span>
+            <span>Brand Reputation Management</span>
           </h2>
           <p className="text-gray-600">Never miss critical conversations about your brand across social platforms, newsletters, and more. AI-vetted alerts with relevance scoring.</p>
         </div>

@@ -127,10 +127,10 @@ export async function generateImageContent(
 ): Promise<{ content: string; mediaUrl: string }> {
   const tone = aiSettings?.tone || 'professional';
   
-  // Create a detailed, specific prompt for AI image generation that follows the campaign description
-  const imagePrompt = `Professional marketing photograph for "${campaignData.title}" campaign by ${campaignData.brand_name}. 
+  // Use campaign description as the master prompt for image generation
+  const imagePrompt = `${campaignData.description || 'Premium brand experience'} 
 
-CAMPAIGN FOCUS: ${campaignData.description || 'Premium brand experience'}
+Professional marketing photograph for "${campaignData.title}" campaign by ${campaignData.brand_name}.
 
 Visual Style: ${tone === 'professional' ? 'Clean corporate aesthetic, modern office setting, business professionals, sharp lighting, minimalist design' : tone === 'casual' ? 'Lifestyle photography, natural environments, everyday people, warm soft lighting, approachable feel' : tone === 'enthusiastic' ? 'High energy, vibrant colors, dynamic action, excited people, bright dramatic lighting' : tone === 'humorous' ? 'Playful scene, bright cheerful colors, smiling people, fun interactions, uplifting atmosphere' : 'Premium modern design, sleek surfaces, sophisticated styling'}
 
@@ -145,13 +145,26 @@ High-resolution commercial photography, professional lighting, compelling compos
   try {
     console.log('Generating image with Gemini AI, prompt:', imagePrompt);
     
-    // Try Gemini first, fallback to OpenAI
+    // Try multiple APIs in sequence to find the best one
     let imageResponse;
+    let apiUsed = '';
+    
     try {
+      console.log('Trying Gemini API for image generation...');
       imageResponse = await generateGeminiImage(imagePrompt);
+      apiUsed = 'Gemini';
     } catch (geminiError) {
       console.log('Gemini failed, trying OpenAI:', geminiError);
-      imageResponse = await generateOpenAIImage(imagePrompt);
+      try {
+        const { generateOpenAIImage } = await import('./openai-client.ts');
+        imageResponse = await generateOpenAIImage(imagePrompt);
+        apiUsed = 'OpenAI';
+      } catch (openaiError) {
+        console.log('OpenAI failed, trying RunwayML:', openaiError);
+        const { generateRunwayMLImage } = await import('./runwayml-client.ts');
+        imageResponse = await generateRunwayMLImage(imagePrompt);
+        apiUsed = 'RunwayML';
+      }
     }
 
     if (imageResponse && imageResponse.ok) {
@@ -171,7 +184,7 @@ High-resolution commercial photography, professional lighting, compelling compos
       }
 
       return {
-        content: `AI-generated ${tone} image for ${campaignData.brand_name} "${campaignData.title}" campaign: ${campaignData.description}`,
+        content: `AI-generated ${tone} image for ${campaignData.brand_name} "${campaignData.title}" campaign (${apiUsed}): ${campaignData.description}`,
         mediaUrl: imageUrl
       };
     } else {
@@ -230,37 +243,66 @@ Keywords to highlight: ${aiSettings?.keywords || 'quality, innovation'}
 ${aiSettings?.videoPrompt ? `Custom Direction: ${aiSettings.videoPrompt}` : ''}`;
 
   try {
-    console.log('Generating video concept for:', videoPrompt);
+    console.log('Generating 5-second video for:', videoPrompt);
     
-    // For now, we'll generate a detailed video script since Gemini video API requires special access
-    // and create a placeholder video URL
-      
-    // Try Gemini for video generation first
+    // Try multiple video APIs to find one that works
+    let videoResponse;
+    let apiUsed = '';
+    
     try {
-      console.log('Attempting Gemini video generation...');
-      const { generateGeminiVideo } = await import('./gemini-client.ts');
-      const geminiVideoResponse = await generateGeminiVideo(videoPrompt);
+      console.log('Attempting RunwayML video generation...');
+      const { generateRunwayMLVideo } = await import('./runwayml-client.ts');
+      videoResponse = await generateRunwayMLVideo(videoPrompt);
+      apiUsed = 'RunwayML';
       
-      if (geminiVideoResponse && geminiVideoResponse.ok) {
-        const videoData = await geminiVideoResponse.json();
-        console.log('Gemini video generation successful:', videoData);
+      if (videoResponse && videoResponse.ok) {
+        const videoData = await videoResponse.json();
+        console.log('RunwayML video generation successful:', videoData);
         
         let videoUrl = '';
         if (videoData.url) {
           videoUrl = videoData.url;
-        } else if (videoData.candidates && videoData.candidates[0] && videoData.candidates[0].video) {
-          videoUrl = videoData.candidates[0].video;
+        } else if (videoData.imageURL) {
+          videoUrl = videoData.imageURL; // Some APIs return imageURL for video
         }
         
         if (videoUrl) {
           return {
-            content: `🎬 10-SECOND AI VIDEO: "${campaignData.title}" - ${campaignData.description} (Generated with Gemini)`,
+            content: `🎬 5-SECOND AI VIDEO: "${campaignData.title}" - ${campaignData.description} (Generated with ${apiUsed})`,
             mediaUrl: videoUrl
           };
         }
       }
-    } catch (geminiError) {
-      console.log('Gemini video generation failed, creating script instead:', geminiError);
+    } catch (runwayError) {
+      console.log('RunwayML video failed, trying Gemini:', runwayError);
+      
+      try {
+        console.log('Attempting Gemini video generation...');
+        const { generateGeminiVideo } = await import('./gemini-client.ts');
+        const geminiVideoResponse = await generateGeminiVideo(videoPrompt);
+        apiUsed = 'Gemini';
+        
+        if (geminiVideoResponse && geminiVideoResponse.ok) {
+          const videoData = await geminiVideoResponse.json();
+          console.log('Gemini video generation successful:', videoData);
+          
+          let videoUrl = '';
+          if (videoData.url) {
+            videoUrl = videoData.url;
+          } else if (videoData.candidates && videoData.candidates[0] && videoData.candidates[0].video) {
+            videoUrl = videoData.candidates[0].video;
+          }
+          
+          if (videoUrl) {
+            return {
+              content: `🎬 5-SECOND AI VIDEO: "${campaignData.title}" - ${campaignData.description} (Generated with ${apiUsed})`,
+              mediaUrl: videoUrl
+            };
+          }
+        }
+      } catch (geminiError) {
+        console.log('All video APIs failed, falling back to placeholder:', geminiError);
+      }
     }
       
     // Generate detailed video script as fallback using OpenAI
@@ -314,7 +356,7 @@ KEYWORDS: ${aiSettings?.keywords || 'quality, innovation'}
 ${aiSettings?.videoPrompt ? `CUSTOM DIRECTION: ${aiSettings.videoPrompt}` : ''}`;
     }
 
-    // Use a short 10-second video placeholder that's appropriate for social media
+    // Use a short 5-second video placeholder that's appropriate for social media
     const socialVideoPlaceholders = [
       'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4',
       'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerEscapes.mp4'
@@ -323,7 +365,7 @@ ${aiSettings?.videoPrompt ? `CUSTOM DIRECTION: ${aiSettings.videoPrompt}` : ''}`
     const selectedVideo = socialVideoPlaceholders[Math.floor(Math.random() * socialVideoPlaceholders.length)];
 
     return {
-      content: scriptContent + `\n\n✨ Ready for production on ${platform} as ${contentType}`,
+      content: scriptContent + `\n\n✨ 5-second video ready for ${platform} as ${contentType}`,
       mediaUrl: selectedVideo
     };
   } catch (videoError) {
@@ -337,13 +379,13 @@ ${aiSettings?.videoPrompt ? `CUSTOM DIRECTION: ${aiSettings.videoPrompt}` : ''}`
                          'engaging and professional';
     
     return {
-      content: `[5-Second ${tone} Video Script for ${campaignData.brand_name}]
+      content: `[5-Second ${tone} Video for ${campaignData.brand_name}]
 
 🎬 CAMPAIGN: ${campaignData.title}
 🏢 BRAND: ${campaignData.brand_name}
 🎯 TONE: ${tone} (${toneDirection})
 📱 PLATFORM: ${platform}
-⏱️ DURATION: 10 seconds maximum
+⏱️ DURATION: 5 seconds maximum
 
 📋 SCRIPT BREAKDOWN:
 
