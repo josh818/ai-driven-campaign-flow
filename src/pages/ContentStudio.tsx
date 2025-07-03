@@ -94,23 +94,42 @@ const ContentStudio = () => {
     setIsGenerating(true);
     
     try {
-      const { data, error } = await supabase.functions.invoke('generate-content', {
+      const { data, error } = await supabase.functions.invoke('generate-campaign-content', {
         body: {
-          ...formData,
-          platforms: selectedPlatforms,
-          contentTypes: selectedContentTypes,
-          customImagePrompt: formData.imagePrompt,
-          customVideoPrompt: formData.videoPrompt
+          campaignData: {
+            title: formData.campaignTitle,
+            brand_name: formData.brandName,
+            description: formData.campaignDescription,
+            target_audience: formData.targetAudience
+          },
+          contentRequests: selectedPlatforms.flatMap(platform => 
+            selectedContentTypes.map(contentType => ({
+              platform,
+              contentType,
+              mediaType: contentType === 'copy' ? 'text' : contentType
+            }))
+          ),
+          aiSettings: {
+            tone: formData.tone,
+            customImagePrompt: formData.imagePrompt,
+            customVideoPrompt: formData.videoPrompt
+          }
         }
       });
 
       if (error) throw error;
 
-      if (data?.success && data?.content) {
-        setGeneratedContent(data.content);
+      if (data?.success && data?.generatedContent) {
+        setGeneratedContent(data.generatedContent.map((item: any) => ({
+          platform: item.platform,
+          contentType: item.contentType,
+          content: item.content,
+          mediaUrl: item.mediaUrl,
+          status: item.status || 'generated'
+        })));
         toast({
           title: "Content Generated!",
-          description: `Successfully generated ${data.content.length} pieces of content`
+          description: `Successfully generated ${data.generatedContent.length} pieces of content`
         });
       } else {
         throw new Error(data?.error || 'Failed to generate content');

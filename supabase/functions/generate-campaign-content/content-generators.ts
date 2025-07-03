@@ -162,8 +162,17 @@ export async function generateImageContent(
 ): Promise<{ content: string; mediaUrl: string }> {
   const tone = aiSettings?.tone || 'professional';
   
-  // Use campaign description as the master prompt for image generation
-  const imagePrompt = `${campaignData.description || 'Premium brand experience'} 
+  // Use custom image prompt if provided, otherwise use campaign description
+  const customPrompt = aiSettings?.customImagePrompt;
+  const imagePrompt = customPrompt ? 
+    `${customPrompt}
+
+Professional marketing photograph for "${campaignData.title}" campaign by ${campaignData.brand_name}.
+Platform: ${platform} ${platform === 'instagram' ? 'square format' : 'landscape format'}
+Brand Elements: ${campaignData.brand_name} style
+Content: ${contentType} marketing visual
+High-resolution commercial photography, professional lighting, compelling composition.` :
+    `${campaignData.description || 'Premium brand experience'} 
 
 Professional marketing photograph for "${campaignData.title}" campaign by ${campaignData.brand_name}.
 
@@ -296,21 +305,29 @@ export async function generateVideoContent(
 ): Promise<{ content: string; mediaUrl: string }> {
   const tone = aiSettings?.tone || 'professional';
   
-  // Create a 10-second video concept for the campaign
-  const videoPrompt = `10-second professional marketing video for "${campaignData.title}" by ${campaignData.brand_name}.
+  // Use custom video prompt if provided, otherwise use default
+  const customPrompt = aiSettings?.customVideoPrompt;
+  const videoPrompt = customPrompt ? 
+    `${customPrompt}
+
+5-second professional marketing video for "${campaignData.title}" by ${campaignData.brand_name}.
+Platform: ${platform} social media optimized
+Target Audience: ${campaignData.target_audience || 'general audience'}
+Video Format: 16:9 horizontal, high quality
+Duration: exactly 5 seconds
+High quality commercial video, modern, professional.` :
+    `5-second professional marketing video for "${campaignData.title}" by ${campaignData.brand_name}.
 
 CAMPAIGN FOCUS: ${campaignData.description || 'Premium brand experience'}
 
 Visual Style: ${tone === 'professional' ? 'Corporate presentation, smooth camera work, office/business setting, clean transitions, product focus' : tone === 'casual' ? 'Lifestyle video, natural feel, everyday settings, warm lighting, people-focused' : tone === 'enthusiastic' ? 'High-energy montage, dynamic cuts, vibrant scenes, upbeat pacing' : tone === 'humorous' ? 'Comedy sketch style, playful scenarios, bright colorful setting' : 'Cinematic commercial, professional grade, dramatic lighting'}
 
-Duration: Maximum 10 seconds
+Duration: exactly 5 seconds
 Platform: ${platform} social media optimized
 Target Audience: ${campaignData.target_audience || 'general audience'}
 Video Format: 16:9 horizontal, high quality
 Content Focus: ${campaignData.description}
-Keywords to highlight: ${aiSettings?.keywords || 'quality, innovation'}
-
-${aiSettings?.videoPrompt ? `Custom Direction: ${aiSettings.videoPrompt}` : ''}`;
+Keywords to highlight: ${aiSettings?.keywords || 'quality, innovation'}`;
 
   try {
     console.log('Generating 5-second video for:', videoPrompt);
