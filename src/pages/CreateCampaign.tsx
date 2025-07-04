@@ -4,43 +4,19 @@ import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
-import { ArrowLeft, Wand2 } from 'lucide-react';
+import { ArrowLeft, Wand2, Sparkles, Target, Calendar, DollarSign } from 'lucide-react';
 import Header from '@/components/Header';
-import CampaignDetailsForm from '@/components/campaign/CampaignDetailsForm';
-import AIContentSettings from '@/components/campaign/AIContentSettings';
-import BudgetScheduleForm from '@/components/campaign/BudgetScheduleForm';
-import GeneratedContentDisplay from '@/components/campaign/GeneratedContentDisplay';
-import BrandSetupForm from '@/components/campaign/BrandSetupForm';
-import ContentCreationSteps from '@/components/campaign/ContentCreationSteps';
-import EnhancedEmailPreview from '@/components/campaign/EnhancedEmailPreview';
-import EnhancedSocialPreview from '@/components/campaign/EnhancedSocialPreview';
-import PaidAdSettings from '@/components/campaign/PaidAdSettings';
-import ContentGenerationModal from '@/components/campaign/ContentGenerationModal';
-
-interface GeneratedContent {
-  type: 'copy' | 'image' | 'video' | 'email';
-  content: string;
-  platform?: string;
-  mediaUrl?: string;
-  filePath?: string;
-  fileSize?: number;
-  mimeType?: string;
-}
 
 const CreateCampaign = () => {
   const { user } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
-  const [isGeneratingContent, setIsGeneratingContent] = useState(false);
-  const [generatedContent, setGeneratedContent] = useState<GeneratedContent[]>([]);
-  const [generationProgress, setGenerationProgress] = useState({
-    current: 0,
-    total: 0,
-    step: '',
-    errors: [] as string[]
-  });
   
   // Campaign form data
   const [formData, setFormData] = useState({
@@ -50,296 +26,10 @@ const CreateCampaign = () => {
     target_audience: '',
     campaign_goals: [] as string[],
     budget: '',
-    budget_type: 'campaign_budget',
     start_date: '',
     end_date: '',
     campaign_type: 'organic'
   });
-
-  // Brand setup data
-  const [brandData, setBrandData] = useState({
-    brand_name: '',
-    brand_voice: '',
-    brand_values: [] as string[],
-    target_demographics: '',
-    brand_colors: [] as string[],
-    competitors: [] as string[],
-    unique_selling_points: [] as string[]
-  });
-
-  // Advanced content settings
-  const [contentSettings, setContentSettings] = useState({
-    platforms: ['facebook', 'instagram'],
-    contentTypes: ['copy', 'image', 'email'],
-    scheduling: {
-      autoSchedule: false,
-      timeSlots: [] as string[],
-      frequency: 'daily'
-    },
-    visualStyle: {
-      template: 'modern',
-      colorScheme: 'brand',
-      fontSize: 16,
-      fontStyle: 'sans-serif'
-    },
-    optimization: {
-      audienceTargeting: true,
-      hashtagSuggestions: true,
-      bestTimePosting: true
-    }
-  });
-
-  // Paid ad settings
-  const [adSettings, setAdSettings] = useState({
-    platforms: [] as string[],
-    campaignObjective: '',
-    targetAudience: {
-      demographics: {
-        ageRange: [18, 45] as [number, number],
-        gender: 'all',
-        locations: [] as string[],
-        languages: ['English'] as string[]
-      },
-      interests: [] as string[],
-      behaviors: [] as string[],
-      customAudiences: [] as string[]
-    },
-    budgetStrategy: {
-      budgetType: 'daily',
-      totalBudget: 0,
-      dailyBudget: 0,
-      bidStrategy: 'lowest_cost',
-      maxCPC: 0
-    },
-    adPlacements: {
-      facebook: [] as string[],
-      instagram: [] as string[],
-      google: [] as string[],
-      youtube: [] as string[],
-      tiktok: [] as string[]
-    },
-    scheduling: {
-      startDate: '',
-      endDate: '',
-      dayParting: false,
-      timeZone: 'UTC',
-      scheduleSlots: [] as string[]
-    },
-    optimization: {
-      conversionGoal: '',
-      roasTarget: 0,
-      frequencyCap: 0,
-      autoOptimization: true
-    }
-  });
-
-  // AI content generation data
-  const [aiFormData, setAiFormData] = useState({
-    contentType: '',
-    platform: 'all',
-    tone: '',
-    keywords: '',
-    campaignType: 'organic',
-    imagePrompt: '',
-    videoPrompt: ''
-  });
-
-  const handleGenerateContent = async () => {
-    // Enhanced validation for paid ads
-    if (formData.campaign_type === 'paid_ad') {
-      if (!formData.brand_name || !formData.title || adSettings.platforms.length === 0 || !adSettings.campaignObjective) {
-        toast({
-          title: "Missing Paid Ad Information",
-          description: "Please fill in brand name, campaign title, select ad platforms, and campaign objective.",
-          variant: "destructive"
-        });
-        return;
-      }
-    } else {
-      if (!formData.brand_name || !formData.title || contentSettings.platforms.length === 0 || contentSettings.contentTypes.length === 0) {
-        toast({
-          title: "Missing Information",
-          description: "Please fill in brand name, campaign title, select platforms and content types.",
-          variant: "destructive"
-        });
-        return;
-      }
-    }
-
-    setIsGeneratingContent(true);
-    
-    // Calculate total expected content pieces
-    const expectedPieces = (() => {
-      let total = 0;
-      contentSettings.platforms.forEach(platform => {
-        contentSettings.contentTypes.forEach(type => {
-          if (platform === 'email' && type !== 'copy' && type !== 'email') return;
-          total++;
-        });
-      });
-      return total;
-    })();
-    
-    setGenerationProgress({
-      current: 0,
-      total: expectedPieces,
-      step: 'Initializing AI content generation...',
-      errors: []
-    });
-    try {
-      console.log('Starting content generation with enhanced prompts...');
-      
-      setGenerationProgress(prev => ({
-        ...prev,
-        step: 'Sending requests to AI content generators...'
-      }));
-      
-      // Call the actual Supabase Edge Function with optimized data structure
-      const { data, error } = await supabase.functions.invoke('generate-campaign-content', {
-        body: {
-          campaignData: {
-            id: null, // Will be created later
-            title: formData.title,
-            brand_name: formData.brand_name,
-            description: formData.description,
-            target_audience: formData.target_audience,
-            campaign_goals: formData.campaign_goals
-          },
-          contentRequests: (() => {
-            const requests = [];
-            
-            // Generate content for each selected platform
-            contentSettings.platforms.forEach(platform => {
-              if (contentSettings.contentTypes.includes('copy')) {
-                requests.push({
-                  platform: platform,
-                  contentType: 'copy',
-                  mediaType: 'text'
-                });
-              }
-              if (contentSettings.contentTypes.includes('image')) {
-                requests.push({
-                  platform: platform,
-                  contentType: 'image',
-                  mediaType: 'image'
-                });
-              }
-              if (contentSettings.contentTypes.includes('video')) {
-                requests.push({
-                  platform: platform,
-                  contentType: 'video',
-                  mediaType: 'video'
-                });
-              }
-            });
-            
-            // Add email if selected
-            if (contentSettings.contentTypes.includes('email')) {
-              requests.push({
-                platform: 'email',
-                contentType: 'email',
-                mediaType: 'text'
-              });
-            }
-            
-            return requests;
-          })(),
-          aiSettings: {
-            brandData: brandData,
-            contentSettings: contentSettings,
-            adSettings: formData.campaign_type === 'paid_ad' ? adSettings : null,
-            tone: aiFormData.tone || 'professional',
-            keywords: aiFormData.keywords || '',
-            customImagePrompt: aiFormData.imagePrompt,
-            customVideoPrompt: aiFormData.videoPrompt
-          }
-        }
-      });
-
-      if (error) throw error;
-
-      // Convert the response to our expected format
-      const newContent: GeneratedContent[] = [];
-      
-      setGenerationProgress(prev => ({
-        ...prev,
-        step: 'Processing generated content...'
-      }));
-      
-      if (data.generatedContent && Array.isArray(data.generatedContent)) {
-        data.generatedContent.forEach((item: any) => {
-          if (item.mediaType === 'text' || item.mediaType === 'copy') {
-            newContent.push({
-              type: 'copy',
-              content: item.content || 'Generated copy content',
-              platform: item.platform
-            });
-          } else if (item.mediaType === 'image') {
-            newContent.push({
-              type: 'image',
-              content: item.content || 'Generated professional image',
-              platform: item.platform,
-              mediaUrl: item.mediaUrl,
-              filePath: item.filePath,
-              fileSize: item.fileSize,
-              mimeType: item.mimeType
-            });
-          } else if (item.mediaType === 'video') {
-            newContent.push({
-              type: 'video',
-              content: item.content || 'Generated video concept and script',
-              platform: item.platform,
-              mediaUrl: item.mediaUrl,
-              filePath: item.filePath,
-              fileSize: item.fileSize,
-              mimeType: item.mimeType
-            });
-          } else if (item.mediaType === 'email') {
-            newContent.push({
-              type: 'email',
-              content: item.content || 'Generated email content',
-              platform: 'email'
-            });
-          }
-        });
-      }
-
-      setGeneratedContent(newContent);
-      
-      setGenerationProgress(prev => ({
-        ...prev,
-        current: newContent.length,
-        step: 'Content generation completed!'
-      }));
-      
-      toast({
-        title: "Content Generated Successfully",
-        description: `Generated ${newContent.length} professional content pieces using AI!`,
-      });
-      
-    } catch (error: any) {
-      console.error('Error generating content:', error);
-      setGenerationProgress(prev => ({
-        ...prev,
-        errors: [...prev.errors, error.message || 'Unknown error occurred']
-      }));
-      toast({
-        title: "Generation Failed",
-        description: error.message || "Failed to generate content. Please try again.",
-        variant: "destructive"
-      });
-      
-      // Content generation failed - no fallback content provided
-      setGeneratedContent([]);
-      setGenerationProgress(prev => ({
-        ...prev,
-        current: 0,
-        step: 'Content generation failed'
-      }));
-    } finally {
-      setIsGeneratingContent(false);
-    }
-  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -358,7 +48,7 @@ const CreateCampaign = () => {
         return;
       }
 
-      // Create campaign first
+      // Create campaign
       const campaignData: any = {
         user_id: user!.id,
         title,
@@ -386,101 +76,10 @@ const CreateCampaign = () => {
 
       if (error) throw error;
 
-      // Generate content after campaign is created
-      if (contentSettings.contentTypes.length > 0) {
-        setIsGeneratingContent(true);
-        
-        try {
-          const { data, error: genError } = await supabase.functions.invoke('generate-campaign-content', {
-            body: {
-              campaignData: {
-                id: campaign.id,
-                title: campaign.title,
-                brand_name: campaign.brand_name,
-                description: campaign.description,
-                target_audience: campaign.target_audience,
-                campaign_goals: campaign.campaign_goals
-              },
-              contentRequests: (() => {
-                const requests = [];
-                const selectedPlatforms = aiFormData.platform === 'all' 
-                  ? ['facebook', 'instagram', 'linkedin', 'twitter']
-                  : [aiFormData.platform || 'facebook'];
-                
-                // Generate content for each social platform
-                selectedPlatforms.forEach(platform => {
-                  requests.push({
-                    platform: platform,
-                    contentType: 'copy',
-                    mediaType: 'text'
-                  });
-                  requests.push({
-                    platform: platform,
-                    contentType: 'image',
-                    mediaType: 'image'
-                  });
-                  requests.push({
-                    platform: platform,
-                    contentType: 'video',
-                    mediaType: 'video'
-                  });
-                });
-                
-                // Always add email
-                requests.push({
-                  platform: 'email',
-                  contentType: 'email',
-                  mediaType: 'text'
-                });
-                
-                return requests;
-              })(),
-              aiSettings: {
-                brandData: brandData,
-                contentSettings: contentSettings,
-                adSettings: formData.campaign_type === 'paid_ad' ? adSettings : null,
-                tone: aiFormData.tone || 'professional',
-                keywords: aiFormData.keywords || '',
-                customImagePrompt: aiFormData.imagePrompt,
-                customVideoPrompt: aiFormData.videoPrompt
-              }
-            }
-          });
-
-          if (genError) {
-            console.error('Content generation error:', genError);
-            toast({
-              title: "Campaign Created",
-              description: "Campaign created, but content generation had issues. You can generate content later.",
-              variant: "destructive"
-            });
-          } else {
-            console.log('Content generated successfully:', data);
-            toast({
-              title: "Campaign Created Successfully!",
-              description: "Your campaign has been created with AI-generated content including copy, images, and videos.",
-            });
-          }
-        } catch (contentError) {
-          console.error('Error generating content:', contentError);
-          toast({
-            title: "Campaign Created",
-            description: "Campaign created, but content generation failed. You can generate content later.",
-            variant: "destructive"
-          });
-        } finally {
-      setIsGeneratingContent(false);
-      // Keep modal open for a moment to show completion
-      setTimeout(() => {
-        setGenerationProgress({ current: 0, total: 0, step: '', errors: [] });
-      }, 2000);
-        }
-      } else {
-        toast({
-          title: "Campaign Created!",
-          description: "Your campaign has been saved.",
-        });
-      }
+      toast({
+        title: "Campaign Created!",
+        description: "Your campaign has been saved successfully.",
+      });
 
       navigate(`/campaigns/${campaign.id}`);
     } catch (error: any) {
@@ -492,7 +91,6 @@ const CreateCampaign = () => {
       });
     } finally {
       setIsLoading(false);
-      setIsGeneratingContent(false);
     }
   };
 
@@ -517,25 +115,6 @@ const CreateCampaign = () => {
       ...prev,
       campaign_type: value
     }));
-    // Also update aiFormData to keep them in sync
-    setAiFormData(prev => ({
-      ...prev,
-      campaignType: value
-    }));
-  };
-
-  const handleBudgetTypeChange = (value: string) => {
-    setFormData(prev => ({
-      ...prev,
-      budget_type: value
-    }));
-  };
-
-  const handleAIFormChange = (field: string, value: string) => {
-    setAiFormData(prev => ({
-      ...prev,
-      [field]: value
-    }));
   };
 
   return (
@@ -552,86 +131,194 @@ const CreateCampaign = () => {
             Back
           </Button>
           <div>
-            <h2 className="text-3xl font-bold text-gray-900">Create Campaign with AI</h2>
-            <p className="text-gray-600">Generate professional marketing content powered by AI</p>
+            <h2 className="text-3xl font-bold text-gray-900">Create New Campaign</h2>
+            <p className="text-gray-600">Launch your next marketing campaign with professional tools</p>
           </div>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-6">
+          {/* Basic Campaign Details */}
           <Card className="border-0 shadow-lg bg-white/80 backdrop-blur-sm">
             <CardHeader className="pb-4">
               <CardTitle className="flex items-center space-x-2">
-                <Wand2 className="h-5 w-5 text-blue-600" />
-                <span>Professional Campaign & AI Content Generator</span>
+                <Target className="h-5 w-5 text-blue-600" />
+                <span>Campaign Details</span>
               </CardTitle>
-              <p className="text-sm text-gray-600">Create your campaign and generate professional AI-powered content by our 20+ year experts</p>
             </CardHeader>
             <CardContent className="space-y-6">
-              <BrandSetupForm
-                brandData={brandData}
-                onChange={(field, value) => setBrandData({ ...brandData, [field]: value })}
-              />
-
-              <CampaignDetailsForm
-                formData={formData}
-                onChange={handleInputChange}
-                onGoalsChange={handleGoalsChange}
-                onCampaignTypeChange={handleCampaignTypeChange}
-              />
-
-              <ContentCreationSteps
-                contentSettings={contentSettings}
-                onChange={(field, value) => setContentSettings({ ...contentSettings, [field]: value })}
-                onGenerate={handleGenerateContent}
-                isGenerating={isGeneratingContent}
-              />
-
-              {formData.campaign_type === 'paid_ad' && (
-                <>
-                  <PaidAdSettings
-                    adSettings={adSettings}
-                    onChange={(field, value) => setAdSettings({ ...adSettings, [field]: value })}
-                  />
-                  <BudgetScheduleForm
-                    formData={formData}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="brand_name">Brand Name *</Label>
+                  <Input
+                    id="brand_name"
+                    name="brand_name"
+                    placeholder="Enter your brand name"
+                    value={formData.brand_name}
                     onChange={handleInputChange}
-                    onBudgetTypeChange={handleBudgetTypeChange}
+                    required
                   />
-                </>
-              )}
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="title">Campaign Name *</Label>
+                  <Input
+                    id="title"
+                    name="title"
+                    placeholder="Enter campaign name"
+                    value={formData.title}
+                    onChange={handleInputChange}
+                    required
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="campaign_type">Campaign Type</Label>
+                <Select value={formData.campaign_type} onValueChange={handleCampaignTypeChange}>
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Select campaign type" />
+                  </SelectTrigger>
+                  <SelectContent className="bg-white border border-gray-200 shadow-lg z-50">
+                    <SelectItem value="organic">Organic Content</SelectItem>
+                    <SelectItem value="paid_ad">Paid Advertisement</SelectItem>
+                    <SelectItem value="promoted">Promoted Post</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="description">Campaign Description *</Label>
+                <Textarea
+                  id="description"
+                  name="description"
+                  placeholder="Describe your campaign objectives and key messaging"
+                  value={formData.description}
+                  onChange={handleInputChange}
+                  required
+                  rows={4}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="target_audience">Target Audience</Label>
+                <Input
+                  id="target_audience"
+                  name="target_audience"
+                  placeholder="Describe your target audience"
+                  value={formData.target_audience}
+                  onChange={handleInputChange}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="campaign_goals">Campaign Goals (comma-separated)</Label>
+                <Input
+                  id="campaign_goals"
+                  name="campaign_goals"
+                  placeholder="increase brand awareness, drive sales, engagement"
+                  value={formData.campaign_goals.join(', ')}
+                  onChange={handleGoalsChange}
+                />
+              </div>
             </CardContent>
           </Card>
 
-          <GeneratedContentDisplay content={generatedContent} />
+          {/* Budget and Schedule */}
+          <Card className="border-0 shadow-lg bg-white/80 backdrop-blur-sm">
+            <CardHeader className="pb-4">
+              <CardTitle className="flex items-center space-x-2">
+                <DollarSign className="h-5 w-5 text-green-600" />
+                <span>Budget & Schedule</span>
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="budget">Budget ($)</Label>
+                  <Input
+                    id="budget"
+                    name="budget"
+                    type="number"
+                    placeholder="0.00"
+                    value={formData.budget}
+                    onChange={handleInputChange}
+                  />
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="start_date">Start Date</Label>
+                  <Input
+                    id="start_date"
+                    name="start_date"
+                    type="date"
+                    value={formData.start_date}
+                    onChange={handleInputChange}
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="end_date">End Date</Label>
+                  <Input
+                    id="end_date"
+                    name="end_date"
+                    type="date"
+                    value={formData.end_date}
+                    onChange={handleInputChange}
+                  />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* AI Content Generation Preview */}
+          <Card className="border-0 shadow-lg bg-gradient-to-r from-purple-50 to-pink-50">
+            <CardHeader className="pb-4">
+              <CardTitle className="flex items-center space-x-2">
+                <Sparkles className="h-5 w-5 text-purple-600" />
+                <span>AI Content Generation</span>
+              </CardTitle>
+              <p className="text-sm text-gray-600">Professional content will be generated after campaign creation</p>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="text-center p-4 bg-white/50 rounded-lg">
+                  <div className="text-2xl mb-2">📝</div>
+                  <h4 className="font-semibold">Copy & Content</h4>
+                  <p className="text-sm text-gray-600">AI-generated posts and captions</p>
+                </div>
+                <div className="text-center p-4 bg-white/50 rounded-lg">
+                  <div className="text-2xl mb-2">🎨</div>
+                  <h4 className="font-semibold">Visual Assets</h4>
+                  <p className="text-sm text-gray-600">Professional images and graphics</p>
+                </div>
+                <div className="text-center p-4 bg-white/50 rounded-lg">
+                  <div className="text-2xl mb-2">📧</div>
+                  <h4 className="font-semibold">Email Content</h4>
+                  <p className="text-sm text-gray-600">Engaging email campaigns</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
 
           <Button
             type="submit"
             className="w-full bg-gradient-to-r from-blue-600 to-teal-600 hover:from-blue-700 hover:to-teal-700"
-            disabled={isLoading || isGeneratingContent}
+            disabled={isLoading}
             size="lg"
           >
             {isLoading ? (
               <>
                 <Wand2 className="mr-2 h-4 w-4 animate-spin" />
-                Creating Professional Campaign...
+                Creating Campaign...
               </>
             ) : (
               <>
                 <Wand2 className="mr-2 h-4 w-4" />
-                Generate, Create & Save Campaign
+                Create Campaign
               </>
             )}
           </Button>
         </form>
-
-        <ContentGenerationModal
-          isOpen={isGeneratingContent}
-          progress={(generationProgress.current / Math.max(generationProgress.total, 1)) * 100}
-          currentStep={generationProgress.step}
-          totalSteps={generationProgress.total}
-          completedSteps={generationProgress.current}
-          errors={generationProgress.errors}
-        />
       </div>
     </div>
   );
