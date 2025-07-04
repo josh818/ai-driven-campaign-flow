@@ -38,6 +38,137 @@ const App = () => (
           <Routes>
             <Route path="/" element={<Website />} />
             <Route path="/auth" element={<Auth />} />
+            <Route path="/signup" element={<Signup />} />
+            <Route path="/signup-success" element={<SignupSuccess />} />
+            <Route 
+              path="/dashboard" 
+              element={
+                <ProtectedRoute>
+                  <OnboardingGuard>
+                    <Index />
+                  </OnboardingGuard>
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/onboarding" 
+              element={
+                <ProtectedRoute>
+                  <Onboarding />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/campaigns" 
+              element={
+                <ProtectedRoute>
+                  <OnboardingGuard>
+                    <Campaigns />
+                  </OnboardingGuard>
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/campaigns/create" 
+              element={
+                <ProtectedRoute>
+                  <OnboardingGuard>
+                    <CreateCampaign />
+                  </OnboardingGuard>
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/campaigns/:id" 
+              element={
+                <ProtectedRoute>
+                  <OnboardingGuard>
+                    <CampaignDetails />
+                  </OnboardingGuard>
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/content-studio" 
+              element={
+                <ProtectedRoute>
+                  <OnboardingGuard>
+                    <ContentStudio />
+                  </OnboardingGuard>
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/calendar" 
+              element={
+                <ProtectedRoute>
+                  <OnboardingGuard>
+                    <Calendar />
+                  </OnboardingGuard>
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/analytics" 
+              element={
+                <ProtectedRoute>
+                  <OnboardingGuard>
+                    <Analytics />
+                  </OnboardingGuard>
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/reputation" 
+              element={
+                <ProtectedRoute>
+                  <OnboardingGuard>
+                    <Reputation />
+                  </OnboardingGuard>
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/settings" 
+              element={
+                <ProtectedRoute>
+                  <OnboardingGuard>
+                    <Settings />
+                  </OnboardingGuard>
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/profile" 
+              element={
+                <ProtectedRoute>
+                  <OnboardingGuard>
+                    <UserProfile />
+                  </OnboardingGuard>
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/admin" 
+              element={
+                <ProtectedRoute>
+                  <OnboardingGuard>
+                    <AdminDashboard />
+                  </OnboardingGuard>
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/admin/users" 
+              element={
+                <ProtectedRoute>
+                  <OnboardingGuard>
+                    <AdminUsers />
+                  </OnboardingGuard>
+                </ProtectedRoute>
+              } 
+            />
+            <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
       </TooltipProvider>
