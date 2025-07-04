@@ -1,58 +1,69 @@
-import { Toaster } from "@/components/ui/toaster";
-import { Toaster as Sonner } from "@/components/ui/sonner";
-import { TooltipProvider } from "@/components/ui/tooltip";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
-import Index from "./pages/Index";
-import Auth from "./pages/Auth";
-import Onboarding from "./pages/Onboarding";
-import AdminDashboard from "./pages/AdminDashboard";
-import CreateCampaign from "./pages/CreateCampaign";
-import ContentStudio from "./pages/ContentStudio";
-import Campaigns from "./pages/Campaigns";
-import CampaignDetails from "./pages/CampaignDetails";
-import Calendar from "./pages/Calendar";
-import Analytics from "./pages/Analytics";
-import Reputation from "./pages/Reputation";
-import Settings from "./pages/Settings";
-import AdminUsers from "./pages/AdminUsers";
-import UserProfile from "./pages/UserProfile";
-import Signup from "./pages/Signup";
-import Website from "./pages/Website";
-import SignupSuccess from "./pages/SignupSuccess";
-import NotFound from "./pages/NotFound";
+import React from 'react';
 
-const queryClient = new QueryClient();
-
-const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<Website />} />
-          <Route path="/auth" element={<Auth />} />
-          <Route path="/signup" element={<Signup />} />
-          <Route path="/signup-success" element={<SignupSuccess />} />
-          <Route path="/dashboard" element={<Index />} />
-          <Route path="/onboarding" element={<Onboarding />} />
-          <Route path="/campaigns" element={<Campaigns />} />
-          <Route path="/campaigns/create" element={<CreateCampaign />} />
-          <Route path="/campaigns/:id" element={<CampaignDetails />} />
-          <Route path="/content-studio" element={<ContentStudio />} />
-          <Route path="/calendar" element={<Calendar />} />
-          <Route path="/analytics" element={<Analytics />} />
-          <Route path="/reputation" element={<Reputation />} />
-          <Route path="/settings" element={<Settings />} />
-          <Route path="/profile" element={<UserProfile />} />
-          <Route path="/admin" element={<AdminDashboard />} />
-          <Route path="/admin/users" element={<AdminUsers />} />
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-      </BrowserRouter>
-    </TooltipProvider>
-  </QueryClientProvider>
-);
+const App = () => {
+  console.log("Simple App rendering");
+  
+  return (
+    <div style={{ 
+      padding: '40px', 
+      fontSize: '24px', 
+      textAlign: 'center',
+      backgroundColor: '#f0f8ff',
+      minHeight: '100vh',
+      display: 'flex',
+      flexDirection: 'column',
+      justifyContent: 'center',
+      alignItems: 'center'
+    }}>
+      <h1 style={{ color: '#2563eb', marginBottom: '20px' }}>BiggerBite.io</h1>
+      <p style={{ color: '#64748b', marginBottom: '30px' }}>Professional Campaign Management</p>
+      
+      <div style={{ 
+        display: 'flex', 
+        gap: '20px', 
+        flexWrap: 'wrap',
+        justifyContent: 'center'
+      }}>
+        <button 
+          onClick={() => console.log('Get Started clicked')}
+          style={{
+            backgroundColor: '#2563eb',
+            color: 'white',
+            padding: '12px 24px',
+            border: 'none',
+            borderRadius: '8px',
+            fontSize: '16px',
+            cursor: 'pointer'
+          }}
+        >
+          Get Started - $1,500/month
+        </button>
+        
+        <button 
+          onClick={() => console.log('Login clicked')}
+          style={{
+            backgroundColor: 'white',
+            color: '#2563eb',
+            padding: '12px 24px',
+            border: '2px solid #2563eb',
+            borderRadius: '8px',
+            fontSize: '16px',
+            cursor: 'pointer'
+          }}
+        >
+          Login
+        </button>
+      </div>
+      
+      <div style={{ marginTop: '40px', textAlign: 'center' }}>
+        <h3 style={{ color: '#1f2937', marginBottom: '15px' }}>Professional Marketing Excellence</h3>
+        <p style={{ color: '#6b7280', maxWidth: '600px' }}>
+          Your marketing campaigns deserve the expertise of professionals with over 20 years of proven success. 
+          Every strategy is backed by decades of experience.
+        </p>
+      </div>
+    </div>
+  );
+};
 
 export default App;
