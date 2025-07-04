@@ -118,7 +118,7 @@ const CreateCampaign = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-teal-50 to-green-50">
+    <div className="min-h-screen bg-background">
       <Header />
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="flex items-center mb-8">
@@ -131,17 +131,17 @@ const CreateCampaign = () => {
             Back
           </Button>
           <div>
-            <h2 className="text-3xl font-bold text-gray-900">Create New Campaign</h2>
-            <p className="text-gray-600">Launch your next marketing campaign with professional tools</p>
+            <h2 className="text-3xl font-bold text-foreground">Create New Campaign</h2>
+            <p className="text-muted-foreground">Launch your next marketing campaign with professional tools</p>
           </div>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-6">
           {/* Basic Campaign Details */}
-          <Card className="border-0 shadow-lg bg-white/80 backdrop-blur-sm">
+          <Card className="shadow-lg">
             <CardHeader className="pb-4">
               <CardTitle className="flex items-center space-x-2">
-                <Target className="h-5 w-5 text-blue-600" />
+                <Target className="h-5 w-5 text-primary" />
                 <span>Campaign Details</span>
               </CardTitle>
             </CardHeader>
@@ -178,7 +178,7 @@ const CreateCampaign = () => {
                   <SelectTrigger className="w-full">
                     <SelectValue placeholder="Select campaign type" />
                   </SelectTrigger>
-                  <SelectContent className="bg-white border border-gray-200 shadow-lg z-50">
+                  <SelectContent className="bg-popover border border-border shadow-lg z-50">
                     <SelectItem value="organic">Organic Content</SelectItem>
                     <SelectItem value="paid_ad">Paid Advertisement</SelectItem>
                     <SelectItem value="promoted">Promoted Post</SelectItem>
@@ -224,10 +224,10 @@ const CreateCampaign = () => {
           </Card>
 
           {/* Budget and Schedule */}
-          <Card className="border-0 shadow-lg bg-white/80 backdrop-blur-sm">
+          <Card className="shadow-lg">
             <CardHeader className="pb-4">
               <CardTitle className="flex items-center space-x-2">
-                <DollarSign className="h-5 w-5 text-green-600" />
+                <DollarSign className="h-5 w-5 text-primary" />
                 <span>Budget & Schedule</span>
               </CardTitle>
             </CardHeader>
@@ -271,30 +271,30 @@ const CreateCampaign = () => {
           </Card>
 
           {/* AI Content Generation Preview */}
-          <Card className="border-0 shadow-lg bg-gradient-to-r from-purple-50 to-pink-50">
+          <Card className="shadow-lg bg-muted/50">
             <CardHeader className="pb-4">
               <CardTitle className="flex items-center space-x-2">
-                <Sparkles className="h-5 w-5 text-purple-600" />
+                <Sparkles className="h-5 w-5 text-primary" />
                 <span>AI Content Generation</span>
               </CardTitle>
-              <p className="text-sm text-gray-600">Professional content will be generated after campaign creation</p>
+              <p className="text-sm text-muted-foreground">Professional content will be generated after campaign creation</p>
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div className="text-center p-4 bg-white/50 rounded-lg">
+                <div className="text-center p-4 bg-card rounded-lg border">
                   <div className="text-2xl mb-2">📝</div>
-                  <h4 className="font-semibold">Copy & Content</h4>
-                  <p className="text-sm text-gray-600">AI-generated posts and captions</p>
+                  <h4 className="font-semibold text-card-foreground">Copy & Content</h4>
+                  <p className="text-sm text-muted-foreground">AI-generated posts and captions</p>
                 </div>
-                <div className="text-center p-4 bg-white/50 rounded-lg">
+                <div className="text-center p-4 bg-card rounded-lg border">
                   <div className="text-2xl mb-2">🎨</div>
-                  <h4 className="font-semibold">Visual Assets</h4>
-                  <p className="text-sm text-gray-600">Professional images and graphics</p>
+                  <h4 className="font-semibold text-card-foreground">Visual Assets</h4>
+                  <p className="text-sm text-muted-foreground">Professional images and graphics</p>
                 </div>
-                <div className="text-center p-4 bg-white/50 rounded-lg">
+                <div className="text-center p-4 bg-card rounded-lg border">
                   <div className="text-2xl mb-2">📧</div>
-                  <h4 className="font-semibold">Email Content</h4>
-                  <p className="text-sm text-gray-600">Engaging email campaigns</p>
+                  <h4 className="font-semibold text-card-foreground">Email Content</h4>
+                  <p className="text-sm text-muted-foreground">Engaging email campaigns</p>
                 </div>
               </div>
             </CardContent>
@@ -302,7 +302,7 @@ const CreateCampaign = () => {
 
           <Button
             type="submit"
-            className="w-full bg-gradient-to-r from-blue-600 to-teal-600 hover:from-blue-700 hover:to-teal-700"
+            className="w-full"
             disabled={isLoading}
             size="lg"
           >
