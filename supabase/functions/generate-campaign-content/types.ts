@@ -1,5 +1,6 @@
 
 export interface CampaignData {
+  id: string;
   title: string;
   brand_name: string;
   description?: string;
@@ -26,4 +27,8 @@ export interface GeneratedContent {
   content: string;
   has_media: boolean;
   media_url?: string;
+  status?: string;
+  filePath?: string;
+  fileSize?: number;
+  mimeType?: string;
 }

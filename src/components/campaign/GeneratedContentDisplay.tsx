@@ -24,6 +24,9 @@ interface GeneratedContent {
   mediaUrl?: string;
   contentType?: string;
   mediaType?: string;
+  filePath?: string;
+  fileSize?: number;
+  mimeType?: string;
 }
 
 interface GeneratedContentDisplayProps {
@@ -55,18 +58,30 @@ const GeneratedContentDisplay = ({ content }: GeneratedContentDisplayProps) => {
     });
   };
 
-  const downloadMedia = (mediaUrl: string, filename: string) => {
-    const link = document.createElement('a');
-    link.href = mediaUrl;
-    link.download = filename;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    
-    toast({
-      title: "Downloaded",
-      description: "Media file downloaded successfully!",
-    });
+  const downloadMedia = async (item: GeneratedContent) => {
+    if (!item.filePath) {
+      toast({
+        title: "Download Failed",
+        description: "No file path available for download.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    try {
+      const { downloadFile } = await import('@/lib/storage-utils');
+      await downloadFile(item.filePath, `${item.type}_${item.platform || 'content'}`);
+      toast({
+        title: "Downloaded",
+        description: "Media file downloaded successfully!",
+      });
+    } catch (error) {
+      toast({
+        title: "Download Failed",
+        description: "Failed to download media file.",
+        variant: "destructive"
+      });
+    }
   };
 
   const getPlatformIcon = (platform: string) => {
@@ -229,7 +244,7 @@ const GeneratedContentDisplay = ({ content }: GeneratedContentDisplayProps) => {
                 type="button" 
                 variant="outline" 
                 size="sm"
-                onClick={() => downloadMedia(item.mediaUrl!, `${item.type}-${Date.now()}.${item.type === 'video' ? 'mp4' : 'png'}`)}
+                                    onClick={() => downloadMedia(item)}
               >
                 <Download className="h-4 w-4 mr-1" />
                 Media

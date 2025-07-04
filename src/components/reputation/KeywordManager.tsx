@@ -34,12 +34,10 @@ const KeywordManager = ({ monitoredTerms, onKeywordAdded, onSearchBrandMentions 
     
     setIsAddingKeyword(true);
     try {
-      const mockScore = Math.floor(Math.random() * 100);
-      
       const [trendsResult, termsResult] = await Promise.all([
         supabase.from('google_trends_data').insert([{
           keyword: newKeyword.trim(),
-          interest_score: mockScore,
+          interest_score: 0,
           user_id: user?.id
         }]),
         supabase.from('monitored_terms').insert([{

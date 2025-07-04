@@ -77,31 +77,15 @@ const Analytics = () => {
     }
   };
 
-  // Mock data for demonstration since we don't have real analytics yet
-  const mockData = [
-    { date: '2024-01-01', impressions: 1200, clicks: 45, conversions: 8, spend: 120 },
-    { date: '2024-01-02', impressions: 1350, clicks: 52, conversions: 12, spend: 135 },
-    { date: '2024-01-03', impressions: 1100, clicks: 38, conversions: 6, spend: 110 },
-    { date: '2024-01-04', impressions: 1400, clicks: 58, conversions: 15, spend: 140 },
-    { date: '2024-01-05', impressions: 1600, clicks: 68, conversions: 18, spend: 160 },
-    { date: '2024-01-06', impressions: 1300, clicks: 48, conversions: 10, spend: 130 },
-    { date: '2024-01-07', impressions: 1500, clicks: 62, conversions: 14, spend: 150 },
-  ];
-
-  const platformData = [
-    { name: 'Facebook', value: 35, color: '#1877f2' },
-    { name: 'Instagram', value: 28, color: '#e4405f' },
-    { name: 'Twitter', value: 20, color: '#1da1f2' },
-    { name: 'LinkedIn', value: 12, color: '#0077b5' },
-    { name: 'TikTok', value: 5, color: '#000000' },
-  ];
-
-  const totalImpressions = mockData.reduce((sum, item) => sum + item.impressions, 0);
-  const totalClicks = mockData.reduce((sum, item) => sum + item.clicks, 0);
-  const totalConversions = mockData.reduce((sum, item) => sum + item.conversions, 0);
-  const totalSpend = mockData.reduce((sum, item) => sum + item.spend, 0);
-  const ctr = totalClicks / totalImpressions * 100;
-  const conversionRate = totalConversions / totalClicks * 100;
+  // No mock data - analytics will be empty until real data is available
+  const mockData: any[] = [];
+  const platformData: any[] = [];
+  const totalImpressions = 0;
+  const totalClicks = 0;
+  const totalConversions = 0;
+  const totalSpend = 0;
+  const ctr = 0;
+  const conversionRate = 0;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 to-pink-50">

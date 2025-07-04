@@ -23,6 +23,9 @@ interface GeneratedContent {
   content: string;
   platform?: string;
   mediaUrl?: string;
+  filePath?: string;
+  fileSize?: number;
+  mimeType?: string;
 }
 
 const CreateCampaign = () => {
@@ -276,14 +279,20 @@ const CreateCampaign = () => {
               type: 'image',
               content: item.content || 'Generated professional image',
               platform: item.platform,
-              mediaUrl: item.mediaUrl || 'https://images.unsplash.com/photo-1649972904349-6e44c42644a7?w=800&h=600&fit=crop'
+              mediaUrl: item.mediaUrl,
+              filePath: item.filePath,
+              fileSize: item.fileSize,
+              mimeType: item.mimeType
             });
           } else if (item.mediaType === 'video') {
             newContent.push({
               type: 'video',
               content: item.content || 'Generated video concept and script',
               platform: item.platform,
-              mediaUrl: item.mediaUrl || undefined
+              mediaUrl: item.mediaUrl,
+              filePath: item.filePath,
+              fileSize: item.fileSize,
+              mimeType: item.mimeType
             });
           } else if (item.mediaType === 'email') {
             newContent.push({
@@ -320,67 +329,12 @@ const CreateCampaign = () => {
         variant: "destructive"
       });
       
-      // Enhanced fallback content based on selected content types
-      const mockContent: GeneratedContent[] = [];
-      
-      if (contentSettings.contentTypes.includes('copy')) {
-        const tonePrefix = aiFormData.tone === 'casual' ? 'Hey there! 😊' :
-                          aiFormData.tone === 'enthusiastic' ? '🚀 Exciting news!' :
-                          aiFormData.tone === 'humorous' ? '😄 Ready for this?' :
-                          aiFormData.tone === 'informative' ? 'Here are the details:' :
-                          'We are pleased to announce:';
-        
-        contentSettings.platforms.forEach(platform => {
-          mockContent.push({
-            type: 'copy',
-            content: `${tonePrefix} ${brandData.brand_name || formData.brand_name} presents: ${formData.title}! ${formData.description || 'Experience something amazing.'} Perfect for ${formData.target_audience || 'everyone'}. ${aiFormData.keywords ? `#${aiFormData.keywords.split(',').join(' #')}` : ''} #Innovation #Quality`,
-            platform: platform
-          });
-        });
-      }
-      
-      if (contentSettings.contentTypes.includes('email')) {
-        const emailTone = aiFormData.tone === 'casual' ? 'Hi there!' :
-                         aiFormData.tone === 'enthusiastic' ? 'We\'re thrilled to share!' :
-                         'We are pleased to inform you';
-        
-        mockContent.push({
-          type: 'email',
-          content: `Subject: ${formData.title} - ${brandData.brand_name || formData.brand_name}\n\n${emailTone}\n\nWe're excited to introduce our ${formData.title} campaign.\n\n${formData.description || 'This represents our commitment to excellence and innovation.'}\n\nDesigned specifically for ${formData.target_audience || 'our valued customers'}, this campaign focuses on delivering exceptional value.\n\nKey benefits:\n• ${formData.title} showcases our latest innovations\n• Tailored for ${formData.target_audience || 'your needs'}\n• ${formData.description || 'Premium quality you can trust'}\n\nThank you for being part of our community.\n\nBest regards,\nThe ${brandData.brand_name || formData.brand_name} Team`,
-          platform: 'email'
-        });
-      }
-      
-      if (contentSettings.contentTypes.includes('image')) {
-        contentSettings.platforms.forEach(platform => {
-          if (platform !== 'email') {
-            mockContent.push({
-              type: 'image',
-              content: `${aiFormData.tone || 'Professional'} image for ${brandData.brand_name || formData.brand_name} ${formData.title} campaign - ${formData.description}`,
-              platform: platform,
-              mediaUrl: `https://images.unsplash.com/photo-1649972904349-6e44c42644a7?w=800&h=600&fit=crop`
-            });
-          }
-        });
-      }
-      
-      if (contentSettings.contentTypes.includes('video')) {
-        contentSettings.platforms.forEach(platform => {
-          if (platform !== 'email') {
-            mockContent.push({
-              type: 'video',
-              content: `15-second ${aiFormData.tone || 'engaging'} video script for ${brandData.brand_name || formData.brand_name} ${formData.title}: Hook (0-3s) → Core message about "${formData.description}" (3-12s) → Call-to-action (12-15s).`,
-              platform: platform
-            });
-          }
-        });
-      }
-      
-      setGeneratedContent(mockContent);
+      // Content generation failed - no fallback content provided
+      setGeneratedContent([]);
       setGenerationProgress(prev => ({
         ...prev,
-        current: mockContent.length,
-        step: 'Fallback content generated'
+        current: 0,
+        step: 'Content generation failed'
       }));
     } finally {
       setIsGeneratingContent(false);

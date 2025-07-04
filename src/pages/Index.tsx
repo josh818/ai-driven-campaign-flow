@@ -52,33 +52,13 @@ const Index = () => {
 
       if (mentionsError) throw mentionsError;
 
-      // Fetch campaign analytics for reach and engagement (mock calculation for now)
-      const { data: analyticsData, error: analyticsError } = await supabase
-        .from('campaign_analytics')
-        .select('*')
-        .in('campaign_id', campaignsData?.map(c => c.id) || []);
-
-      if (analyticsError) throw analyticsError;
-
       // Calculate stats
       const activeCampaignsCount = campaignsData?.length || 0;
       const brandMentionsCount = mentionsData?.length || 0;
       
-      // Mock calculations for reach and engagement based on available data
-      const totalReach = analyticsData?.reduce((sum, metric) => {
-        if (metric.metric_name === 'reach' || metric.metric_name === 'impressions') {
-          return sum + Number(metric.metric_value);
-        }
-        return sum;
-      }, 0) || 0;
-
-      const engagementMetrics = analyticsData?.filter(metric => 
-        metric.metric_name === 'engagement' || metric.metric_name === 'likes' || metric.metric_name === 'shares'
-      ) || [];
-      
-      const avgEngagement = engagementMetrics.length > 0 
-        ? engagementMetrics.reduce((sum, metric) => sum + Number(metric.metric_value), 0) / engagementMetrics.length
-        : 0;
+      // No mock calculations - use real data only
+      const totalReach = 0;
+      const avgEngagement = 0;
 
       setDashboardStats({
         activeCampaigns: activeCampaignsCount.toString(),

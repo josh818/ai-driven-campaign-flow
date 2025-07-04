@@ -105,7 +105,10 @@ serve(async (req) => {
           mediaType: request.mediaType,
           content: content.content,
           mediaUrl: content.mediaUrl || null,
-          status: 'generated'
+          status: 'generated',
+          filePath: content.filePath,
+          fileSize: content.fileSize,
+          mimeType: content.mimeType
         };
 
         generatedContent.push(generatedItem);
