@@ -28,114 +28,13 @@ import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
 
-const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <AuthProvider>
-      <TooltipProvider>
-        <Toaster />
-        <Sonner />
-        <BrowserRouter>
-          <Routes>
-            {/* Website as root */}
-            <Route path="/" element={<Website />} />
-            <Route path="/auth" element={<Auth />} />
-            <Route path="/signup" element={<Signup />} />
-            <Route path="/signup-success" element={<SignupSuccess />} />
-            <Route path="/onboarding" element={
-              <ProtectedRoute>
-                <Onboarding />
-              </ProtectedRoute>
-            } />
-            <Route path="/admin12345678/dashboard" element={
-              <ProtectedRoute>
-                <OnboardingGuard>
-                  <AdminDashboard />
-                </OnboardingGuard>
-              </ProtectedRoute>
-            } />
-            <Route path="/dashboard" element={
-              <ProtectedRoute>
-                <OnboardingGuard>
-                  <Index />
-                </OnboardingGuard>
-              </ProtectedRoute>
-            } />
-            <Route path="/create-campaign" element={
-              <ProtectedRoute>
-                <OnboardingGuard>
-                  <CreateCampaign />
-                </OnboardingGuard>
-              </ProtectedRoute>
-            } />
-            <Route path="/content-studio" element={
-              <ProtectedRoute>
-                <OnboardingGuard>
-                  <ContentStudio />
-                </OnboardingGuard>
-              </ProtectedRoute>
-            } />
-            <Route path="/campaigns" element={
-              <ProtectedRoute>
-                <OnboardingGuard>
-                  <Campaigns />
-                </OnboardingGuard>
-              </ProtectedRoute>
-            } />
-            <Route path="/campaigns/:id" element={
-              <ProtectedRoute>
-                <OnboardingGuard>
-                  <CampaignDetails />
-                </OnboardingGuard>
-              </ProtectedRoute>
-            } />
-            <Route path="/calendar" element={
-              <ProtectedRoute>
-                <OnboardingGuard>
-                  <Calendar />
-                </OnboardingGuard>
-              </ProtectedRoute>
-            } />
-            <Route path="/analytics" element={
-              <ProtectedRoute>
-                <OnboardingGuard>
-                  <Analytics />
-                </OnboardingGuard>
-              </ProtectedRoute>
-            } />
-            <Route path="/reputation" element={
-              <ProtectedRoute>
-                <OnboardingGuard>
-                  <Reputation />
-                </OnboardingGuard>
-              </ProtectedRoute>
-            } />
-            <Route path="/settings" element={
-              <ProtectedRoute>
-                <OnboardingGuard>
-                  <Settings />
-                </OnboardingGuard>
-              </ProtectedRoute>
-            } />
-            <Route path="/admin12345678/users" element={
-              <ProtectedRoute>
-                <OnboardingGuard>
-                  <AdminUsers />
-                </OnboardingGuard>
-              </ProtectedRoute>
-            } />
-            <Route path="/admin12345678/users/:userId" element={
-              <ProtectedRoute>
-                <OnboardingGuard>
-                  <UserProfile />
-                </OnboardingGuard>
-              </ProtectedRoute>
-            } />
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </BrowserRouter>
-      </TooltipProvider>
-    </AuthProvider>
-  </QueryClientProvider>
-);
+const App = () => {
+  return (
+    <div style={{ padding: '20px', backgroundColor: 'lightblue', minHeight: '100vh' }}>
+      <h1>Test - App is working!</h1>
+      <p>If you can see this, React is working properly.</p>
+    </div>
+  );
+};
 
 export default App;
