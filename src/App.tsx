@@ -28,13 +28,14 @@ import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
 
-const App = () => {
-  return (
-    <div style={{ padding: '20px', backgroundColor: 'lightblue', minHeight: '100vh' }}>
-      <h1>Test - App is working!</h1>
-      <p>If you can see this, React is working properly.</p>
-    </div>
-  );
-};
+const App = () => (
+  <QueryClientProvider client={queryClient}>
+    <BrowserRouter>
+      <Routes>
+        <Route path="/" element={<Website />} />
+      </Routes>
+    </BrowserRouter>
+  </QueryClientProvider>
+);
 
 export default App;
