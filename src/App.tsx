@@ -28,35 +28,41 @@ import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
 
-const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<Website />} />
-          <Route path="/auth" element={<Auth />} />
-          <Route path="/signup" element={<Signup />} />
-          <Route path="/signup-success" element={<SignupSuccess />} />
-          <Route path="/dashboard" element={<Index />} />
-          <Route path="/onboarding" element={<Onboarding />} />
-          <Route path="/campaigns" element={<Campaigns />} />
-          <Route path="/campaigns/create" element={<CreateCampaign />} />
-          <Route path="/campaigns/:id" element={<CampaignDetails />} />
-          <Route path="/content-studio" element={<ContentStudio />} />
-          <Route path="/calendar" element={<Calendar />} />
-          <Route path="/analytics" element={<Analytics />} />
-          <Route path="/reputation" element={<Reputation />} />
-          <Route path="/settings" element={<Settings />} />
-          <Route path="/profile" element={<UserProfile />} />
-          <Route path="/admin" element={<AdminDashboard />} />
-          <Route path="/admin/users" element={<AdminUsers />} />
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-      </BrowserRouter>
-    </TooltipProvider>
-  </QueryClientProvider>
-);
+const App = () => {
+  return (
+    <div style={{ padding: "20px", fontSize: "24px", color: "black" }}>
+      <h1>BiggerBite.io Test</h1>
+      <p>If you can see this, React is working!</p>
+      <QueryClientProvider client={queryClient}>
+        <TooltipProvider>
+          <Toaster />
+          <Sonner />
+          <BrowserRouter>
+            <Routes>
+              <Route path="/" element={<Website />} />
+              <Route path="/auth" element={<Auth />} />
+              <Route path="/signup" element={<Signup />} />
+              <Route path="/signup-success" element={<SignupSuccess />} />
+              <Route path="/dashboard" element={<Index />} />
+              <Route path="/onboarding" element={<Onboarding />} />
+              <Route path="/campaigns" element={<Campaigns />} />
+              <Route path="/campaigns/create" element={<CreateCampaign />} />
+              <Route path="/campaigns/:id" element={<CampaignDetails />} />
+              <Route path="/content-studio" element={<ContentStudio />} />
+              <Route path="/calendar" element={<Calendar />} />
+              <Route path="/analytics" element={<Analytics />} />
+              <Route path="/reputation" element={<Reputation />} />
+              <Route path="/settings" element={<Settings />} />
+              <Route path="/profile" element={<UserProfile />} />
+              <Route path="/admin" element={<AdminDashboard />} />
+              <Route path="/admin/users" element={<AdminUsers />} />
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </BrowserRouter>
+        </TooltipProvider>
+      </QueryClientProvider>
+    </div>
+  );
+};
 
 export default App;
