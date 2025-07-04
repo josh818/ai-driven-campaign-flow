@@ -147,13 +147,13 @@ const Header = () => {
                   <>
                     <DropdownMenuSeparator />
                     <DropdownMenuItem asChild>
-                      <Link to="/admin12345678/dashboard">
+                      <Link to="/admin">
                         <UserCog className="mr-2 h-4 w-4" />
                         <span>Admin Dashboard</span>
                       </Link>
                     </DropdownMenuItem>
                     <DropdownMenuItem asChild>
-                      <Link to="/admin12345678/users">
+                      <Link to="/admin/users">
                         <Shield className="mr-2 h-4 w-4" />
                         <span>Manage Users</span>
                       </Link>
