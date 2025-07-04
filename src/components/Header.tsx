@@ -57,7 +57,7 @@ const Header = () => {
   const canGoBack = location.pathname !== '/dashboard';
 
   return (
-    <header className="bg-white/80 backdrop-blur-sm border-b border-gray-200 sticky top-0 z-50">
+    <header className="bg-background/80 backdrop-blur-sm border-b border-border sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           <div className="flex items-center space-x-3">
@@ -71,8 +71,8 @@ const Header = () => {
                 <ArrowLeft className="h-4 w-4" />
               </Button>
             )}
-            <Link to="/dashboard" className="p-2 bg-gradient-to-br from-blue-500 to-teal-500 rounded-xl flex items-center justify-center">
-              <span className="text-white font-bold text-lg">BB</span>
+            <Link to="/dashboard" className="p-2 bg-primary rounded-xl flex items-center justify-center">
+              <span className="text-primary-foreground font-bold text-lg">BB</span>
             </Link>
             {location.pathname !== '/dashboard' && (
               <Button variant="ghost" size="sm" asChild>
@@ -124,7 +124,7 @@ const Header = () => {
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" className="relative h-10 w-10 rounded-full">
                   <Avatar className="h-10 w-10">
-                    <AvatarFallback className="bg-gradient-to-br from-blue-500 to-teal-500 text-white">
+                    <AvatarFallback className="bg-primary text-primary-foreground">
                       {initials}
                     </AvatarFallback>
                   </Avatar>

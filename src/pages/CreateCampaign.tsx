@@ -9,7 +9,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
-import { ArrowLeft, Wand2, Sparkles, Target, Calendar, DollarSign } from 'lucide-react';
+import { ArrowLeft, Wand2, Sparkles, Target, DollarSign, Calendar, Zap } from 'lucide-react';
 import Header from '@/components/Header';
 
 const CreateCampaign = () => {
@@ -120,35 +120,43 @@ const CreateCampaign = () => {
   return (
     <div className="min-h-screen bg-background">
       <Header />
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="flex items-center mb-8">
-          <Button
-            variant="ghost"
-            onClick={() => navigate(-1)}
-            className="mr-4"
-          >
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            Back
-          </Button>
-          <div>
-            <h2 className="text-3xl font-bold text-foreground">Create New Campaign</h2>
-            <p className="text-muted-foreground">Launch your next marketing campaign with professional tools</p>
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Header Section */}
+        <div className="flex items-center justify-between mb-8">
+          <div className="flex items-center space-x-4">
+            <Button
+              variant="ghost"
+              onClick={() => navigate(-1)}
+              className="flex items-center space-x-2 hover:bg-accent"
+            >
+              <ArrowLeft className="h-4 w-4" />
+              <span>Back</span>
+            </Button>
+            <div>
+              <h1 className="text-4xl font-bold text-foreground">Create Campaign</h1>
+              <p className="text-muted-foreground mt-1">Build your next marketing campaign with AI-powered tools</p>
+            </div>
+          </div>
+          <div className="flex items-center space-x-2 text-primary">
+            <Zap className="h-5 w-5" />
+            <span className="font-medium">AI-Powered</span>
           </div>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-6">
-          {/* Basic Campaign Details */}
-          <Card className="shadow-lg">
-            <CardHeader className="pb-4">
-              <CardTitle className="flex items-center space-x-2">
-                <Target className="h-5 w-5 text-primary" />
-                <span>Campaign Details</span>
+        <form onSubmit={handleSubmit} className="space-y-8">
+          {/* Campaign Basics */}
+          <Card className="border-2 border-border shadow-lg">
+            <CardHeader className="pb-6">
+              <CardTitle className="flex items-center space-x-3 text-xl">
+                <Target className="h-6 w-6 text-primary" />
+                <span>Campaign Foundation</span>
               </CardTitle>
+              <p className="text-muted-foreground text-sm">Start with the basics of your campaign</p>
             </CardHeader>
             <CardContent className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-2">
-                  <Label htmlFor="brand_name">Brand Name *</Label>
+                  <Label htmlFor="brand_name" className="text-sm font-medium">Brand Name *</Label>
                   <Input
                     id="brand_name"
                     name="brand_name"
@@ -156,11 +164,12 @@ const CreateCampaign = () => {
                     value={formData.brand_name}
                     onChange={handleInputChange}
                     required
+                    className="h-11"
                   />
                 </div>
                 
                 <div className="space-y-2">
-                  <Label htmlFor="title">Campaign Name *</Label>
+                  <Label htmlFor="title" className="text-sm font-medium">Campaign Name *</Label>
                   <Input
                     id="title"
                     name="title"
@@ -168,73 +177,80 @@ const CreateCampaign = () => {
                     value={formData.title}
                     onChange={handleInputChange}
                     required
+                    className="h-11"
                   />
                 </div>
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="campaign_type">Campaign Type</Label>
+                <Label htmlFor="campaign_type" className="text-sm font-medium">Campaign Type</Label>
                 <Select value={formData.campaign_type} onValueChange={handleCampaignTypeChange}>
-                  <SelectTrigger className="w-full">
+                  <SelectTrigger className="h-11">
                     <SelectValue placeholder="Select campaign type" />
                   </SelectTrigger>
-                  <SelectContent className="bg-popover border border-border shadow-lg z-50">
-                    <SelectItem value="organic">Organic Content</SelectItem>
-                    <SelectItem value="paid_ad">Paid Advertisement</SelectItem>
-                    <SelectItem value="promoted">Promoted Post</SelectItem>
+                  <SelectContent className="bg-popover border border-border shadow-lg">
+                    <SelectItem value="organic">🌱 Organic Content</SelectItem>
+                    <SelectItem value="paid_ad">💰 Paid Advertisement</SelectItem>
+                    <SelectItem value="promoted">🚀 Promoted Post</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="description">Campaign Description *</Label>
+                <Label htmlFor="description" className="text-sm font-medium">Campaign Description *</Label>
                 <Textarea
                   id="description"
                   name="description"
-                  placeholder="Describe your campaign objectives and key messaging"
+                  placeholder="Describe your campaign objectives, key messages, and goals..."
                   value={formData.description}
                   onChange={handleInputChange}
                   required
                   rows={4}
+                  className="resize-none"
                 />
               </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="target_audience">Target Audience</Label>
-                <Input
-                  id="target_audience"
-                  name="target_audience"
-                  placeholder="Describe your target audience"
-                  value={formData.target_audience}
-                  onChange={handleInputChange}
-                />
-              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="space-y-2">
+                  <Label htmlFor="target_audience" className="text-sm font-medium">Target Audience</Label>
+                  <Input
+                    id="target_audience"
+                    name="target_audience"
+                    placeholder="Who are you trying to reach?"
+                    value={formData.target_audience}
+                    onChange={handleInputChange}
+                    className="h-11"
+                  />
+                </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="campaign_goals">Campaign Goals (comma-separated)</Label>
-                <Input
-                  id="campaign_goals"
-                  name="campaign_goals"
-                  placeholder="increase brand awareness, drive sales, engagement"
-                  value={formData.campaign_goals.join(', ')}
-                  onChange={handleGoalsChange}
-                />
+                <div className="space-y-2">
+                  <Label htmlFor="campaign_goals" className="text-sm font-medium">Campaign Goals</Label>
+                  <Input
+                    id="campaign_goals"
+                    name="campaign_goals"
+                    placeholder="brand awareness, lead generation, sales"
+                    value={formData.campaign_goals.join(', ')}
+                    onChange={handleGoalsChange}
+                    className="h-11"
+                  />
+                </div>
               </div>
             </CardContent>
           </Card>
 
-          {/* Budget and Schedule */}
-          <Card className="shadow-lg">
-            <CardHeader className="pb-4">
-              <CardTitle className="flex items-center space-x-2">
-                <DollarSign className="h-5 w-5 text-primary" />
-                <span>Budget & Schedule</span>
+          {/* Budget and Timeline */}
+          <Card className="border-2 border-border shadow-lg">
+            <CardHeader className="pb-6">
+              <CardTitle className="flex items-center space-x-3 text-xl">
+                <DollarSign className="h-6 w-6 text-primary" />
+                <span>Budget & Timeline</span>
               </CardTitle>
+              <p className="text-muted-foreground text-sm">Set your budget and campaign schedule</p>
             </CardHeader>
             <CardContent className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <div className="space-y-2">
-                  <Label htmlFor="budget">Budget ($)</Label>
+                  <Label htmlFor="budget" className="text-sm font-medium">Budget ($)</Label>
                   <Input
                     id="budget"
                     name="budget"
@@ -242,82 +258,98 @@ const CreateCampaign = () => {
                     placeholder="0.00"
                     value={formData.budget}
                     onChange={handleInputChange}
+                    className="h-11"
+                    min="0"
+                    step="0.01"
                   />
                 </div>
                 
                 <div className="space-y-2">
-                  <Label htmlFor="start_date">Start Date</Label>
+                  <Label htmlFor="start_date" className="text-sm font-medium">Start Date</Label>
                   <Input
                     id="start_date"
                     name="start_date"
                     type="date"
                     value={formData.start_date}
                     onChange={handleInputChange}
+                    className="h-11"
                   />
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="end_date">End Date</Label>
+                  <Label htmlFor="end_date" className="text-sm font-medium">End Date</Label>
                   <Input
                     id="end_date"
                     name="end_date"
                     type="date"
                     value={formData.end_date}
                     onChange={handleInputChange}
+                    className="h-11"
                   />
                 </div>
               </div>
             </CardContent>
           </Card>
 
-          {/* AI Content Generation Preview */}
-          <Card className="shadow-lg bg-muted/50">
-            <CardHeader className="pb-4">
-              <CardTitle className="flex items-center space-x-2">
-                <Sparkles className="h-5 w-5 text-primary" />
+          {/* AI Content Preview */}
+          <Card className="border-2 border-primary/20 bg-gradient-to-br from-primary/5 to-secondary/5 shadow-lg">
+            <CardHeader className="pb-6">
+              <CardTitle className="flex items-center space-x-3 text-xl">
+                <Sparkles className="h-6 w-6 text-primary" />
                 <span>AI Content Generation</span>
               </CardTitle>
-              <p className="text-sm text-muted-foreground">Professional content will be generated after campaign creation</p>
+              <p className="text-muted-foreground text-sm">
+                Our AI will generate professional content for your campaign across multiple channels
+              </p>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div className="text-center p-4 bg-card rounded-lg border">
-                  <div className="text-2xl mb-2">📝</div>
-                  <h4 className="font-semibold text-card-foreground">Copy & Content</h4>
-                  <p className="text-sm text-muted-foreground">AI-generated posts and captions</p>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div className="text-center p-6 bg-card rounded-xl border border-border shadow-sm hover:shadow-md transition-shadow">
+                  <div className="text-3xl mb-3">📝</div>
+                  <h4 className="font-semibold text-card-foreground mb-2">Social Media Posts</h4>
+                  <p className="text-sm text-muted-foreground">
+                    Platform-optimized posts with captions, hashtags, and engagement hooks
+                  </p>
                 </div>
-                <div className="text-center p-4 bg-card rounded-lg border">
-                  <div className="text-2xl mb-2">🎨</div>
-                  <h4 className="font-semibold text-card-foreground">Visual Assets</h4>
-                  <p className="text-sm text-muted-foreground">Professional images and graphics</p>
+                <div className="text-center p-6 bg-card rounded-xl border border-border shadow-sm hover:shadow-md transition-shadow">
+                  <div className="text-3xl mb-3">🎨</div>
+                  <h4 className="font-semibold text-card-foreground mb-2">Visual Content</h4>
+                  <p className="text-sm text-muted-foreground">
+                    Professional images, graphics, and visual assets for your brand
+                  </p>
                 </div>
-                <div className="text-center p-4 bg-card rounded-lg border">
-                  <div className="text-2xl mb-2">📧</div>
-                  <h4 className="font-semibold text-card-foreground">Email Content</h4>
-                  <p className="text-sm text-muted-foreground">Engaging email campaigns</p>
+                <div className="text-center p-6 bg-card rounded-xl border border-border shadow-sm hover:shadow-md transition-shadow">
+                  <div className="text-3xl mb-3">📧</div>
+                  <h4 className="font-semibold text-card-foreground mb-2">Email Campaigns</h4>
+                  <p className="text-sm text-muted-foreground">
+                    Compelling email sequences with subject lines and CTAs
+                  </p>
                 </div>
               </div>
             </CardContent>
           </Card>
 
-          <Button
-            type="submit"
-            className="w-full"
-            disabled={isLoading}
-            size="lg"
-          >
-            {isLoading ? (
-              <>
-                <Wand2 className="mr-2 h-4 w-4 animate-spin" />
-                Creating Campaign...
-              </>
-            ) : (
-              <>
-                <Wand2 className="mr-2 h-4 w-4" />
-                Create Campaign
-              </>
-            )}
-          </Button>
+          {/* Submit Button */}
+          <div className="flex justify-center pt-4">
+            <Button
+              type="submit"
+              className="h-12 px-8 text-base font-medium min-w-[200px]"
+              disabled={isLoading}
+              size="lg"
+            >
+              {isLoading ? (
+                <>
+                  <Wand2 className="mr-2 h-5 w-5 animate-spin" />
+                  Creating Campaign...
+                </>
+              ) : (
+                <>
+                  <Wand2 className="mr-2 h-5 w-5" />
+                  Create Campaign
+                </>
+              )}
+            </Button>
+          </div>
         </form>
       </div>
     </div>
